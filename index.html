@@ -113,9 +113,9 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 #boardBtn,#seizeBtn{padding:12px 16px;min-height:52px;border-radius:24px;border:none;font-size:17px;font-weight:800;background:#a12a1d;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.5);touch-action:none;white-space:nowrap}
 #hWant{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:#ffd34d;margin-top:2px}
 #hWant.hot{color:#ff7b6b}
-#tipBox{position:fixed;left:50%;transform:translateX(-50%);top:calc(262px + env(safe-area-inset-top));width:min(360px,calc(100vw - 16px));z-index:25;background:linear-gradient(#f4e4c1,#e3cc9b);color:#3b2306;border:3px solid #a12a1d;border-radius:14px;padding:8px 12px;box-shadow:0 6px 20px rgba(0,0,0,.55);font-size:14.5px;line-height:1.35;pointer-events:none}
-#tipBox .tb{display:flex;justify-content:flex-end;margin-top:6px}#tipBox button{pointer-events:auto;touch-action:manipulation}
-@media (max-height:520px) and (orientation:landscape){#toast{top:calc(8px + env(safe-area-inset-top));max-width:calc(100vw - 2*(min(215px,52vw) + 42px));font-size:14px}#tipBox{top:calc(8px + env(safe-area-inset-top))}#boardBar{bottom:calc(18px + env(safe-area-inset-bottom))}}
+#tipBox{position:fixed;left:50%;transform:translateX(-50%);top:calc(262px + env(safe-area-inset-top));width:min(280px,70vw);z-index:25;background:linear-gradient(#f4e4c1,#e3cc9b);color:#3b2306;border:3px solid #a12a1d;border-radius:12px;padding:5px 10px;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:13.5px;line-height:1.28;pointer-events:none}
+#tipBox .tb{display:flex;justify-content:flex-end;margin-top:3px}#tipBox .tb button{min-height:36px;padding:4px 12px}#tipBox button{pointer-events:auto;touch-action:manipulation}
+@media (max-height:520px) and (orientation:landscape){#tutBub,#tipBox{width:max(220px,min(280px,calc(100vw - 2*(min(215px,52vw) + 30px))))}#toast{top:calc(8px + env(safe-area-inset-top));max-width:calc(100vw - 2*(min(215px,52vw) + 42px));font-size:14px}#tipBox{top:calc(8px + env(safe-area-inset-top))}#boardBar{bottom:calc(18px + env(safe-area-inset-bottom))}}
 #hXpRow{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;margin-top:2px}#hLvl{color:#e2ccff;white-space:nowrap}
 .xpbar{flex:1;height:6px;background:rgba(0,0,0,.45);border-radius:3px;overflow:hidden}#hXp{height:100%;width:0;background:linear-gradient(90deg,#9b6bff,#d6b8ff);transition:width .3s}
 #mTrack{pointer-events:auto;display:flex;align-items:center;gap:7px;margin-top:5px;padding:5px 6px;min-height:44px;background:rgba(0,0,0,.35);border-radius:9px;border:1px solid rgba(255,211,77,.45);touch-action:manipulation}
@@ -128,17 +128,17 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 .item.lock{opacity:.6}
 #tut{position:fixed;inset:0;z-index:30;pointer-events:none}
 #tutRing{position:absolute;left:0;top:0;border-radius:16px;border:3px solid #ffd34d;box-shadow:0 0 16px 4px rgba(255,211,77,.85);animation:tutPulse 1s infinite;pointer-events:none}
-#tutRing.dim{box-shadow:0 0 0 200vmax rgba(0,0,0,.38),0 0 16px 4px rgba(255,211,77,.85)}
+#tutRing.dim{box-shadow:0 0 0 200vmax rgba(0,0,0,.14),0 0 16px 4px rgba(255,211,77,.85)}
 @keyframes tutPulse{50%{border-color:#fff}}
 #tutArrow{position:absolute;left:0;top:0;width:44px;height:40px;margin-left:-22px;font-size:36px;line-height:40px;text-align:center;color:#ffd34d;text-shadow:0 0 3px #000,0 2px 4px #000;pointer-events:none}
 #tutArrow i{display:block;font-style:normal;animation:tutBob .6s ease-in-out infinite alternate}
 #tutArrow.up i{animation-name:tutBobUp}
 @keyframes tutBob{to{transform:translateY(9px)}}
 @keyframes tutBobUp{to{transform:translateY(-9px)}}
-#tutBub{position:absolute;left:0;top:0;width:min(340px,calc(100vw - 16px));background:linear-gradient(#f4e4c1,#e3cc9b);color:#3b2306;border:3px solid #7a4e1d;border-radius:14px;padding:8px 12px 8px;box-shadow:0 6px 20px rgba(0,0,0,.55);font-size:15px;line-height:1.35;pointer-events:none}
-#tutBub .tt{font-weight:800;font-size:12px;opacity:.7;display:flex;justify-content:space-between;margin-bottom:2px}
+#tutBub{position:absolute;left:0;top:0;width:min(280px,70vw);background:linear-gradient(#f4e4c1,#e3cc9b);color:#3b2306;border:3px solid #7a4e1d;border-radius:12px;padding:4px 9px 6px;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:13px;line-height:1.26;pointer-events:none;opacity:.97}
+#tutBub .tt{font-weight:800;font-size:11.5px;display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:2px}#tutBub .tt>span:first-child{opacity:.7}#tutBub .tt .tb{display:flex;gap:6px;margin:0}#tutBub .tt button{min-height:34px;min-width:44px;padding:4px 10px;font-size:12.5px;border-radius:9px}
 #tutBub small{opacity:.75}
-#tutProg{height:7px;background:rgba(0,0,0,.15);border-radius:4px;margin-top:6px;overflow:hidden}
+#tutProg{height:5px;background:rgba(0,0,0,.15);border-radius:4px;margin-top:4px;overflow:hidden}
 #tutBar{height:100%;width:0;background:#2f7d3b;transition:width .2s}
 #tutBub .tb{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:6px}
 #tutBub button{pointer-events:auto;touch-action:manipulation}
@@ -171,8 +171,7 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 <button id="sailUp" class="btnr sailb steerctl" aria-label="Raise sails">⛵+</button>
 <div id="toast"></div>
 <div id="tut" class="hidden"><div id="tutRing" class="hidden"></div><div id="tutArrow" class="hidden"><i>▼</i></div>
-  <div id="tutBub"><div class="tt"><span id="tutCount"></span><span>🎓 Tutorial</span></div><div id="tutTxt"></div><div id="tutProg"><div id="tutBar"></div></div>
-  <div class="tb"><button class="b" id="tutSkip">Skip tutorial</button><button class="b" id="tutNext">Next ▶</button></div></div></div>
+  <div id="tutBub"><div class="tt"><span id="tutCount"></span><span class="tb"><button class="b" id="tutSkip">Skip</button><button class="b" id="tutNext">Next ▶</button></span></div><div id="tutTxt"></div><div id="tutProg"><div id="tutBar"></div></div></div></div>
 
 <div id="port" class="overlay hidden"><div class="panel">
   <div class="phead"><h2 id="pName">Port</h2><button class="big" id="pLeave">⛵ Set Sail</button></div>
@@ -1036,19 +1035,19 @@ const TSTEPS=[
 const TIDX={};TSTEPS.forEach((s,i)=>TIDX[s.id]=i);
 function tutResumeIdx(i){const id=(TSTEPS[i]||TSTEPS[0]).id;
  if(id==='loot')return T.loot?i:TIDX.enemy;if(id==='mapClose')return TIDX.map;if(id==='shipTab'||id==='buy'||id==='leave')return TIDX.dock;if(id==='save'||id==='finish')return TIDX.log;return clamp(i,0,TSTEPS.length-1);}
-function tutStart(i){T.on=true;T.skipArm=0;$('tutSkip').textContent='Skip tutorial';$('tut').classList.remove('hidden');tutGo(i||0);}
+function tutStart(i){T.on=true;T.skipArm=0;$('tutSkip').textContent='Skip';$('tut').classList.remove('hidden');tutGo(i||0);}
 function tutGo(i){T.i=i;T.c={};T.wait=0;T.html='';T.txtT=0;T.lay={};S.tutStep=i;const st=TSTEPS[i];if(st.enter)st.enter(T.c);T.scrolled=false;tutText();save();}
 function tutEnd(finished){if(finished){S.boostTip=true;countHit('tutorial','pirateSeas_tutCounted_v1');}const d=T.dummy;if(d&&!d.sinking){const k=enemies.indexOf(d);if(k>=0)enemies.splice(k,1);}
  T.on=false;T.dummy=null;T.loot=null;tutPeace=false;S.tutDone=true;S.tutStep=0;$('tut').classList.add('hidden');save();
  toast(finished?'🎓 Tutorial complete — fair winds, Captain!':'Tutorial skipped. Replay it any time from ☰ Captain\'s Log.');}
 function tutText(){const st=TSTEPS[T.i];const h=st.text(T.c);if(h!==T.html){T.html=h;$('tutTxt').innerHTML=h;}
- $('tutCount').textContent=`Step ${T.i+1}/${TSTEPS.length}`;
+ $('tutCount').textContent=`🎓 Step ${T.i+1}/${TSTEPS.length}`;
  const showNext=!!st.next||!!(st.nextIf&&st.nextIf());$('tutNext').classList.toggle('hidden',!showNext);if(showNext)$('tutNext').textContent=st.next||'Next ▶';
  const pr=st.prog?st.prog(T.c):null;$('tutProg').classList.toggle('hidden',pr==null);if(pr!=null)$('tutBar').style.width=Math.round(clamp(pr,0,1)*100)+'%';}
 $('tutNext').addEventListener('click',()=>{if(!T.on)return;const st=TSTEPS[T.i];if(st.id==='boost')S.boostTip=true;
  if(st.id==='finish'){tutEnd(true);if(state==='menu'){$('menu').classList.add('hidden');state='play';}return;}
  chime();tutGo(T.i+1);});
-$('tutSkip').addEventListener('click',()=>{if(!T.on)return;if(!T.skipArm){T.skipArm=1;$('tutSkip').textContent='Tap again to skip';setTimeout(()=>{T.skipArm=0;if(T.on)$('tutSkip').textContent='Skip tutorial';},3000);return;}tutEnd(false);});
+$('tutSkip').addEventListener('click',()=>{if(!T.on)return;if(!T.skipArm){T.skipArm=1;$('tutSkip').textContent='Sure? Tap';setTimeout(()=>{T.skipArm=0;if(T.on)$('tutSkip').textContent='Skip';},3000);return;}tutEnd(false);});
 function rectOf(el){if(!el)return null;const r=el.getBoundingClientRect();if(!r.width&&!r.height)return null;return r;}
 function tutTargetRect(tg){if(!tg)return null;
  if(tg.el)return rectOf($(tg.el));if(tg.q)return rectOf(document.querySelector(tg.q));if(tg.node)return rectOf(tg.node);if(tg.rect)return tg.rect;
@@ -1075,22 +1074,23 @@ function tutLayout(){
  const r=tutTargetRect(tg);const ring=$('tutRing'),arr=$('tutArrow'),bub=$('tutBub');
  if(r&&tg.scroll&&!T.scrolled){T.scrolled=true;const node=tg.node||document.querySelector(tg.q);if(node&&node.scrollIntoView)node.scrollIntoView({block:'center'});}
  const bw=bub.offsetWidth,bh=bub.offsetHeight;let bx,by;
+ {const t0=topSlot();bx=t0.x(bw);by=t0.y;}
  if(r){const pad=6;ring.classList.remove('hidden');arr.classList.remove('hidden');
   const w=Math.round(r.width+pad*2),h=Math.round(r.height+pad*2);if(T.lay.rw!==w||T.lay.rh!==h){T.lay.rw=w;T.lay.rh=h;ring.style.width=w+'px';ring.style.height=h+'px';}
   setBox(ring,'ring',`translate(${Math.round(r.left-pad)}px,${Math.round(r.top-pad)}px)`);
   ring.classList.toggle('dim',!T.c.__done);
   const cx=r.left+r.width/2,cy=r.top+r.height/2;const below=cy<vh*0.5;let ay;
-  if(below){ay=r.top+r.height+pad+2;by=ay+40;}else{ay=r.top-pad-42;by=ay-bh+2;}
+  if(below)ay=r.top+r.height+pad+2;else ay=r.top-pad-42;
   arr.classList.toggle('up',below);arr.firstChild.textContent=below?'▲':'▼';setBox(arr,'arr',`translate(${Math.round(cx)}px,${Math.round(ay)}px)`);
-  bx=cx-bw/2;}
- else{ring.classList.add('hidden');arr.classList.add('hidden');
-  const m=miniRect();const land=vw>vh&&vh<560;
-  if(land){const L=8+safe.l+Math.min(215,vw*0.52)+8,R=m.x-8;bx=Math.max(L,(L+R)/2-bw/2);by=8+safe.t;}
-  else{bx=(vw-bw)/2;by=m.y+m.s+92;}
-  // keep a world target visible: if it sits under the bubble, move the bubble lower
-  if(tg&&tg.world&&state==='play'){const X=sx(tg.world.x),Y=sy(tg.world.y);if(Y>by-30&&Y<by+bh+60&&X>bx-30&&X<bx+bw+30)by=Math.min(vh-bh-130-safe.b,Y+70);}}
+  }
+ else{ring.classList.add('hidden');arr.classList.add('hidden');}
+ // the bubble itself is pinned: same top-centre slot for every step; only the ring/arrows move
  bx=clamp(bx,8+safe.l,Math.max(8,vw-bw-8-safe.r));by=clamp(by,8+safe.t,Math.max(8,vh-bh-8-safe.b));
  setBox(bub,'bub',`translate(${Math.round(bx)}px,${Math.round(by)}px)`);}
+// shared top slot for the tutorial bubble and one-time tips: just under the HUD / mini-map (portrait) or between them (landscape)
+function topSlot(){const m=miniRect();const land=vw>vh&&vh<560;
+ if(land)return{land,y:8+safe.t,x:bw=>(vw-bw)/2};
+ const hb=Math.round($('hud').getBoundingClientRect().bottom);return{land,y:Math.max(hb,m.y+m.s+28)+6,x:bw=>(vw-bw)/2};}
 // canvas part: ring + bouncing arrow on world targets (or an edge arrow when off-screen), and a ghost joystick demo
 function drawTut(ts){if(!T.on||state==='title'||state==='map')return;const tg=T.tg;if(!tg)return;
  ctx.textAlign='center';ctx.textBaseline='middle';
@@ -1398,8 +1398,11 @@ function buyHull(k){const p=PORTS[curPort],c=HULLS[k],cur=HULLS[S.ship]||HULLS.s
  if(S.crew<ST.crewNeed)setTimeout(()=>toast(`👥 Your ${c.name} needs ${ST.crewNeed} crew for full efficiency — hire more in the Crew tab.`),2700);}
 // portrait: keep toast + tip box just below the (variable-height) HUD
 const LANDQ=window.matchMedia('(max-height:520px) and (orientation:landscape)');
-function layoutTop(){const k=LANDQ.matches?'L':Math.round($('hud').getBoundingClientRect().bottom);if(hudCache.lay===k)return;hudCache.lay=k;
- if(k==='L'){$('toast').style.top='';$('tipBox').style.top='';return;}$('toast').style.top=(k+8)+'px';$('tipBox').style.top=Math.max(212,k+84)+'px';}
+function layoutTop(){const land=LANDQ.matches,hb=Math.round($('hud').getBoundingClientRect().bottom),t0=topSlot(),tip=$('tipBox'),tipOn=!tip.classList.contains('hidden');
+ const bub=$('tutBub'),tutOn=T.on&&!$('tut').classList.contains('hidden');let tb=null;
+ if(tipOn)tb=t0.y+tip.offsetHeight;else if(tutOn){const r=bub.getBoundingClientRect();if(r.top<t0.y+40)tb=r.bottom;}
+ const k=[land,hb,t0.y,tb==null?'':Math.round(tb)].join(':');if(hudCache.lay===k)return;hudCache.lay=k;
+ tip.style.top=t0.y+'px';$('toast').style.top=tb!=null?(Math.round(tb)+6)+'px':land?'':(hb+8)+'px';}
 // keep world labels from hiding under the on-screen buttons
 let ctrlR=[],ctrlT=0;
 function updCtrlRects(){ctrlR=[];for(const id of ['fireL','fireR','autoBtn','boostBtn','boardBar','dockBtn','actBtn','turnL','turnR','sailUp','sailDn','menuBtn']){const el=$(id);if(!el||el.classList.contains('hidden'))continue;const r=el.getBoundingClientRect();if(r.width)ctrlR.push(r);}}
