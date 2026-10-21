@@ -97,6 +97,12 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 #boostBtn.tip{animation:btip .8s infinite alternate}
 @keyframes bpulse{to{box-shadow:0 0 22px 8px rgba(255,210,80,.95),inset 0 0 0 2px #fff}}
 @keyframes btip{to{box-shadow:0 0 0 6px rgba(255,211,77,.9),0 0 18px 6px rgba(255,211,77,.8)}}
+#boardBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(240px + env(safe-area-inset-bottom));padding:12px 20px;min-height:52px;border-radius:24px;border:none;font-size:17px;font-weight:800;background:#a12a1d;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.5);touch-action:none;animation:pulse 1s infinite;white-space:nowrap}
+#hWant{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:#ffd34d;margin-top:2px}
+#hWant.hot{color:#ff7b6b}
+#tipBox{position:fixed;left:50%;transform:translateX(-50%);top:calc(212px + env(safe-area-inset-top));width:min(360px,calc(100vw - 16px));z-index:25;background:linear-gradient(#f4e4c1,#e3cc9b);color:#3b2306;border:3px solid #a12a1d;border-radius:14px;padding:8px 12px;box-shadow:0 6px 20px rgba(0,0,0,.55);font-size:14.5px;line-height:1.35;pointer-events:none}
+#tipBox .tb{display:flex;justify-content:flex-end;margin-top:6px}#tipBox button{pointer-events:auto;touch-action:manipulation}
+@media (max-height:520px) and (orientation:landscape){#tipBox{top:calc(8px + env(safe-area-inset-top))}#boardBtn{bottom:calc(18px + env(safe-area-inset-bottom))}}
 #tut{position:fixed;inset:0;z-index:30;pointer-events:none}
 #tutRing{position:absolute;left:0;top:0;border-radius:16px;border:3px solid #ffd34d;box-shadow:0 0 16px 4px rgba(255,211,77,.85);animation:tutPulse 1s infinite;pointer-events:none}
 #tutRing.dim{box-shadow:0 0 0 200vmax rgba(0,0,0,.38),0 0 16px 4px rgba(255,211,77,.85)}
@@ -123,12 +129,15 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
   <div class="row"><span id="hGold">💰 0</span><span id="hCrew">👥 0</span><span id="hCargo">📦 0</span></div>
   <div class="hpbar"><div id="hHp"></div><div id="hHpT"></div></div>
   <div id="hSub"><span id="hRank"></span><span id="hDanger"></span></div>
+  <div id="hWant" class="hidden"><span id="hStars"></span><span id="hBounty"></span></div>
 </div>
 <button id="menuBtn" class="btnr">☰</button>
 <button id="fireL" class="btnr fire"><div class="rl"></div><div class="lbl"><span>💥</span>◀ LEFT</div></button>
 <button id="fireR" class="btnr fire"><div class="rl"></div><div class="lbl"><span>💥</span>RIGHT ▶</div></button>
 <button id="autoBtn" class="btnr on" aria-label="Toggle auto-fire"><span>🎯</span><b id="autoLbl">AUTO</b></button>
 <button id="dockBtn" class="hidden">⚓ Dock</button>
+<button id="boardBtn" class="hidden">🏴‍☠️ Board &amp; plunder</button>
+<div id="tipBox" class="hidden"><div id="tipTxt"></div><div class="tb"><button class="b" id="tipOk">Got it</button></div></div>
 <button id="boostBtn" class="btnr ready" aria-label="Speed boost"><div class="cd"></div><span class="bi">🚀</span><b id="boostLbl">BOOST</b></button>
 <button id="turnL" class="btnr steerb steerctl" aria-label="Turn left">⟲</button>
 <button id="turnR" class="btnr steerb steerctl" aria-label="Turn right">⟳</button>
@@ -180,7 +189,7 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 
 <div id="title" class="overlay"><div class="panel">
   <h1>🏴‍☠️ Pirate Seas</h1>
-  <p>Sail the open sea, sink rivals, trade cargo and build the most feared crew in the Caribbean.</p>
+  <p>You are a <b>pirate captain</b>. Plunder fat merchant ships, outgun rival pirates, outrun the Navy when your Wanted level climbs, and lie low in pirate havens.</p>
   <div class="help">
   🎓 New here? The guided <b>Tutorial</b> starts automatically on a new game (replay it any time).<br>
   🕹️ <b>Steer:</b> drag anywhere on the sea (a short drag slows down). Sails stay set when you let go. Prefer buttons? Turn on ◀ ▶ steering buttons in ☰ Captain's Log.<br>
@@ -188,6 +197,8 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
   ⚓ <b>Ports:</b> sail close to a pier and tap <b>Dock</b> to repair, upgrade, hire crew, trade and take jobs.<br>
   🗺️ Tap the minimap for the big map. Waters get more dangerous far from Port Royal.<br>
   🎯 <b>AUTO:</b> the 🎯 button (or T) toggles auto-fire — your gunners aim and shoot hostile ships in range on their own. Broadsides hit hardest, so turn your side toward the enemy.<br>
+  💰 <b>Merchants:</b> fire on them yourself to raid them (AUTO joins in only after you've attacked one). Badly damaged merchants may <b>surrender</b> — sail close and tap <b>Board</b> for extra loot.<br>
+  🚨 <b>Wanted:</b> raiding raises your Wanted ★ level and the Navy hunts you. It fades if you lie low; pay it off at 🏴‍☠️ pirate havens. ⚖️ Lawful ports charge wanted captains more and turn away ★★★+ unless bribed.<br>
   🔧 Your hull slowly repairs itself when no enemies are near.<br>
   🚀 <b>BOOST:</b> +25% speed for a few seconds, but the ship turns sluggishly. Then it recharges.<br>
   ⌨️ Keyboard: WASD/arrows, Q/E fire, Space both, B or Shift boost, F dock, M map, T auto-fire.
@@ -223,22 +234,22 @@ const GOODS=[
  {id:'gems',name:'Gems',icon:'💎',base:130}];
 const GI={};GOODS.forEach((g,i)=>GI[g.id]=i);
 const PORTDEFS=[
- {name:'Port Royal',x:4000,y:3760,r:210,pa:Math.PI/2,cheap:'sugar',want:'silk',desc:'A bustling harbour, safe under the guns of the fort. Your home port.'},
- {name:'Tortuga',x:2600,y:2850,r:200,pa:0.6,cheap:'rum',want:'spice',desc:'Haven of scoundrels. The rum flows cheap here.'},
- {name:'Nassau',x:5650,y:3000,r:240,pa:2.4,cheap:'spice',want:'rum',desc:'Spice merchants crowd the docks. Thirsty sailors pay well for rum.'},
- {name:'Havana',x:3000,y:5500,r:260,pa:-0.8,cheap:'rum',want:'gems',desc:'Grand colonial port. Nobles here crave gems.'},
- {name:'Port Esperanza',x:5400,y:5400,r:230,pa:-2.3,cheap:'silk',want:'sugar',desc:'Silk traders from the far east anchor here.'},
- {name:"Smuggler's Cove",x:1200,y:1500,r:180,pa:0.9,cheap:'gems',want:'silk',desc:'Hidden cove. No questions asked. Dangerous waters.'},
- {name:'Isla Calavera',x:6800,y:1100,r:260,pa:2.5,cheap:'gems',want:'rum',desc:'Skull Island. Only the bravest captains drop anchor here.'},
- {name:"Kraken's Reef",x:1000,y:6800,r:200,pa:-0.7,cheap:'spice',want:'gems',desc:'Wreck-strewn reef. Locals whisper of the deep.'},
- {name:'El Dorado',x:7000,y:7000,r:280,pa:-2.4,cheap:'gems',want:'spice',desc:'The fabled city of gold. Richest port on the sea, fiercest pirates.'}];
+ {name:'Port Royal',x:4000,y:3760,r:210,pa:Math.PI/2,cheap:'sugar',want:'silk',haven:1,desc:'Wicked old Port Royal, your home port. The Brethren of the Coast drink here and no governor dares send the Navy in.'},
+ {name:'Tortuga',x:2600,y:2850,r:200,pa:0.6,cheap:'rum',want:'spice',haven:1,desc:'Haven of scoundrels and cut-throats. The rum flows cheap and nobody asks where your gold came from.'},
+ {name:'Nassau',x:5650,y:3000,r:240,pa:2.4,cheap:'spice',want:'rum',desc:'A Crown colony. Spice merchants crowd the docks and the Navy keeps a close eye on wanted captains.'},
+ {name:'Havana',x:3000,y:5500,r:260,pa:-0.8,cheap:'rum',want:'gems',desc:'Grand colonial port under the Spanish flag. Nobles crave gems; the governor hangs pirates.'},
+ {name:'Port Esperanza',x:5400,y:5400,r:230,pa:-2.3,cheap:'silk',want:'sugar',desc:'Lawful trading port where silk traders from the far east anchor.'},
+ {name:"Smuggler's Cove",x:1200,y:1500,r:180,pa:0.9,cheap:'gems',want:'silk',haven:1,desc:'Hidden smugglers\' cove. No questions asked. Dangerous waters.'},
+ {name:'Isla Calavera',x:6800,y:1100,r:260,pa:2.5,cheap:'gems',want:'rum',haven:1,desc:'Skull Island, a pirate stronghold. Only the bravest captains drop anchor here.'},
+ {name:"Kraken's Reef",x:1000,y:6800,r:200,pa:-0.7,cheap:'spice',want:'gems',haven:1,desc:'Wreck-strewn reef full of wreckers and outlaws. Locals whisper of the deep.'},
+ {name:'El Dorado',x:7000,y:7000,r:280,pa:-2.4,cheap:'gems',want:'spice',desc:'The fabled city of gold, guarded by the Crown\'s finest. Richest port on the sea.'}];
 const ISL=[];
 function makeIsland(d,seed,isPort){
  const r=rng(seed);
  const o={name:d.name||'',x:d.x,y:d.y,r:d.r,p1:r()*TAU,p2:r()*TAU,p3:r()*TAU,a1:0.12+r()*0.08,a2:0.06+r()*0.05,a3:0.03+r()*0.04,isPort,seed};
  if(isPort){
   o.pa=d.pa;const pr=radiusAt(o,d.pa)+48;o.port={x:d.x+Math.cos(d.pa)*pr,y:d.y+Math.sin(d.pa)*pr};
-  o.desc=d.desc;o.cheap=d.cheap;o.want=d.want;
+  o.desc=d.desc;o.haven=!!d.haven;o.cheap=d.cheap;o.want=d.want;
   o.mult=GOODS.map(g=>g.id===d.cheap?0.55:g.id===d.want?1.6:0.8+r()*0.45);
  }
  return o;
@@ -296,10 +307,10 @@ function rebuildFog(){fogCtx.clearRect(0,0,FOGN,FOGN);fogCtx.fillStyle='#0a1626'
 // ---------- SAVE STATE ----------
 const SAVEKEY='pirateSeas_save_v1';
 function defaultState(){return{gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0},
- quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,tutDone:false,tutStep:0,steer:'drag'};}
+ quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,heat:0,heatT:0,tips:{},tutDone:false,tutStep:0,steer:'drag'};}
 let S=defaultState();
 function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false;const d=JSON.parse(raw);const def=defaultState();
- S=Object.assign(def,d);if(!(d.bal>=2))S.bal=0;if(d.tutDone===undefined){S.tutDone=true;S.tutStep=0;}if(S.steer!=='buttons')S.steer='drag';S.up=Object.assign(defaultState().up,d.up||{});S.roles=Object.assign(defaultState().roles,d.roles||{});S.cargo=Object.assign(defaultState().cargo,d.cargo||{});
+ S=Object.assign(def,d);if(!(d.bal>=2))S.bal=0;if(d.tutDone===undefined){S.tutDone=true;S.tutStep=0;}if(S.steer!=='buttons')S.steer='drag';if(!(S.heat>=0))S.heat=0;if(!S.tips||typeof S.tips!=='object')S.tips={};S.up=Object.assign(defaultState().up,d.up||{});S.roles=Object.assign(defaultState().roles,d.roles||{});S.cargo=Object.assign(defaultState().cargo,d.cargo||{});
  S.quests=(S.quests||[]).map(q=>{q.spawned=false;return q;});
  if(typeof S.fog==='string'&&S.fog.length===FOGN*FOGN){for(let i=0;i<fog.length;i++)fog[i]=S.fog.charCodeAt(i)===49?1:0;}
  return true;}catch(e){console.warn('save load failed',e);return false;}}
@@ -338,14 +349,20 @@ const enemies=[],balls=[],loot=[],parts=[],texts=[],wakes=[];
 const PNAMES=['Black Jack','Mad Meg','One-Eyed Willy','Calico Kate','Barnacle Bill','Red Rackham','Iron Anne','Salty Pete','Captain Blight','The Grey Ghost','Bloody Mary','Gentleman Ned','Scurvy Sam','Long Tom'];
 function makeEnemy(kind,x,y,lvl,extra){
  const e={kind,x,y,vx:0,vy:0,h:Math.random()*TAU,speed:0,lvl,rl:rand(0,2),rr:rand(0,2),sinking:0,side:Math.random()<0.5?1:-1,wp:null,wpT:0,angry:false,hitT:0,wakeT:0};
- if(kind==='merchant'){Object.assign(e,{maxHp:40+16*lvl,cannons:lvl>=3?1+Math.floor(lvl/4):0,dmg:4+1.2*lvl,maxSpeed:80+5*lvl,reload:4.5,aggro:0,gold:25+22*lvl,len:54,wid:20,range:340});}
+ if(kind==='merchant'){Object.assign(e,{maxHp:40+16*lvl,cannons:lvl>=3?1+Math.floor(lvl/4):0,dmg:4+1.2*lvl,maxSpeed:80+5*lvl,reload:4.5,aggro:0,gold:35+28*lvl,len:54,wid:20,range:340});}
+ else if(kind==='navy'){const soft=lvl<=2,k=1+0.1*stars();Object.assign(e,{maxHp:Math.round(((soft?30:36)+24*lvl)*k),cannons:1+Math.ceil(lvl/2),dmg:(4.2+1.8*lvl)*(soft?0.75:1),maxSpeed:Math.min(205,105+9*lvl),reload:Math.max(2.1,3.6-0.13*lvl)+(soft?0.5:0),aggro:2600,gold:20+20*lvl,len:52+lvl*1.5,wid:18+lvl*0.4,range:390,angry:true});}
  else if(kind==='boss'){Object.assign(e,{maxHp:160+55*lvl,cannons:3+Math.floor(lvl/2),dmg:7+2.2*lvl,maxSpeed:Math.min(200,110+9*lvl),reload:Math.max(2,3.4-0.12*lvl),aggro:1100,gold:120+60*lvl,len:66,wid:23,range:400});}
  else {const soft=lvl<=2;Object.assign(e,{maxHp:(soft?26:30)+22*lvl,cannons:1+Math.ceil(lvl/2),dmg:(4.5+1.9*lvl)*(soft?0.8:1),maxSpeed:Math.min(195,92+9*lvl),reload:Math.max(2.2,3.7-0.13*lvl)+(soft?0.4:0),aggro:(soft?440:560)+45*lvl,gold:12+18*lvl,len:48+lvl*1.5,wid:17+lvl*0.4,range:380});}
  Object.assign(e,extra||{});e.hp=e.maxHp;return e;}
 function randomWater(cx,cy,dmin,dmax){for(let i=0;i<30;i++){const a=Math.random()*TAU,d=rand(dmin,dmax);const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;
  if(x<200||y<200||x>WORLD-200||y>WORLD-200)continue;if(inAnyIsland(x,y,90))continue;if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<450))continue;return{x,y};}return null;}
 function spawnNear(dmin,dmax){const pt=randomWater(P.x,P.y,dmin,dmax);if(!pt)return;const lvl=clamp(lvlAt(pt.x,pt.y)+(Math.random()<0.2?1:0),1,10);
- const nearStart=Math.hypot(pt.x-START.x,pt.y-START.y)<1300;const kind=Math.random()<(nearStart?0.5:0.33)?'merchant':'pirate';enemies.push(makeEnemy(kind,pt.x,pt.y,lvl));}
+ const nearStart=Math.hypot(pt.x-START.x,pt.y-START.y)<1300;const kind=Math.random()<(nearStart?0.5:0.38)?'merchant':'pirate';if(kind==='merchant'&&spawnMerchant(dmin,dmax))return;enemies.push(makeEnemy(kind,pt.x,pt.y,lvl));}
+// merchants sail trade routes between two ports
+function spawnMerchant(dmin,dmax){for(let t=0;t<14;t++){const a=PORTS[(Math.random()*PORTS.length)|0],b=PORTS[(Math.random()*PORTS.length)|0];if(a===b)continue;
+ const ax=a.port.x,ay=a.port.y,bx=b.port.x,by=b.port.y,f=rand(0.08,0.92);const x=ax+(bx-ax)*f+rand(-120,120),y=ay+(by-ay)*f+rand(-120,120);const d=Math.hypot(x-P.x,y-P.y);
+ if(d<dmin||d>dmax||x<200||y<200||x>WORLD-200||y>WORLD-200||inAnyIsland(x,y,90))continue;if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<450))continue;
+ const lvl=clamp(lvlAt(x,y)+(Math.random()<0.2?1:0),1,10);const e=makeEnemy('merchant',x,y,lvl,{wp:{x:bx,y:by}});e.h=Math.atan2(by-y,bx-x);enemies.push(e);return true;}return false;}
 function populate(){for(let i=0;i<14;i++)spawnNear(700,2200);}
 function addText(x,y,t,c,big){texts.push({x,y,t,c:c||'#fff',life:1.4,max:1.4,big:!!big});}
 function addPart(type,x,y,vx,vy,life,size,color){if(parts.length>450)parts.shift();parts.push({type,x,y,vx,vy,life,max:life,size,color});}
@@ -396,7 +413,7 @@ document.addEventListener('contextmenu',e=>{if(!isTyping(e.target))e.preventDefa
 const NOSCROLL_KEYS={arrowup:1,arrowdown:1,arrowleft:1,arrowright:1,' ':1};
 window.addEventListener('keydown',e=>{if(isTyping(e.target)||!$('xfer').classList.contains('hidden'))return;const k=(e.key||'').toLowerCase();keys[k]=true;if(NOSCROLL_KEYS[k])e.preventDefault();
  if(k==='enter'&&T.on&&!$('tutNext').classList.contains('hidden')){$('tutNext').click();return;}
- if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&nearPort>=0)dock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='b'||k==='shift')boost();if(k==='escape')openMenu();}
+ if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&boardTgt)board(boardTgt);else if((k==='f'||k==='enter')&&nearPort>=0)tryDock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='b'||k==='shift')boost();if(k==='escape')openMenu();}
  else if(state==='map'&&(k==='m'||k==='escape'))state='play';});
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 function bindBtn(id,fn){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();fn();});}
@@ -406,7 +423,8 @@ bindBtn('autoBtn',()=>{if(state==='play'||state==='map')toggleAuto();});bindBtn(
 function tapBtn(id,fn){const b=$(id);let pid=null;b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();pid=e.pointerId;initAudio();});
  b.addEventListener('pointerup',e=>{if(e.pointerId!==pid)return;pid=null;e.preventDefault();e.stopPropagation();fn();});b.addEventListener('pointercancel',()=>{pid=null;});
  b.addEventListener('click',e=>{if(e.detail===0)fn();});}
-tapBtn('dockBtn',()=>{if(state==='play'&&nearPort>=0)dock(nearPort);});
+tapBtn('dockBtn',()=>{if(state==='play'&&nearPort>=0)tryDock(nearPort);});
+tapBtn('boardBtn',()=>{if(state==='play')board(boardTgt);});
 tapBtn('menuBtn',()=>{if(state==='play'||state==='map')openMenu();});
 // optional steering buttons (hold to turn / tap to set sails in 25% steps, hold to keep adjusting)
 function bindHold(id,k,onDown){const b=$(id);const ids=new Set();
@@ -431,7 +449,7 @@ function fire(side,scanned){if(P.dead)return;if(side<0){if(P.rl>0)return;P.rl=ST
  if(!scanned){scanTargets();tutEv('shots');tutEv(side<0?'sl':'sr');}fireBroadside(P,side,ST.cannons,ST.dmg,'p',ST.range,autoAim[side]);cam.shake=Math.max(cam.shake,3);}
 // ---------- AUTO-TARGETING ----------
 let autoTgt=null;const autoSide={'-1':null,'1':null};
-function isHostile(e){return !e.sinking&&e.hp>0&&(e.kind!=='merchant'||e.angry);}
+function isHostile(e){return !e.sinking&&e.hp>0&&(e.kind!=='merchant'||(e.angry&&!e.surr));}
 function toggleAuto(){S.autoFire=!S.autoFire;tutEv('toggle');autoTgt=null;autoSide['-1']=autoSide['1']=null;updateAutoBtn();save();toast(S.autoFire?'🎯 Auto-fire ON':'🎯 Auto-fire OFF — fire manually');}
 function updateAutoBtn(){const on=S.autoFire!==false;$('autoBtn').classList.toggle('on',on);$('autoLbl').textContent=on?'AUTO':'OFF';}
 // Gun-laying: broadside guns can train up to TRAIN rad fore/aft of the beam to hit a locked target.
@@ -463,10 +481,14 @@ function drawAutoHud(ts){if(S.autoFire===false||P.dead||state==='title')return;c
  for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(0,0,r,i*Math.PI/2+0.25,i*Math.PI/2+Math.PI/2-0.25);ctx.stroke();ctx.beginPath();ctx.moveTo(r-6,0);ctx.lineTo(r+6,0);ctx.stroke();ctx.rotate(Math.PI/2);}
  ctx.restore();const ap=aimPoint(e);ctx.fillStyle=inArc?'rgba(255,70,50,0.8)':'rgba(255,210,90,0.6)';ctx.beginPath();ctx.arc(ap.x,ap.y,3.5,0,TAU);ctx.fill();}
 function hitTest(s,b,pad){const dx=b.x-s.x,dy=b.y-s.y;if(dx*dx+dy*dy>(s.len*s.len))return false;const c=Math.cos(s.h),sn=Math.sin(s.h);const lx=dx*c+dy*sn,ly=-dx*sn+dy*c;return Math.abs(lx)<s.len/2+pad&&Math.abs(ly)<s.wid/2+pad;}
-function damageEnemy(e,dmg){e.hp-=dmg;e.hitT=0.25;e.angry=true;addText(e.x,e.y-20,'-'+Math.round(dmg),'#ffd27a');
+function damageEnemy(e,dmg){const was=e.angry;e.hp-=dmg;e.hitT=0.25;e.angry=true;addText(e.x,e.y-20,'-'+Math.round(dmg),'#ffd27a');
+ if(e.kind==='merchant'){if(!was&&!e.surr)addHeat(0.2);
+  if(!e.surr&&!e.plundered&&e.hp>0&&e.hp<e.maxHp*0.3){e.surr=true;e.surrT=0;e.angry=false;addText(e.x,e.y-46,'🏳️ Surrenders!','#ffffff',true);showTip('board');}
+  else if(e.surr)e.angry=false;}
  if(e.hp<=0&&!e.sinking){e.sinking=0.001;sinkRewards(e);}}
-function sinkRewards(e){S.kills++;S.infamy+=e.lvl*10*(e.kind==='boss'?4:1);
- const gold=Math.round(e.gold*rand(0.8,1.25));const goods={};
+function sinkRewards(e){S.kills++;const st=stars(),law=e.kind==='merchant'||e.kind==='navy';S.infamy+=Math.round(e.lvl*10*(e.kind==='boss'?4:1)*(law?1+0.25*st:1));
+ const gold=Math.round(e.gold*rand(0.8,1.25)*(law?1+0.15*st:1));const goods={};
+ if(e.kind==='merchant'){S.raids=(S.raids||0)+1;addHeat(PORTS.some(p=>!p.haven&&Math.hypot(p.port.x-e.x,p.port.y-e.y)<900)?1.5:1);}else if(e.kind==='navy')addHeat(0.8);
  if(e.kind==='merchant'){const n=(2+Math.random()*4+e.lvl)|0;const types=1+(Math.random()<0.5?1:0);for(let i=0;i<types;i++){const gi=Math.min(4,(Math.random()*(1+e.lvl/2.2))|0);goods[GOODS[gi].id]=(goods[GOODS[gi].id]||0)+Math.ceil(n/types);}}
  else if(!e.tut&&Math.random()<0.4){const gi=Math.min(4,(Math.random()*(1+e.lvl/2))|0);goods[GOODS[gi].id]=(1+Math.random()*3)|0;}
  if(e.kind==='boss')goods.gems=3+e.lvl;
@@ -480,6 +502,7 @@ function damagePlayer(dmg){if(P.dead)return;P.hp-=dmg;P.calm=0;cam.shake=Math.ma
  if(Math.random()<0.07&&S.crew>4){S.crew--;recalc();addText(P.x+20,P.y-44,'-1 crew','#ffb3b3');}
  if(P.hp<=0){P.hp=0;P.dead=0.001;boom(0.7,300);}}
 function playerDied(){const early=S.infamy<300;const lostG=Math.round(S.gold*(early?0.1:0.25));S.gold-=lostG;let lostC=0;for(const g of GOODS){const n=early?Math.ceil(S.cargo[g.id]/2):S.cargo[g.id];lostC+=n;S.cargo[g.id]-=n;}
+ S.heat=(S.heat||0)*0.5;
  const failed=S.quests.filter(q=>q.type==='deliver');S.quests=S.quests.filter(q=>q.type!=='deliver');
  S.crew=Math.max(early?Math.min(10,S.crew):4,Math.ceil(S.crew*0.7));recalc();
  $('deadTxt').innerHTML=`You lost ${lostG} 💰${lostC?`, ${lostC} crates of cargo`:''}${failed.length?` and ${failed.length} delivery job(s)`:''}.<br>Some of your crew swam to ${PORTS[S.lastPort].name}.`;
@@ -490,13 +513,47 @@ $('deadBtn').addEventListener('click',()=>{$('dead').classList.add('hidden');con
 // ---------- QUESTS ----------
 function genQuest(pi){const p=PORTS[pi];const L=lvlAt(p.port.x,p.port.y);const r=Math.random();const id=S.qid++;
  if(r<0.4){const tgt=Math.random()<0.75?'pirate':'merchant';const need=2+((Math.random()*3)|0);return{id,from:pi,type:'bounty',target:tgt,need,have:0,reward:need*(45+28*L),
-  title:tgt==='pirate'?`Bounty: sink ${need} pirate ships`:`Raid: plunder ${need} merchant ships`,text:'Anywhere on the sea. Paid as soon as you finish.'};}
+  title:tgt==='pirate'?`Rivalry: sink ${need} rival pirate ships`:`Raid: plunder ${need} merchant ships`,text:'Anywhere on the sea. Paid as soon as you finish.'};}
  if(r<0.72){let pt=null;for(let i=0;i<20&&!pt;i++){pt=randomWater(p.port.x,p.port.y,1100,2300);}if(!pt)pt={x:clamp(p.port.x+900,300,WORLD-300),y:clamp(p.port.y+900,300,WORLD-300)};
-  const lvl=clamp(lvlAt(pt.x,pt.y)+1,2,10);const name=pick(PNAMES);return{id,from:pi,type:'hunt',name,x:pt.x,y:pt.y,lvl,reward:220+130*lvl,title:`Wanted: ${name} (Lv${lvl})`,text:'Hunt them down at the ☠ marked on your map.'};}
+  const lvl=clamp(lvlAt(pt.x,pt.y)+1,2,10);const name=pick(PNAMES);return{id,from:pi,type:'hunt',name,x:pt.x,y:pt.y,lvl,reward:220+130*lvl,title:`Rival captain: ${name} (Lv${lvl})`,text:'Settle the score at the ☠ marked on your map.'};}
  let to=pi;while(to===pi)to=(Math.random()*PORTS.length)|0;const crates=3+((Math.random()*5)|0);const dist=Math.hypot(PORTS[to].port.x-p.port.x,PORTS[to].port.y-p.port.y);
  return{id,from:pi,type:'deliver',to,crates,reward:Math.round(40+dist/1000*45*(1+crates/5)*(1+lvlAt(PORTS[to].port.x,PORTS[to].port.y)*0.15)),title:`Deliver ${crates} crates to ${PORTS[to].name}`,text:`Takes ${crates} cargo space until delivered.`};}
 function offersFor(pi){let o=S.offers[pi];if(!o)o=S.offers[pi]=[];while(o.length<2)o.push(genQuest(pi));return o;}
 function completeQuest(q){S.quests=S.quests.filter(x=>x!==q);S.gold+=q.reward;S.earned+=q.reward;S.infamy+=Math.round(q.reward/5);toast(`📜 Job done: ${q.title} — +${q.reward} 💰`);chime();save();}
+// ---------- WANTED / BOUNTY ----------
+const STAR_AT=[0,2.5,5,8,12,17],NAVYMAX=[0,1,2,2,3,4];
+function stars(){const h=S.heat||0;let n=0;for(let i=1;i<6;i++)if(h>=STAR_AT[i])n=i;return n;}
+const starStr=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+function bountyGold(){const h=S.heat||0;return Math.round(h*45+h*h*5);}
+function bribeCost(){return Math.round(60+bountyGold()*0.35);}
+function lowerCost(){return Math.round(50+bountyGold()*0.4);}
+function mk(){const p=PORTS[curPort];return p&&!p.haven?1+0.15*stars():1;}
+const pCost=(d,l)=>Math.ceil(upCost(d,l)*mk());
+let lastStars=0,navyT=30,boardTgt=null;
+function addHeat(v){const before=stars();S.heat=Math.min(24,(S.heat||0)+v);S.heatT=S.playTime;const now=stars();
+ if(now>before){toast(`🚨 Wanted ${starStr(now)} — ${now>=4?'bounty hunters are after you!':now>=2?'Navy patrols are hunting you!':'the Navy is looking for you.'}`);if(before===0)navyT=Math.min(navyT,30);showTip('wanted');}}
+function spawnNavy(n){const pt=randomWater(P.x,P.y,1300,1800);if(!pt)return;const lvl=clamp(lvlAt(P.x,P.y)+n-1,1,10);enemies.push(makeEnemy('navy',pt.x,pt.y,lvl,{hunter:n>=4}));}
+function wantedTick(dt){if(S.heat>0&&S.playTime-(S.heatT||0)>40)S.heat=Math.max(0,S.heat-dt*0.02);
+ const n=stars();if(n>=1&&!tutPeace){navyT-=dt;if(navyT<=0){navyT=Math.max(18,40-5*n);let c=0;for(const e of enemies)if(e.kind==='navy'&&!e.sinking)c++;if(c<NAVYMAX[n])spawnNavy(n);}}
+ if(n===0&&lastStars>0)toast('✅ The Navy lost your trail — Wanted level cleared.');lastStars=n;
+ boardTgt=null;let bd=150;for(const e of enemies){if(!e.surr||e.sinking)continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;boardTgt=e;}}}
+function board(e){if(!e||!e.surr||e.sinking||state!=='play'||P.dead)return;const n=stars();e.surr=false;e.plundered=true;e.angry=false;
+ const gold=Math.round(e.gold*1.6*(1+0.15*n));S.gold+=gold;S.earned+=gold;let msg=`🏴‍☠️ Plundered! +${gold} 💰`;
+ const want=(3+Math.random()*4+e.lvl*1.5)|0,gi=Math.min(4,(Math.random()*(1+e.lvl/2.2))|0);const got=Math.min(Math.max(0,ST.cargoCap-cargoUsed()),want);S.cargo[GOODS[gi].id]+=got;if(got)msg+=` +${got}${GOODS[gi].icon}`;
+ S.infamy+=Math.round(e.lvl*8*(1+0.25*n));S.raids=(S.raids||0)+1;addHeat(0.6);
+ for(const q of S.quests)if(q.type==='bounty'&&q.target==='merchant'&&q.have<q.need){q.have++;if(q.have>=q.need)completeQuest(q);}
+ addText(P.x,P.y-50,msg,'#ffe066',true);toast(msg+(got<want?' (hold full)':''));chime();boom(0.3,900);save();}
+function tryDock(pi){const p=PORTS[pi];if(!p.haven&&stars()>=3){const c=bribeCost();
+  if(S.gold<c){toast(`⛔ ${p.name} turns away a ${stars()}★ wanted pirate! Bribe ${c}💰 or sail to a 🏴‍☠️ pirate haven.`);return;}
+  S.gold-=c;setTimeout(()=>toast(`💰 You slipped the harbour master ${c}💰 to look the other way.`),60);}
+ dock(pi);}
+// one-time tips
+const TIPS={merchant:"💰 <b>Merchant ship!</b> You're a pirate — fat merchants are yours to plunder. <b>Fire on one yourself</b> (AUTO only joins in once you've attacked it). Badly damaged merchants may <b>surrender</b> so you can board them.",
+ wanted:"🚨 <b>You're Wanted!</b> Raiding merchants raises your Wanted ★ level (top left) and the <b>Navy</b> hunts you. Lie low and it fades, or pay it off at a 🏴‍☠️ pirate haven like Port Royal or Tortuga. ⚖️ Lawful ports charge more and turn away ★★★ pirates.",
+ board:"🏳️ <b>They surrendered!</b> Sail alongside and tap <b>Board</b> for extra loot — and a smaller bounty than sinking them."};
+let tipTO=0;function showTip(k){if(T.on||!S.tips||S.tips[k]||state==='title')return;S.tips[k]=1;$('tipTxt').innerHTML=TIPS[k];$('tipBox').classList.remove('hidden');clearTimeout(tipTO);tipTO=setTimeout(hideTip,15000);}
+function hideTip(){$('tipBox').classList.add('hidden');}
+$('tipOk').addEventListener('click',hideTip);
 let QT=[];
 function questTargets(){const out=[];for(const q of S.quests){if(q.type==='hunt')out.push({x:q.x,y:q.y,icon:'☠️',c:'#ff5050'});else if(q.type==='deliver'){const p=PORTS[q.to];out.push({x:p.port.x,y:p.port.y,icon:'📦',c:'#ffd24a'});}}return out;}
 
@@ -512,12 +569,15 @@ $('pTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
 const row=(t,s,r)=>`<div class="item"><div class="it"><b>${t}</b><small>${s}</small></div><div class="ib">${r}</div></div>`;
 const btn=(act,label,en,arg,cls)=>`<button class="b ${cls||''}" data-act="${act}" data-arg="${arg===undefined?'':arg}" ${en?'':'disabled'}>${label}</button>`;
 const pips=(l,m)=>`<span class="pips">${'●'.repeat(l)}${'○'.repeat(m-l)}</span>`;
-function repairCost(hp){return Math.ceil(hp*0.9*(1-0.1*S.roles.carpenter));}
+function repairCost(hp){return Math.ceil(hp*0.9*(1-0.1*S.roles.carpenter)*mk());}
 function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.name;
  [...$('pTabs').children].forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
  $('pGold').innerHTML=`<span>💰 ${S.gold}</span><span>❤️ ${Math.ceil(P.hp)}/${ST.maxHp}</span><span>👥 ${S.crew}/${ST.maxCrew}</span><span>📦 ${cargoUsed()}/${ST.cargoCap}</span>`;
  let h='';const L=lvlAt(p.port.x,p.port.y);
  if(tab==='dock'){const miss=Math.ceil(ST.maxHp-P.hp);const cost=repairCost(miss);
+  {const n=stars();h+=p.haven?`<div class="note">🏴‍☠️ <b>Pirate haven</b> — the law can't touch you here.</div>`:`<div class="note">⚖️ <b>Lawful port</b> — wanted captains pay +15% per ★ here${n?` (you pay <b>+${15*n}%</b>)`:''}, and ★★★+ must bribe their way in.</div>`;
+   if((S.heat||0)>0.05){if(p.haven)h+=row('🚨 Pay off your bounty',`Wanted ${starStr(n)} • bounty ${bountyGold()} 💰. Pay the Brethren to make the Navy forget you.`,btn('payoff',`Pay ${bountyGold()}💰`,S.gold>=bountyGold()));
+    else if(n>=1)h+=row('🤝 Bribe the governor',`Wanted ${starStr(n)}. Lower it by one ★ for ${lowerCost()} 💰.`,btn('bribe',`Bribe ${lowerCost()}💰`,S.gold>=lowerCost()));}}
   h+=`<div class="note">${p.desc} <br>Danger nearby: <b>Lv${L}</b>. Rank: <b>${rankOf(S.infamy)}</b> (${S.infamy} infamy) • Ships sunk: ${S.kills}</div>`;
   h+=row('🔧 Repair hull',miss>0?`${Math.ceil(P.hp)}/${ST.maxHp} HP — full repair ${cost} 💰`:'Your hull is in perfect shape.',btn('repair',miss>0?(S.gold>=cost?`Repair ${cost}💰`:'Repair (partial)'):'✓ Repaired',miss>0&&S.gold>0));
   h+=`<h3>⚔️ Your ship</h3>`;
@@ -527,16 +587,16 @@ function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.nam
   h+=`<h3>📜 Active jobs</h3><div class="note">${act}</div>`;
   h+=row('💾 Save Transfer','Move your progress to another device (export / import a save code).',btn('xfer','💾 Save Transfer',true));}
  else if(tab==='ship'){h+=`<div class="note">Shipwrights here can refit your vessel. Each upgrade costs more than the last.</div>`;
-  for(const k in UPG){const d=UPG[k],l=S.up[k];const c=upCost(d,l);const max=l>=d.max;
+  for(const k in UPG){const d=UPG[k],l=S.up[k];const c=pCost(d,l);const max=l>=d.max;
    h+=row(`${d.icon} ${d.name} ${pips(l,d.max)}`,max?d.desc(l)+' (MAX)':`${d.desc(l)}<br>➜ ${d.desc(l+1)}`,btn('up',max?'MAX':`${c} 💰`,!max&&S.gold>=c,k));}}
- else if(tab==='crew'){const hire=15+2*S.up.hull;const room=ST.maxCrew-S.crew;
+ else if(tab==='crew'){const hire=Math.ceil((15+2*S.up.hull)*mk());const room=ST.maxCrew-S.crew;
   h+=row(`👥 Hire sailors (${S.crew}/${ST.maxCrew})`,`${hire} 💰 each. Need ${ST.crewNeed} to work all guns & sails. Crew can be lost in battle.`,
    btn('hire','+1',room>0&&S.gold>=hire,1)+btn('hire','+5',room>=5&&S.gold>=hire*5,5)+btn('hire','Fill',room>0&&S.gold>=hire*Math.min(room,Math.max(1,ST.crewNeed-S.crew)),'fill'));
   h+=`<h3>⭐ Officers & specialists</h3>`;
-  for(const k in ROLES){const d=ROLES[k],l=S.roles[k];const c=upCost(d,l);const max=l>=d.max;
+  for(const k in ROLES){const d=ROLES[k],l=S.roles[k];const c=pCost(d,l);const max=l>=d.max;
    h+=row(`${d.icon} ${d.name} ${pips(l,d.max)}`,max?d.desc(l)+' (MAX)':`${l?d.desc(l)+'<br>➜ ':''}${d.desc(l+1)}`,btn('role',max?'MAX':(l?'Train ':'Hire ')+c+' 💰',!max&&S.gold>=c,k));}}
  else if(tab==='market'){const used=cargoUsed();h+=`<div class="note">Hold: ${used}/${ST.cargoCap} crates. Buy low, sell high in another port. Prices drift over time.</div>`;
-  GOODS.forEach((g,gi)=>{const b=price(curPort,gi),s=sellPrice(curPort,gi);const own=S.cargo[g.id];const tag=p.cheap===g.id?' <small style="display:inline;color:#2f7d3b">▼ cheap here</small>':p.want===g.id?' <small style="display:inline;color:#a12a1d">▲ in demand</small>':'';
+  GOODS.forEach((g,gi)=>{const b=Math.ceil(price(curPort,gi)*mk()),s=sellPrice(curPort,gi);const own=S.cargo[g.id];const tag=p.cheap===g.id?' <small style="display:inline;color:#2f7d3b">▼ cheap here</small>':p.want===g.id?' <small style="display:inline;color:#a12a1d">▲ in demand</small>':'';
    h+=row(`${g.icon} ${g.name}${tag}`,`Buy ${b} • Sell ${s} • You have ${own}`,btn('buy','Buy',S.gold>=b&&used<ST.cargoCap,gi)+btn('buy','×5',S.gold>=b*5&&used+5<=ST.cargoCap,gi+':5')+btn('sell','Sell',own>0,gi,'sell')+btn('sell','All',own>0,gi+':all','sell'));});
   h+=`<h3>🗣️ Tavern rumours</h3><div class="note">`;const nr=S.roles.navigator>=2?GOODS.length:2;
   for(let gi=0;gi<nr;gi++){const gg=(gi+curPort)%GOODS.length;let best=0,bp=0;PORTS.forEach((pp,pi)=>{const v=sellPrice(pi,gg);if(v>bp){bp=v;best=pi;}});h+=`• ${GOODS[gg].icon} ${GOODS[gg].name} sells for ~${bp} in ${PORTS[best].name}.<br>`;}
@@ -551,11 +611,13 @@ function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.nam
  $('pBody').innerHTML=h;}
 $('pBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled)return;portAction(b.dataset.act,b.dataset.arg);});
 function portAction(act,arg){if(act==='xfer'){openXfer();return;}
- if(act==='repair'){const miss=ST.maxHp-P.hp;let cost=repairCost(miss);if(S.gold>=cost){S.gold-=cost;P.hp=ST.maxHp;}else{const hp=S.gold/(0.9*(1-0.1*S.roles.carpenter));P.hp=Math.min(ST.maxHp,P.hp+hp);S.gold=0;}chime();tutEv('repair');}
- else if(act==='up'){const d=UPG[arg];const c=upCost(d,S.up[arg]);if(S.gold>=c&&S.up[arg]<d.max){S.gold-=c;S.up[arg]++;const old=ST.maxHp;recalc();if(arg==='hull')P.hp+=ST.maxHp-old;chime();tutEv('buy');toast(`${d.icon} ${d.name} upgraded to Lv${S.up[arg]}!`);}}
- else if(act==='role'){const d=ROLES[arg];const c=upCost(d,S.roles[arg]);if(S.gold>=c&&S.roles[arg]<d.max){S.gold-=c;S.roles[arg]++;recalc();chime();tutEv('buy');toast(`${d.icon} ${d.name} now Lv${S.roles[arg]}!`);}}
- else if(act==='hire'){const hire=15+2*S.up.hull;let n=arg==='fill'?Math.max(1,ST.crewNeed-S.crew):+arg;n=Math.min(n,ST.maxCrew-S.crew,Math.floor(S.gold/hire));if(n>0){S.gold-=n*hire;S.crew+=n;recalc();chime();}}
- else if(act==='buy'){const [gi,m]=String(arg).split(':');const g=GOODS[+gi];const pr=price(curPort,+gi);let n=Math.min(+(m||1),ST.cargoCap-cargoUsed(),Math.floor(S.gold/pr));if(n>0){S.gold-=n*pr;S.cargo[g.id]+=n;}}
+ if(act==='payoff'){const c=bountyGold();if(S.gold>=c&&PORTS[curPort].haven){S.gold-=c;S.heat=0;lastStars=0;chime();toast('🏴‍☠️ Bounty paid off — the Navy forgets your face.');}}
+ else if(act==='bribe'){const c=lowerCost(),n=stars();if(S.gold>=c&&n>=1){S.gold-=c;S.heat=STAR_AT[n]-0.5;S.heatT=S.playTime;chime();toast(`🤝 Bribe accepted — Wanted ${starStr(stars())}`);}}
+ if(act==='repair'){const miss=ST.maxHp-P.hp;let cost=repairCost(miss);if(S.gold>=cost){S.gold-=cost;P.hp=ST.maxHp;}else{const hp=S.gold/(0.9*(1-0.1*S.roles.carpenter)*mk());P.hp=Math.min(ST.maxHp,P.hp+hp);S.gold=0;}chime();tutEv('repair');}
+ else if(act==='up'){const d=UPG[arg];const c=pCost(d,S.up[arg]);if(S.gold>=c&&S.up[arg]<d.max){S.gold-=c;S.up[arg]++;const old=ST.maxHp;recalc();if(arg==='hull')P.hp+=ST.maxHp-old;chime();tutEv('buy');toast(`${d.icon} ${d.name} upgraded to Lv${S.up[arg]}!`);}}
+ else if(act==='role'){const d=ROLES[arg];const c=pCost(d,S.roles[arg]);if(S.gold>=c&&S.roles[arg]<d.max){S.gold-=c;S.roles[arg]++;recalc();chime();tutEv('buy');toast(`${d.icon} ${d.name} now Lv${S.roles[arg]}!`);}}
+ else if(act==='hire'){const hire=Math.ceil((15+2*S.up.hull)*mk());let n=arg==='fill'?Math.max(1,ST.crewNeed-S.crew):+arg;n=Math.min(n,ST.maxCrew-S.crew,Math.floor(S.gold/hire));if(n>0){S.gold-=n*hire;S.crew+=n;recalc();chime();}}
+ else if(act==='buy'){const [gi,m]=String(arg).split(':');const g=GOODS[+gi];const pr=Math.ceil(price(curPort,+gi)*mk());let n=Math.min(+(m||1),ST.cargoCap-cargoUsed(),Math.floor(S.gold/pr));if(n>0){S.gold-=n*pr;S.cargo[g.id]+=n;}}
  else if(act==='sell'){const [gi,m]=String(arg).split(':');const g=GOODS[+gi];const pr=sellPrice(curPort,+gi);const n=m==='all'?S.cargo[g.id]:Math.min(1,S.cargo[g.id]);if(n>0){S.cargo[g.id]-=n;S.gold+=n*pr;S.earned+=n*pr;chime();}}
  else if(act==='accept'){const o=offersFor(curPort);const i=o.findIndex(q=>q.id==arg);if(i>=0&&S.quests.length<3){const q=o.splice(i,1)[0];S.quests.push(q);offersFor(curPort);toast('📜 Job accepted: '+q.title);}}
  else if(act==='abandon'){S.quests=S.quests.filter(q=>q.id!=arg);enemies.forEach(e=>{if(e.qid==arg)e.qid=0;});}
@@ -574,7 +636,7 @@ function renderMenu(){const used=cargoUsed();let cg=GOODS.filter(g=>S.cargo[g.id
  h+=row('💾 Save game','Progress also saves automatically every few seconds.',btn('savenow','💾 Save now',true));
  h+=row('🕹️ Steering',S.steer==='buttons'?'Drag on the sea <b>and</b> on-screen ⟲ ⟳ turn / ⛵± sail buttons':'Drag anywhere on the sea (floating joystick)',btn('steer',S.steer==='buttons'?'Drag only':'Add buttons',true));
  h+=row('🎓 Tutorial',S.tutDone?'Replay the guided tutorial.':'Tutorial in progress.',btn('tut',T.on?'Restart':'Replay',true));
- h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow). Steer and fire at the same time with two thumbs.<br>💥 LEFT/RIGHT fire broadsides. 🎯 AUTO fires them for you at hostile ships.<br>⚓ Get close to a pier and tap Dock.<br>🚀 BOOST = +25% speed, but harder turning, then recharge.<br>⌨️ WASD/arrows • Q/E fire • Space both • B/Shift boost • F dock • M map • T auto</div>`;
+ h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow). Steer and fire at the same time with two thumbs.<br>💥 LEFT/RIGHT fire broadsides. 🎯 AUTO fires them for you at hostile ships.<br>⚓ Get close to a pier and tap Dock.<br>💰 Raid merchants by firing on them; tap Board when they surrender.<br>🚨 Wanted ★: the Navy hunts you. Pay it off at 🏴‍☠️ havens, bribe at ⚖️ lawful ports.<br>🚀 BOOST = +25% speed, but harder turning, then recharge.<br>⌨️ WASD/arrows • Q/E fire • Space both • B/Shift boost • F dock • M map • T auto</div>`;
  h+=row('💾 Save Transfer','Move progress to another device (export / import a save code).',btn('xfer','💾 Save Transfer',true));
  h+=row('⚠️ Reset progress','Delete your save and start over.',btn('reset',resetArm?'Tap again!':'Reset',true,'','red'));
  h+=`<div class="note">Progress saves automatically on this device. Use 💾 Save Transfer to move it to another one.</div>`;$('mBody').innerHTML=h;}
@@ -608,15 +670,18 @@ const BOOST_SPEED=1.25,BOOST_TURN=0.6;
 function boost(){if(state!=='play'||P.dead||P.boost>0||P.boostCd>0)return;P.boost=ST.boostDur;P.boostCd=ST.boostCd;P.speed+=25;cam.shake=Math.max(cam.shake,2);
  tutEv('boost');if(!S.boostTip){S.boostTip=true;$('boostBtn').classList.remove('tip');}
  if(actx&&!S.muted)boom(0.25,1400);toast(`🚀 Boost! +25% speed for ${ST.boostDur}s — turning is harder`);}
-function nearSafePort(x,y){for(const p of PORTS)if(Math.hypot(p.port.x-x,p.port.y-y)<420)return true;return false;}
+// lawful ports stop protecting you once you're Wanted; pirate havens always do
+function nearSafePort(x,y){const w=stars()>0;for(const p of PORTS)if((p.haven||!w)&&Math.hypot(p.port.x-x,p.port.y-y)<420)return true;return false;}
 function updateEnemy(e,dt){
  if(e.sinking){e.sinking+=dt;e.speed*=0.97;e.x+=e.vx*dt*0.3;e.y+=e.vy*dt*0.3;if(Math.random()<0.3)addPart('smoke',e.x+rand(-10,10),e.y+rand(-10,10),rand(-10,10),rand(-20,0),1,rand(6,12),null);return;}
  e.rl-=dt;e.rr-=dt;e.hitT-=dt;
  const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy);const toP=Math.atan2(dy,dx);let desired=e.h,thr=0.55;
  if(e.tut){e.hitT-=dt;e.h+=dt*0.12;return;}
  const safe=nearSafePort(P.x,P.y)||P.dead||tutPeace;
+ if(e.kind==='navy'){if(stars()===0){e.angry=false;e.aggro=0;}else{e.aggro=2600;e.angry=true;}}
  if(e.kind==='merchant'){
-  if(!P.dead&&(d<520||(e.angry&&d<900))){desired=toP+Math.PI;thr=1;}
+  if(e.surr){thr=0;desired=e.h;if(d>700){e.surrT+=dt;if(e.surrT>25){e.surr=false;e.angry=false;}}}
+  else if(!P.dead&&(d<520||(e.angry&&d<900))){desired=toP+Math.PI;thr=1;}
   else{if(!e.wp||Math.hypot(e.wp.x-e.x,e.wp.y-e.y)<260){const pp=pick(PORTS).port;e.wp={x:pp.x,y:pp.y};}desired=Math.atan2(e.wp.y-e.y,e.wp.x-e.x);}
  }else{
   if(e.kind==='boss'&&!e.angry&&d<e.aggro)e.angry=true;
@@ -654,11 +719,13 @@ function update(dt){
   autoFire();calmRepair(dt);
   if(ST.regen>0&&P.hp<ST.maxHp)P.hp=Math.min(ST.maxHp,P.hp+ST.regen*dt);
  }
+ wantedTick(dt);
  nearPort=-1;if(!P.dead)PORTS.forEach((p,i)=>{if(Math.hypot(p.port.x-P.x,p.port.y-P.y)<160)nearPort=i;});
  // enemies
  for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];updateEnemy(e,dt);if(e.sinking>2.5)enemies.splice(i,1);}
  spawnT-=dt;if(spawnT<=0){spawnT=1;
-  for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];if(e.kind!=='boss'&&Math.hypot(e.x-P.x,e.y-P.y)>2800)enemies.splice(i,1);}
+  const st0=stars();for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];const d=Math.hypot(e.x-P.x,e.y-P.y);if((e.kind!=='boss'&&d>2800)||(e.kind==='navy'&&st0===0&&d>1400&&!e.sinking))enemies.splice(i,1);}
+  if(!S.tips.merchant&&!T.on){for(const e of enemies)if(e.kind==='merchant'&&!e.sinking&&Math.hypot(e.x-P.x,e.y-P.y)<750){showTip('merchant');break;}}
   if(enemies.filter(e=>e.kind!=='boss').length<14)spawnNear(1000,2000);
   for(const q of S.quests)if(q.type==='hunt'&&!q.spawned&&Math.hypot(q.x-P.x,q.y-P.y)<1500){q.spawned=true;enemies.push(makeEnemy('boss',q.x,q.y,q.lvl,{name:q.name,qid:q.id,home:{x:q.x,y:q.y}}));}
  }
@@ -699,7 +766,11 @@ function drawShip(s,sail,flag,thr){const L=s.len,W=s.wid;ctx.save();ctx.translat
  const masts=L>58?[L*0.22,-L*0.02,-L*0.25]:[L*0.15,-L*0.18];const bul=4+thr*7;
  for(const mx of masts){ctx.beginPath();ctx.moveTo(mx,-W*0.85);ctx.quadraticCurveTo(mx+bul*2,0,mx,W*0.85);ctx.quadraticCurveTo(mx+bul*0.6,0,mx,-W*0.85);ctx.fillStyle=sail;ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1;ctx.stroke();
   ctx.fillStyle='#3d220c';ctx.beginPath();ctx.arc(mx,0,2.6,0,TAU);ctx.fill();}
- ctx.fillStyle=flag;ctx.beginPath();const fm=masts[masts.length-1];ctx.moveTo(fm,0);ctx.lineTo(fm-11,-3+Math.sin(perfT*0.008+s.x)*2);ctx.lineTo(fm-11,4);ctx.closePath();ctx.fill();
+ const fm=masts[masts.length-1];
+ if(s.kind==='player'){const wv=Math.sin(perfT*0.008)*1.5;ctx.fillStyle='#111';ctx.beginPath();ctx.moveTo(fm,-7);ctx.lineTo(fm-20,-7+wv);ctx.lineTo(fm-20,7+wv);ctx.lineTo(fm,7);ctx.closePath();ctx.fill();ctx.strokeStyle='#eee';ctx.lineWidth=0.8;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(fm-10,-1+wv*0.5,3.2,0,TAU);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(fm-15,2+wv*0.5);ctx.lineTo(fm-5,6+wv*0.5);ctx.moveTo(fm-15,6+wv*0.5);ctx.lineTo(fm-5,2+wv*0.5);ctx.stroke();
+  ctx.fillStyle='#111';ctx.fillRect(fm-11.4,-1.6+wv*0.5,1.1,1.1);ctx.fillRect(fm-9.4,-1.6+wv*0.5,1.1,1.1);}
+ else{ctx.fillStyle=flag;ctx.beginPath();ctx.moveTo(fm,0);ctx.lineTo(fm-11,-3+Math.sin(perfT*0.008+s.x)*2);ctx.lineTo(fm-11,4);ctx.closePath();ctx.fill();}
  ctx.restore();ctx.globalAlpha=1;}
 let perfT=0;
 function sx(x){return(x-cam.x)*zoom+vw/2;}function sy(y){return(y-cam.y)*zoom+vh/2;}
@@ -727,7 +798,7 @@ function render(t){perfT=t;
  for(const l of loot){const bob=Math.sin(ts*3+l.x)*3;ctx.fillStyle='rgba(255,255,255,0.25)';ctx.beginPath();ctx.arc(l.x,l.y,16+Math.sin(ts*4)*3,0,TAU);ctx.fill();ctx.font='24px serif';ctx.fillText(Object.keys(l.goods).length?'📦':'💰',l.x,l.y+bob);}
  // ships
  for(const e of enemies){if(e.x<x0-80||e.x>x1+80||e.y<y0-80||e.y>y1+80)continue;
-  if(e.tut)drawShip(e,'#f3e2b0','#ffd34d',0.3);else if(e.kind==='merchant')drawShip(e,'#f4ead2','#2b5fb5',0.6);else if(e.kind==='boss')drawShip(e,'#8c1c26','#111',1);else drawShip(e,'#3b3b42','#111',0.9);}
+  if(e.tut)drawShip(e,'#f3e2b0','#ffd34d',0.3);else if(e.kind==='navy')drawShip(e,e.hunter?'#6b2a2a':'#eef3fb',e.hunter?'#c0392b':'#1d4fa8',1);else if(e.kind==='merchant')drawShip(e,'#f4ead2',e.surr?'#ffffff':'#2b5fb5',e.surr?0:0.6);else if(e.kind==='boss')drawShip(e,'#8c1c26','#111',1);else drawShip(e,'#3b3b42','#111',0.9);}
  if(P.boost>0&&!P.dead){const g=0.35+0.2*Math.sin(ts*14);ctx.fillStyle=`rgba(255,190,60,${g})`;ctx.beginPath();ctx.ellipse(P.x,P.y,P.len*0.8,P.len*0.8,0,0,TAU);ctx.fill();drawShip(P,'#ffd27a','#111',1.4);}
  else drawShip(P,'#fff8e7','#111',P.throttle);
  drawAutoHud(ts);
@@ -752,10 +823,10 @@ function render(t){perfT=t;
   const l=18+12*Math.sin(s.life*2);ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-wdx*l,s.y-wdy*l);}ctx.stroke();
  // labels
  ctx.textAlign='center';ctx.textBaseline='middle';
- for(const p of PORTS){const X=sx(p.x),Y=sy(p.y-p.r*1.15);if(X<-150||X>vw+150||Y<-50||Y>vh+80)continue;ctx.font='bold 15px sans-serif';const w=ctx.measureText(p.name).width+16;ctx.fillStyle='rgba(20,12,4,0.6)';ctx.fillRect(X-w/2,Y-11,w,22);ctx.fillStyle='#ffe7a8';ctx.fillText('⚓ '+p.name,X,Y);}
+ for(const p of PORTS){const X=sx(p.x),Y=sy(p.y-p.r*1.15);if(X<-150||X>vw+150||Y<-50||Y>vh+80)continue;ctx.font='bold 15px sans-serif';const w=ctx.measureText(p.name).width+16;ctx.fillStyle='rgba(20,12,4,0.6)';ctx.fillRect(X-w/2,Y-11,w,22);ctx.fillStyle=p.haven?'#ffb0a0':'#ffe7a8';ctx.fillText((p.haven?'🏴‍☠️ ':'⚖️ ')+p.name,X,Y);}
  for(const e of enemies){if(e.sinking)continue;const X=sx(e.x),Y=sy(e.y)-e.len*zoom*0.6-8;if(X<-40||X>vw+40||Y<-40||Y>vh+40)continue;
   const bw=38;if(e.hp<e.maxHp||e.kind==='boss'||e.tut){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-bw/2,Y,bw,5);ctx.fillStyle=e.kind==='merchant'?'#8fd0ff':'#ff5a4a';ctx.fillRect(X-bw/2,Y,bw*clamp(e.hp/e.maxHp,0,1),5);}
-  ctx.font='bold 11px sans-serif';ctx.fillStyle=e.kind==='merchant'?'#cfe8ff':e.kind==='boss'?'#ffb0b0':'#ffd0c0';ctx.fillText(e.tut?'🎯 Training Target':e.kind==='boss'?`☠ ${e.name} Lv${e.lvl}`:(e.kind==='merchant'?`💰 Merchant Lv${e.lvl}`:`☠ Pirate Lv${e.lvl}`),X,Y-8);}
+  ctx.font='bold 11px sans-serif';ctx.fillStyle=e.kind==='merchant'?(e.surr?'#ffffff':'#cfe8ff'):e.kind==='navy'?'#bcd6ff':e.kind==='boss'?'#ffb0b0':'#ffd0c0';ctx.fillText(e.tut?'🎯 Training Target':e.kind==='boss'?`☠ ${e.name} Lv${e.lvl}`:e.kind==='navy'?(e.hunter?`🎯 Bounty Hunter Lv${e.lvl}`:`⚓ Navy Lv${e.lvl}`):e.kind==='merchant'?(e.surr?'🏳️ Surrendered — Board!':e.plundered?'💰 Merchant (plundered)':`💰 Merchant Lv${e.lvl}`):`☠ Rival Pirate Lv${e.lvl}`,X,Y-8);}
  for(const tx of texts){const a=clamp(tx.life/tx.max*1.5,0,1);ctx.globalAlpha=a;ctx.font=(tx.big?'bold 18px':'bold 14px')+' sans-serif';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,0.7)';ctx.strokeText(tx.t,sx(tx.x),sy(tx.y));ctx.fillStyle=tx.c;ctx.fillText(tx.t,sx(tx.x),sy(tx.y));}ctx.globalAlpha=1;
  // side range hint when ready
  // quest arrows
@@ -780,21 +851,25 @@ function render(t){perfT=t;
 function drawMap(X,Y,s,big){const k=s/WORLD;ctx.save();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-2,Y-2,s+4,s+4);ctx.imageSmoothingEnabled=true;ctx.drawImage(mapBase,X,Y,s,s);ctx.globalAlpha=0.92;ctx.drawImage(fogCv,X,Y,s,s);ctx.globalAlpha=1;
  ctx.beginPath();ctx.rect(X,Y,s,s);ctx.clip();
  ctx.textAlign='center';ctx.textBaseline='middle';
- for(const p of PORTS){ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.arc(X+p.port.x*k,Y+p.port.y*k,big?5:2.5,0,TAU);ctx.fill();if(big){ctx.font='bold 12px sans-serif';ctx.fillStyle='#fff';ctx.fillText(p.name,X+p.port.x*k,Y+p.port.y*k-12);}}
- if(ST.radar){for(const e of enemies){if(e.sinking||Math.hypot(e.x-P.x,e.y-P.y)>ST.radar)continue;ctx.fillStyle=e.kind==='merchant'?'#9fd8ff':'#ff4a4a';ctx.fillRect(X+e.x*k-1.5,Y+e.y*k-1.5,big?4:3,big?4:3);}}
+ for(const p of PORTS){ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.arc(X+p.port.x*k,Y+p.port.y*k,big?5:2.5,0,TAU);ctx.fill();if(big){ctx.font='bold 12px sans-serif';ctx.fillStyle='#fff';ctx.fillText((p.haven?'🏴‍☠️ ':'')+p.name,X+p.port.x*k,Y+p.port.y*k-12);}}
+ if(ST.radar){for(const e of enemies){if(e.sinking||Math.hypot(e.x-P.x,e.y-P.y)>ST.radar)continue;ctx.fillStyle=e.kind==='merchant'?'#9fd8ff':e.kind==='navy'?'#ffffff':'#ff4a4a';ctx.fillRect(X+e.x*k-1.5,Y+e.y*k-1.5,big?4:3,big?4:3);}}
  for(const q of QT){ctx.font=(big?18:11)+'px serif';ctx.fillText(q.icon,X+q.x*k,Y+q.y*k);}
  ctx.save();ctx.translate(X+P.x*k,Y+P.y*k);ctx.rotate(P.h);ctx.fillStyle='#fff';ctx.beginPath();const z=big?8:5;ctx.moveTo(z,0);ctx.lineTo(-z*0.7,-z*0.6);ctx.lineTo(-z*0.7,z*0.6);ctx.closePath();ctx.fill();ctx.restore();
  ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;ctx.strokeRect(X,Y,s,s);ctx.restore();}
 function drawBigMap(){ctx.fillStyle='rgba(5,10,20,0.75)';ctx.fillRect(0,0,vw,vh);const s=Math.min(vw,vh)-60;const X=(vw-s)/2,Y=(vh-s)/2+8;drawMap(X,Y,s,true);
  ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('🗺️ Sea chart — tap to close',vw/2,Y-14);
- ctx.font='12px sans-serif';ctx.fillText(ST.radar?'Red = pirates, blue = merchants (navigator radar)':'Hire a Navigator to see ships and reveal more map',vw/2,Y+s+14);}
+ ctx.font='12px sans-serif';ctx.fillText(ST.radar?'Red = rival pirates, white = Navy, blue = merchants • 🏴‍☠️ = pirate haven':'🏴‍☠️ = pirate haven, others are lawful • Navigators reveal ships & map',vw/2,Y+s+14);}
 
 // ---------- HUD ----------
 const hudCache={};let boostTipShown=false;function setTxt(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v;}}
 function updateHUD(){QT=questTargets();setTxt('hGold','💰 '+S.gold);setTxt('hCrew','👥 '+S.crew+'/'+ST.maxCrew);setTxt('hCargo','📦 '+cargoUsed()+'/'+ST.cargoCap);
  const hp=clamp(P.hp/ST.maxHp,0,1);const w=Math.round(hp*100)+'%';if(hudCache.hpw!==w){hudCache.hpw=w;$('hHp').style.width=w;$('hHp').style.background=hp>0.5?'linear-gradient(#5be36a,#2c9c3a)':hp>0.25?'linear-gradient(#ffd34d,#d99a1a)':'linear-gradient(#ff6b5b,#b8281a)';}
  setTxt('hHpT',`❤️ ${Math.ceil(P.hp)}/${ST.maxHp}`);setTxt('hRank','⭐ '+rankOf(S.infamy));const L=lvlAt(P.x,P.y);setTxt('hDanger',(L<=2?'🟢':L<=4?'🟡':L<=6?'🟠':'🔴')+' Waters Lv'+L);
- const showDock=state==='play'&&nearPort>=0;$('dockBtn').classList.toggle('hidden',!showDock);if(showDock)setTxt('dockBtn','⚓ Dock at '+PORTS[nearPort].name);
+ const showDock=state==='play'&&nearPort>=0;$('dockBtn').classList.toggle('hidden',!showDock);if(showDock){const pp=PORTS[nearPort];setTxt('dockBtn',!pp.haven&&stars()>=3?`⚖️ Bribe & dock (${bribeCost()}💰)`:(pp.haven?'🏴‍☠️ Dock at ':'⚓ Dock at ')+pp.name);}
+ $('boardBtn').classList.toggle('hidden',!(state==='play'&&boardTgt));
+ if(state!=='play'&&state!=='map'&&!$('tipBox').classList.contains('hidden'))hideTip();
+ {const h=S.heat||0,n=stars();const show=h>=0.05;if(hudCache.want!==show){hudCache.want=show;$('hWant').classList.toggle('hidden',!show);}
+  if(show){setTxt('hStars','🚨 '+starStr(n));setTxt('hBounty','Bounty '+bountyGold()+'💰');$('hWant').classList.toggle('hot',n>=3);}}
  {const b=$('boostBtn');const on=P.boost>0,rdy=!on&&P.boostCd<=0;const p=on?0:Math.round(clamp(P.boostCd/ST.boostCd,0,1)*100);
   const lbl=on?P.boost.toFixed(1)+'s':rdy?'BOOST':Math.ceil(P.boostCd)+'s';const k=(on?'a':rdy?'r':'c')+p+lbl;
   if(hudCache.boost!==k){hudCache.boost=k;b.style.setProperty('--p',p+'%');b.classList.toggle('on',on);b.classList.toggle('ready',rdy);$('boostLbl').textContent=lbl;}}
@@ -997,7 +1072,7 @@ applySteerMode();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});window.addEventListener('pagehide',save);
 requestAnimationFrame(frame);
 // test hook
-window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort}};
+window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort}};
 })();
 </script>
 </body>
