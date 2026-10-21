@@ -106,6 +106,9 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 #boostBtn.ready{background:rgba(200,110,20,.8);box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,220,140,.9)}
 #boostBtn.on{background:rgba(255,150,30,.95);box-shadow:0 0 14px 4px rgba(255,190,60,.9),inset 0 0 0 2px #fff;animation:bpulse .5s infinite alternate}
 #boostBtn.tip{animation:btip .8s infinite alternate}
+#ammoBtn{width:52px;height:52px;right:calc(118px + env(safe-area-inset-right));bottom:calc(108px + env(safe-area-inset-bottom));font-size:12px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#ammoBtn span{font-size:19px}#ammoBtn.on{background:rgba(150,60,20,.85);box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,200,140,.9)}
+body.steer-btns #ammoBtn{right:calc(178px + env(safe-area-inset-right));bottom:calc(108px + env(safe-area-inset-bottom))}
 @keyframes bpulse{to{box-shadow:0 0 22px 8px rgba(255,210,80,.95),inset 0 0 0 2px #fff}}
 @keyframes btip{to{box-shadow:0 0 0 6px rgba(255,211,77,.9),0 0 18px 6px rgba(255,211,77,.8)}}
 #boardBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(240px + env(safe-area-inset-bottom));display:flex;gap:8px;animation:pulse 1s infinite}
@@ -162,6 +165,7 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 <button id="autoBtn" class="btnr on" aria-label="Toggle auto-fire"><span>🎯</span><b id="autoLbl">AUTO</b></button>
 <button id="dockBtn" class="hidden">⚓ Dock</button>
 <button id="actBtn" class="hidden">⛏ Dig for treasure</button>
+<button id="ammoBtn" class="btnr hidden" aria-label="Switch ammo"><span id="ammoIc">⚫</span><b id="ammoN">∞</b></button>
 <div id="boardBar" class="hidden"><button id="boardBtn">🏴‍☠️ Plunder</button><button id="seizeBtn">⛓ Seize ship</button></div>
 <div id="tipBox" class="hidden"><div id="tipTxt"></div><div class="tb"><button class="b" id="tipOk">Got it</button></div></div>
 <button id="boostBtn" class="btnr ready" aria-label="Speed boost"><div class="cd"></div><span class="bi">🚀</span><b id="boostLbl">BOOST</b></button>
@@ -184,8 +188,13 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 
 <div id="menu" class="overlay hidden"><div class="panel">
   <div class="phead"><h2>☰ Captain's Log</h2><button class="big" id="mClose">▶ Resume</button></div>
-  <div class="tabs" id="mTabs"><button data-m="log">📖 Log</button><button data-m="skills">🎖️ Skills</button><button data-m="trophies">🏆 Trophies</button></div>
+  <div class="tabs" id="mTabs"><button data-m="log">📖 Log</button><button data-m="skills">🎖️ Skills</button><button data-m="trophies">🏆 Trophies</button><button data-m="style">🎨 Style</button><button data-m="rep">🏴 Republic</button></div>
   <div class="scroll" id="mBody"></div>
+</div></div>
+
+<div id="fortUI" class="overlay hidden"><div class="panel">
+  <div class="phead"><h2 id="fName">🏰 Fort</h2><button class="big" id="fClose">⛵ To sea</button></div>
+  <div class="scroll" id="fBody"></div>
 </div></div>
 
 <div id="dead" class="overlay hidden"><div class="panel" style="padding:18px;text-align:center;align-items:center">
@@ -260,8 +269,9 @@ function hash(x,y){let h=Math.imul(x|0,374761393)+Math.imul(y|0,668265263);h=Mat
 const $=id=>document.getElementById(id);
 
 // ---------- WORLD ----------
-const WORLD=8000;
-const START={x:4000,y:4000};
+const OLDW=8000,OFF=8000,WORLD=24000;
+const START={x:12000,y:12000},CORE_R=4100;
+function inCore(x,y){return Math.abs(x-START.x)<CORE_R&&Math.abs(y-START.y)<CORE_R;}
 const GOODS=[
  {id:'rum',name:'Rum',icon:'🍾',base:12},
  {id:'sugar',name:'Sugar',icon:'🍬',base:18},
@@ -280,6 +290,21 @@ const PORTDEFS=[
  {name:'Isla Calavera',x:6800,y:1100,r:260,pa:2.5,cheap:'gems',want:'rum',haven:1,desc:'Skull Island, a pirate stronghold. Only the bravest captains drop anchor here.'},
  {name:"Kraken's Reef",x:1000,y:6800,r:200,pa:-0.7,cheap:'spice',want:'gems',haven:1,desc:'Wreck-strewn reef full of wreckers and outlaws. Locals whisper of the deep.'},
  {name:'El Dorado',x:7000,y:7000,r:280,pa:-2.4,cheap:'gems',want:'spice',desc:'The fabled city of gold, guarded by the Crown\'s finest. Richest port on the sea.'}];
+PORTDEFS.forEach(d=>{d.x+=OFF;d.y+=OFF;});
+// Pirate Republic: clan strongholds, free havens and the Crown's frontier outposts in the outer waters
+const PORTDEFS2=[
+ {name:'Scarlet Keep',x:21300,y:11300,r:250,pa:Math.PI,cheap:'spice',want:'gems',haven:1,clan:0,desc:'Red-walled citadel of the Crimson Brotherhood. Allies drink free; enemies hang from the walls.'},
+ {name:'Blacktide Hold',x:12700,y:2600,r:240,pa:Math.PI/2,cheap:'silk',want:'rum',haven:1,clan:1,desc:'Fog-shrouded harbour of the Black Tide Syndicate — smugglers, spies and silent knives.'},
+ {name:'Gullrock Bastion',x:2700,y:12700,r:250,pa:0,cheap:'rum',want:'silk',haven:1,clan:2,desc:'Iron-plated fortress of the Iron Gull Confederacy, master shipwrights of the Republic.'},
+ {name:"Serpent's Crown",x:11300,y:21400,r:260,pa:-Math.PI/2,cheap:'gems',want:'sugar',haven:1,clan:3,desc:'Golden seat of the Golden Serpent Armada, richest and proudest of the four clans.'},
+ {name:'Freeport Libertalia',x:4600,y:4600,r:230,pa:Math.PI/4,cheap:'sugar',want:'spice',haven:1,desc:'The free city of the Pirate Republic. Neutral ground: every clan drinks here, none may fight.'},
+ {name:"Rogue's Rest",x:19400,y:4500,r:200,pa:2.4,cheap:'rum',want:'gems',haven:1,desc:'A ramshackle haven of deserters and drifters on the northern frontier.'},
+ {name:"Hangman's Cay",x:19500,y:19500,r:210,pa:-2.4,cheap:'spice',want:'silk',haven:1,desc:'They say the gallows here have not been empty for a hundred years. Pirates love it.'},
+ {name:'Driftwood Harbor',x:4500,y:19400,r:200,pa:-0.8,cheap:'silk',want:'rum',haven:1,desc:'A haven built from the wrecks of a thousand ships.'},
+ {name:'Fort Sovereign',x:18200,y:13800,r:220,pa:2.8,cheap:'sugar',want:'gems',desc:'The Crown\'s newest bastion on the edge of the Republic.'},
+ {name:'Port Regent',x:10200,y:18300,r:230,pa:-1.9,cheap:'rum',want:'spice',desc:'A Crown colony that trades with everyone and trusts no one.'},
+ {name:'San Cristóbal',x:5800,y:10300,r:240,pa:0.3,cheap:'spice',want:'sugar',desc:'Spanish frontier city, its guns aimed at the Republic.'},
+ {name:'New Albion',x:13800,y:5800,r:220,pa:1.9,cheap:'silk',want:'rum',desc:'The Crown\'s northern outpost, home of the Admiralty\'s frontier squadron.'}];
 const ISL=[];
 function makeIsland(d,seed,isPort){
  const r=rng(seed);
@@ -296,12 +321,29 @@ function insideIsland(o,x,y,m){const dx=x-o.x,dy=y-o.y;const d2=dx*dx+dy*dy;cons
 PORTDEFS.forEach((d,i)=>ISL.push(makeIsland(d,1000+i*77,true)));
 const PORTS=ISL.slice();
 (function(){const r=rng(4242);let tries=0;while(ISL.length<PORTS.length+14&&tries<500){tries++;
- const x=300+r()*(WORLD-600),y=300+r()*(WORLD-600),rad=45+r()*75;
+ const x=OFF+300+r()*(OLDW-600),y=OFF+300+r()*(OLDW-600),rad=45+r()*75;
  if(Math.hypot(x-START.x,y-START.y)<600)continue;
  if(ISL.some(o=>Math.hypot(o.x-x,o.y-y)<o.r*1.3+rad*1.3+260))continue;
  ISL.push(makeIsland({x,y,r:rad},9000+tries,false));}})();
-function inAnyIsland(x,y,m){for(const o of ISL)if(insideIsland(o,x,y,m))return o;return null;}
-function lvlAt(x,y){return clamp(1+Math.floor(Math.hypot(x-START.x,y-START.y)/800),1,9);}
+PORTDEFS2.forEach((d,i)=>{const o=makeIsland(d,5000+i*91,true);o.outer=true;if(d.clan!=null)o.clan=d.clan;ISL.push(o);PORTS.push(o);});
+(function(){const r=rng(9090);let tries=0,n=0;while(n<74&&tries<4000){tries++;const x=400+r()*(WORLD-800),y=400+r()*(WORLD-800),rad=55+r()*150;
+ if(Math.abs(x-START.x)<CORE_R+300&&Math.abs(y-START.y)<CORE_R+300)continue;if(ISL.some(o=>Math.hypot(o.x-x,o.y-y)<o.r*1.3+rad*1.3+300))continue;
+ const o=makeIsland({x,y,r:rad},20000+tries,false);o.outer=true;ISL.push(o);n++;}})();
+ISL.forEach(o=>{o.half=Math.ceil((o.r*1.3*1.25+30)*2)/2;});
+// spatial grid for island collision / queries
+const GRID=1000,GN=WORLD/GRID,IGRID=[];for(let i=0;i<GN*GN;i++)IGRID.push([]);
+ISL.forEach(o=>{const R=o.r*1.3+220;for(let gy=Math.max(0,Math.floor((o.y-R)/GRID));gy<=Math.min(GN-1,Math.floor((o.y+R)/GRID));gy++)for(let gx=Math.max(0,Math.floor((o.x-R)/GRID));gx<=Math.min(GN-1,Math.floor((o.x+R)/GRID));gx++)IGRID[gy*GN+gx].push(o);});
+const NOCELL=[];function islCell(x,y){const gx=Math.floor(x/GRID),gy=Math.floor(y/GRID);return gx<0||gy<0||gx>=GN||gy>=GN?NOCELL:IGRID[gy*GN+gx];}
+function inAnyIsland(x,y,m){for(const o of islCell(x,y))if(insideIsland(o,x,y,m))return o;return null;}
+function clanSector(x,y){const a=Math.atan2(y-START.y,x-START.x),q=Math.PI/4;return a>=-q&&a<q?0:a>=q&&a<3*q?3:a>=-3*q&&a<-q?1:2;}
+function clanAt(x,y){return inCore(x,y)?-1:clanSector(x,y);}
+const FORTN=[['Fort Ember','Redcliff Battery','Bloodrock','Cinder Point'],['Fort Umbra','Midnight Battery','Ravenspire','Gloomwater'],['Fort Anvil','Rivet Rock','Saltsteel Battery','Gullwatch'],['Fort Aurum','Fang Battery','Coil Redoubt','Sunscale']];
+const FORTS=[];(function(){const r=rng(31337);const cand=ISL.filter(o=>o.outer&&!o.isPort&&o.r>=75);
+ for(let c=0;c<4;c++){const mine=cand.filter(o=>clanSector(o.x,o.y)===c);for(let i=mine.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[mine[i],mine[j]]=[mine[j],mine[i]];}
+  let k=0;for(const o of mine){if(k>=4)break;const a=Math.atan2(START.y-o.y,START.x-o.x)+(r()-0.5)*1.2;const rr=radiusAt(o,a)*0.82;const x=o.x+Math.cos(a)*rr,y=o.y+Math.sin(a)*rr;
+   if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<1300))continue;if(FORTS.some(f=>Math.hypot(f.x-x,f.y-y)<1800))continue;if(Math.max(Math.abs(x-START.x),Math.abs(y-START.y))<CORE_R+700)continue;
+   const f={id:FORTS.length,x,y,a,clan:c,name:FORTN[c][k],lvl:lvlAt(x,y)};FORTS.push(f);o.fort=f;k++;}}})();
+function lvlAt(x,y){const d=Math.hypot(x-START.x,y-START.y);return d<5600?clamp(1+Math.floor(d/800),1,8):Math.min(12,8+Math.floor((d-5600)/1400));}
 
 // island sprites
 function renderIsland(o){
@@ -331,32 +373,47 @@ function renderIsland(o){
  }
  o.canvas=c;o.half=S/2;
 }
-ISL.forEach(renderIsland);
+// island sprites are rendered lazily near the camera (see drawIslands)
 
 // map base
-const MAPRES=200;const mapBase=document.createElement('canvas');mapBase.width=mapBase.height=MAPRES;
+const MAPRES=1200;const mapBase=document.createElement('canvas');mapBase.width=mapBase.height=MAPRES;
 (function(){const g=mapBase.getContext('2d');g.fillStyle='#1d5f86';g.fillRect(0,0,MAPRES,MAPRES);const k=MAPRES/WORLD;
- for(const o of ISL){g.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,rr=radiusAt(o,a);const x=(o.x+Math.cos(a)*rr)*k,y=(o.y+Math.sin(a)*rr)*k;i?g.lineTo(x,y):g.moveTo(x,y);}g.fillStyle=o.isPort?'#7fbf5a':'#c9b57a';g.fill();}})();
-const FOGN=80,FOGC=WORLD/FOGN;const fogCv=document.createElement('canvas');fogCv.width=fogCv.height=FOGN;const fogCtx=fogCv.getContext('2d');
+ for(const o of ISL){g.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,rr=radiusAt(o,a);const x=(o.x+Math.cos(a)*rr)*k,y=(o.y+Math.sin(a)*rr)*k;i?g.lineTo(x,y):g.moveTo(x,y);}g.fillStyle=o.isPort?(o.clan!=null?'#c7a04a':'#7fbf5a'):'#c9b57a';g.fill();}})();
+const FOGN=240,FOGC=WORLD/FOGN;const fogCv=document.createElement('canvas');fogCv.width=fogCv.height=FOGN;const fogCtx=fogCv.getContext('2d');
 let fog=new Uint8Array(FOGN*FOGN);
-function rebuildFog(){fogCtx.clearRect(0,0,FOGN,FOGN);fogCtx.fillStyle='#0a1626';for(let j=0;j<FOGN;j++)for(let i=0;i<FOGN;i++)if(!fog[j*FOGN+i])fogCtx.fillRect(i,j,1,1);}
+function rebuildFog(){const im=fogCtx.createImageData(FOGN,FOGN),d=im.data;for(let i=0;i<FOGN*FOGN;i++)if(!fog[i]){d[i*4]=10;d[i*4+1]=22;d[i*4+2]=38;d[i*4+3]=255;}fogCtx.putImageData(im,0,0);}
+function fogBits(){const fb=new Uint8Array(Math.ceil(fog.length/8));for(let i=0;i<fog.length;i++)if(fog[i])fb[i>>3]|=1<<(i&7);return b64e(fb);}
+function fogLoadBits(fb,n,off){for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i;if((fb[k>>3]>>(k&7))&1){const x=i+off,y=j+off;if(x<FOGN&&y<FOGN)fog[y*FOGN+x]=1;}}}
 
 // ---------- SAVE STATE ----------
 const SAVEKEY='pirateSeas_save_v1';
 function defaultState(){return{gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0,command:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0,teeth:0},
- quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,heat:0,heatT:0,tips:{},tutDone:false,tutStep:0,steer:'drag',fleet:[],fid:1,upkT:0,sharks:0,xp:0,clvl:1,sp:0,sk:{gun:0,sea:0,plun:0,cmd:0},ship:'sloop',ach:{},st:{dig:0,resc:0,smug:0,race:0,convoy:0,block:0,jobs:0},megas:0,track:0,lastRank:''};}
+ quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,heat:0,heatT:0,tips:{},tutDone:false,tutStep:0,steer:'drag',fleet:[],fid:1,upkT:0,sharks:0,xp:0,clvl:1,sp:0,sk:{gun:0,sea:0,plun:0,cmd:0,war:0},ship:'sloop',ach:{},st:{dig:0,resc:0,smug:0,race:0,convoy:0,block:0,jobs:0},megas:0,track:0,lastRank:'',wv:2,rep:[0,0,0,0],forts:{},leaders:{},lrev:{},vis:[0],king:0,cst:{fort:0,lead:0,cj:0,def:0,sk:0,trib:0,rev:0,lev:0},leg:0,cos:{sail:'def',flag:'def',hull:'def',fx:'def'},ammo:{chain:0,fire:0,mortar:0},asel:'ball',off:{},unl:1};}
 let S=defaultState();
 function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false;const d=JSON.parse(raw);const def=defaultState();
  S=Object.assign(def,d);if(!(d.bal>=2))S.bal=0;if(d.tutDone===undefined){S.tutDone=true;S.tutStep=0;}if(S.steer!=='buttons')S.steer='drag';if(!(S.heat>=0))S.heat=0;if(!S.tips||typeof S.tips!=='object')S.tips={};S.up=Object.assign(defaultState().up,d.up||{});S.roles=Object.assign(defaultState().roles,d.roles||{});S.cargo=Object.assign(defaultState().cargo,d.cargo||{});S.fleet=cleanFleet(d.fleet);
- S.sk=Object.assign(defaultState().sk,d.sk||{});for(const k in S.sk)S.sk[k]=clamp(S.sk[k]|0,0,4);S.st=Object.assign(defaultState().st,(d.st&&typeof d.st==='object')?d.st:{});if(!HULLS[S.ship])S.ship='sloop';if(!S.ach||typeof S.ach!=='object')S.ach={};
+ S.sk=Object.assign(defaultState().sk,d.sk||{});for(const k in S.sk)S.sk[k]=clamp(S.sk[k]|0,0,SKILLS[k]?SKILLS[k].p.length:0);S.st=Object.assign(defaultState().st,(d.st&&typeof d.st==='object')?d.st:{});if(!HULLS[S.ship])S.ship='sloop';if(!S.ach||typeof S.ach!=='object')S.ach={};
  if(!(d.xp>=0)){S.xp=Math.round((S.kills|0)*14+(S.raids|0)*10+(S.sharks|0)*4+(S.infamy|0)*0.3);const L=lvlFromXp(S.xp).l;S.clvl=L;S.sp=L-1;S.retro=L>1?L:0;achSilent=true;}
  S.clvl=clamp((S.clvl|0)||1,1,MAXLVL);S.sp=Math.max(0,S.sp|0);if(!Array.isArray(S.quests))S.quests=[];S.quests=S.quests.filter(q=>q&&typeof q==='object'&&q.type);
  S.quests=(S.quests||[]).map(q=>{q.spawned=false;return q;});
- if(typeof S.fog==='string'&&S.fog.length===FOGN*FOGN){for(let i=0;i<fog.length;i++)fog[i]=S.fog.charCodeAt(i)===49?1:0;}
+ migrateExp(d);
+ {const v2=d.wv>=2;if(typeof d.fogb==='string'&&d.fogb){try{fogLoadBits(b64d(d.fogb),v2?FOGN:80,v2?0:80);}catch(e){}}
+  else if(typeof d.fog==='string'&&d.fog.length===6400&&!v2){for(let j=0;j<80;j++)for(let i=0;i<80;i++)if(d.fog.charCodeAt(j*80+i)===49)fog[(j+80)*FOGN+i+80]=1;}S.fog='';S.fogb='';}
  return true;}catch(e){console.warn('save load failed',e);return false;}}
 let importing=false;
-function save(){if(importing)return;try{S.x=P.x;S.y=P.y;S.h=P.h;S.hp=P.hp;let f='';for(let i=0;i<fog.length;i++)f+=fog[i]?'1':'0';S.fog=f;localStorage.setItem(SAVEKEY,JSON.stringify(S));}catch(e){}}
-function resetAll(){localStorage.removeItem(SAVEKEY);T.on=false;T.dummy=T.loot=null;S=defaultState();fog=new Uint8Array(FOGN*FOGN);rebuildFog();recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=ST.maxHp;P.vx=P.vy=P.speed=0;P.throttle=0;P.dead=0;
+function save(){if(importing)return;try{S.x=P.x;S.y=P.y;S.h=P.h;S.hp=P.hp;S.fog='';S.fogb=fogBits();localStorage.setItem(SAVEKEY,JSON.stringify(S));S.fogb='';}catch(e){}}
+function migrateExp(d){
+ if(!(d.wv>=2)){if(typeof d.x==='number'&&typeof d.y==='number'){S.x=d.x+OFF;S.y=d.y+OFF;}else{S.x=PORTS[0].port.x;S.y=PORTS[0].port.y+40;}
+  for(const q of S.quests){if(typeof q.x==='number'){q.x+=OFF;q.y+=OFF;}if(Array.isArray(q.pts))for(const p of q.pts){p.x+=OFF;p.y+=OFF;}}S.offers={};S.wv=2;}
+ if(!Array.isArray(S.rep)||S.rep.length!==4)S.rep=[0,0,0,0];S.rep=S.rep.map(v=>clamp(Math.round(+v||0),-100,100));
+ for(const k of ['forts','leaders','lrev','off'])if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k]))S[k]={};
+ for(const id in S.forts){const f=S.forts[id];if(!FORTS[id]||!f||typeof f!=='object'||!(f.o==='p'||(f.o>=0&&f.o<4)))delete S.forts[id];}
+ if(!Array.isArray(S.vis))S.vis=[];S.vis=S.vis.filter(i=>PORTS[i]);if(!(S.lastPort>=0&&S.lastPort<PORTS.length))S.lastPort=0;if(!S.vis.includes(S.lastPort|0))S.vis.push(S.lastPort|0);
+ const def=defaultState();for(const k of ['cst','cos','ammo'])S[k]=Object.assign(def[k],(d[k]&&typeof d[k]==='object')?d[k]:{});
+ for(const k in S.ammo)S.ammo[k]=clamp(S.ammo[k]|0,0,AMMO_CAP);if(!AMMO[S.asel])S.asel='ball';for(const c in COS)if(!COS[c].some(x=>x[0]===S.cos[c]))S.cos[c]='def';
+ S.leg=clamp(S.leg|0,0,LEG_MAX);S.king=S.king?1:0;if(d.unl===undefined)S.unl=0;
+ S.x=clamp(+S.x||PORTS[0].port.x,100,WORLD-100);S.y=clamp(+S.y||PORTS[0].port.y,100,WORLD-100);}
+function resetAll(){localStorage.removeItem(SAVEKEY);T.on=false;T.dummy=T.loot=null;S=defaultState();fog=new Uint8Array(FOGN*FOGN);rebuildFog();for(const k in FRT)delete FRT[k];shells.length=0;stormF=null;recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=ST.maxHp;P.vx=P.vy=P.speed=0;P.throttle=0;P.dead=0;
  enemies.length=0;balls.length=0;loot.length=0;fleet.length=0;cways.length=0;digQ=null;actQ=null;sharks.length=0;attract.length=0;parts.length=0;texts.length=0;populate();save();}
 
 // ---------- STATS ----------
@@ -382,12 +439,13 @@ const upCost=(def,l)=>Math.round(def.base*Math.pow(def.g,l));
 function recalc(){const u=S.up,r=S.roles,C=hullC(),g=sk('gun'),se=sk('sea');const cannons=2+u.cannons+C.guns+(g>=4?1:0);const need=4+cannons*2;const eff=clamp(0.25+0.75*S.crew/need,0.5,1);
  ST={maxHp:Math.round((150+45*u.hull)*C.hp),maxSpeed:(135+18*u.sails)*(1+0.06*r.sailor)*(0.7+0.3*eff)*C.spd*(se>=1?1.05:1),turn:(1.45+0.07*u.sails)*(1+0.06*r.sailor)*C.turn*(se>=2?1.1:1),cannons,dmg:(10+1.5*u.cannons)*(1+0.15*r.gunner)*C.dmg*(g>=1?1.08:1),
  reload:2.5*(1-0.09*r.gunner)/eff*(g>=2?0.92:1),cargoCap:20+12*u.cargo+C.cargo,boostDur:7+0.5*(u.rigging||0),boostCd:(22-1.5*(u.rigging||0))*(se>=3?0.8:1),maxCrew:12+6*u.hull+C.crew,crewNeed:need,eff,regen:0.8*r.carpenter+(se>=4?1:0),reveal:450+220*r.navigator,radar:r.navigator>=1?1400+500*r.navigator:0,len:52+3*u.hull+C.len,wid:18+1.2*u.hull+C.wid,range:420*(g>=3?1.12:1)};
+ expRecalc();
  if(S.crew>ST.maxCrew)S.crew=ST.maxCrew;}
 function cargoUsed(){let n=0;for(const g of GOODS)n+=S.cargo[g.id]||0;for(const q of S.quests)if(q.crates)n+=q.crates;return n;}
-const RANKS=[[0,'Deckhand'],[100,'Swabbie'],[300,'Buccaneer'],[700,'Captain'],[1500,'Sea Wolf'],[3000,'Commodore'],[6000,'Pirate Lord'],[12000,'Pirate King']];
+const RANKS=[[0,'Deckhand'],[100,'Swabbie'],[300,'Buccaneer'],[700,'Captain'],[1500,'Sea Wolf'],[3000,'Commodore'],[6000,'Pirate Lord'],[12000,'Pirate King'],[20000,'Pirate Emperor'],[35000,'Sovereign of the Seas']];
 function rankOf(x){let r=RANKS[0][1];for(const [t,n] of RANKS)if(x>=t)r=n;return r;}
 function price(pi,gi){const p=PORTS[pi];return Math.max(1,Math.round(GOODS[gi].base*p.mult[gi]*(1+0.12*Math.sin(S.playTime/90+pi*1.7+gi*2.3))));}
-const sellPrice=(pi,gi)=>Math.max(1,Math.round(price(pi,gi)*0.82*(sk('plun')>=3?1.1:1)));
+const sellPrice=(pi,gi)=>Math.max(1,Math.round(price(pi,gi)*0.82*(sk('plun')>=3?1.1:1)*(S.off&&S.off.qm?1.08:1)));
 
 // ---------- ENTITIES ----------
 const P={x:0,y:0,vx:0,vy:0,h:0,speed:0,throttle:0,boost:0,boostCd:0,hp:100,len:52,wid:18,rl:0,rr:0,rb:0,calm:0,dead:0,kind:'player'};
@@ -398,17 +456,18 @@ function makeEnemy(kind,x,y,lvl,extra){
  if(kind==='merchant'){Object.assign(e,{maxHp:40+16*lvl,cannons:lvl>=3?1+Math.floor(lvl/4):0,dmg:4+1.2*lvl,maxSpeed:80+5*lvl,reload:4.5,aggro:0,gold:35+28*lvl,len:54,wid:20,range:340});}
  else if(kind==='navy'){const soft=lvl<=2,k=1+0.1*stars();Object.assign(e,{maxHp:Math.round(((soft?30:36)+24*lvl)*k),cannons:1+Math.ceil(lvl/2),dmg:(4.2+1.8*lvl)*(soft?0.75:1),maxSpeed:Math.min(205,105+9*lvl),reload:Math.max(2.1,3.6-0.13*lvl)+(soft?0.5:0),aggro:2600,gold:20+20*lvl,len:52+lvl*1.5,wid:18+lvl*0.4,range:390,angry:true});}
  else if(kind==='boss'){Object.assign(e,{maxHp:160+55*lvl,cannons:3+Math.floor(lvl/2),dmg:7+2.2*lvl,maxSpeed:Math.min(200,110+9*lvl),reload:Math.max(2,3.4-0.12*lvl),aggro:1100,gold:120+60*lvl,len:66,wid:23,range:400});}
+ else if(kind==='clan'){Object.assign(e,{maxHp:44+25*lvl,cannons:1+Math.ceil(lvl/2),dmg:4.8+1.9*lvl,maxSpeed:Math.min(200,98+9*lvl),reload:Math.max(2.2,3.6-0.12*lvl),aggro:620+40*lvl,gold:20+22*lvl,len:52+lvl*1.4,wid:18+lvl*0.4,range:390,clan:0});}
  else {const soft=lvl<=2;Object.assign(e,{maxHp:(soft?26:30)+22*lvl,cannons:1+Math.ceil(lvl/2),dmg:(4.5+1.9*lvl)*(soft?0.8:1),maxSpeed:Math.min(195,92+9*lvl),reload:Math.max(2.2,3.7-0.13*lvl)+(soft?0.4:0),aggro:(soft?440:560)+45*lvl,gold:12+18*lvl,len:48+lvl*1.5,wid:17+lvl*0.4,range:380});}
  Object.assign(e,extra||{});e.hp=e.maxHp;return e;}
 function randomWater(cx,cy,dmin,dmax){for(let i=0;i<30;i++){const a=Math.random()*TAU,d=rand(dmin,dmax);const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;
- if(x<200||y<200||x>WORLD-200||y>WORLD-200)continue;if(inAnyIsland(x,y,90))continue;if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<450))continue;return{x,y};}return null;}
-function spawnNear(dmin,dmax){const pt=randomWater(P.x,P.y,dmin,dmax);if(!pt)return;const lvl=clamp(lvlAt(pt.x,pt.y)+(Math.random()<0.2?1:0),1,10);
+ if(x<200||y<200||x>WORLD-200||y>WORLD-200)continue;if(inAnyIsland(x,y,90))continue;if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<450))continue;if(FORTS.some(f=>Math.hypot(f.x-x,f.y-y)<350))continue;return{x,y};}return null;}
+function spawnNear(dmin,dmax){const pt=randomWater(P.x,P.y,dmin,dmax);if(!pt)return;const lvl=clamp(lvlAt(pt.x,pt.y)+(Math.random()<0.2?1:0),1,13);if(!inCore(pt.x,pt.y)){outerSpawn(pt,lvl);return;}
  const nearStart=Math.hypot(pt.x-START.x,pt.y-START.y)<1300;const kind=Math.random()<(nearStart?0.5:0.38)?'merchant':'pirate';if(kind==='merchant'&&spawnMerchant(dmin,dmax))return;enemies.push(makeEnemy(kind,pt.x,pt.y,lvl));}
 // merchants sail trade routes between two ports
-function spawnMerchant(dmin,dmax){for(let t=0;t<14;t++){const a=PORTS[(Math.random()*PORTS.length)|0],b=PORTS[(Math.random()*PORTS.length)|0];if(a===b)continue;
+function spawnMerchant(dmin,dmax){const near=nearPorts(P.x,P.y,7500);if(near.length<2)return false;for(let t=0;t<14;t++){const a=pick(near),b=pick(near);if(a===b)continue;
  const ax=a.port.x,ay=a.port.y,bx=b.port.x,by=b.port.y,f=rand(0.08,0.92);const x=ax+(bx-ax)*f+rand(-120,120),y=ay+(by-ay)*f+rand(-120,120);const d=Math.hypot(x-P.x,y-P.y);
  if(d<dmin||d>dmax||x<200||y<200||x>WORLD-200||y>WORLD-200||inAnyIsland(x,y,90))continue;if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<450))continue;
- const lvl=clamp(lvlAt(x,y)+(Math.random()<0.2?1:0),1,10);const e=makeEnemy('merchant',x,y,lvl,{wp:{x:bx,y:by}});e.h=Math.atan2(by-y,bx-x);enemies.push(e);return true;}return false;}
+ const lvl=clamp(lvlAt(x,y)+(Math.random()<0.2?1:0),1,13);const e=makeEnemy('merchant',x,y,lvl,{wp:{x:bx,y:by}});e.h=Math.atan2(by-y,bx-x);enemies.push(e);return true;}return false;}
 function populate(){for(let i=0;i<14;i++)spawnNear(700,2200);}
 function addText(x,y,t,c,big){texts.push({x,y,t,c:c||'#fff',life:1.4,max:1.4,big:!!big});}
 function addPart(type,x,y,vx,vy,life,size,color){if(parts.length>450)parts.shift();parts.push({type,x,y,vx,vy,life,max:life,size,color});}
@@ -441,13 +500,15 @@ const safeProbe=document.createElement('div');safeProbe.style.cssText='position:
 let safe={t:0,r:0,b:0,l:0};function readSafe(){const cs=getComputedStyle(safeProbe);safe.t=parseFloat(cs.paddingTop)||0;safe.r=parseFloat(cs.paddingRight)||0;safe.b=parseFloat(cs.paddingBottom)||0;safe.l=parseFloat(cs.paddingLeft)||0;const m=miniRect();const mb=$('menuBtn');mb.style.top=(m.y+m.s+34)+'px';}
 function safeT(){return safe.t;}function safeR(){return safe.r;}
 cv.addEventListener('pointerdown',e=>{initAudio();
- if(state==='map'){state='play';return;}
+ if(state==='map'){mapDown(e);return;}
  if(state!=='play')return;
  const m=miniRect();if(e.clientX>=m.x&&e.clientX<=m.x+m.s&&e.clientY>=m.y&&e.clientY<=m.y+m.s){state='map';return;}
  if(joy.id!==null)return;joy.id=e.pointerId;joy.bx=joy.x=e.clientX;joy.by=joy.y=e.clientY;try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
 cv.addEventListener('pointermove',e=>{if(e.pointerId!==joy.id)return;joy.x=e.clientX;joy.y=e.clientY;
  // floating base: follows the thumb when dragged past the ring, so reversing direction is instant
  const dx=joy.x-joy.bx,dy=joy.y-joy.by,l=Math.hypot(dx,dy);if(l>JFOLLOW){const k=(l-JFOLLOW)/l;joy.bx+=dx*k;joy.by+=dy*k;}});
+cv.addEventListener('pointermove',mapMove);cv.addEventListener('pointerup',mapUp);cv.addEventListener('pointercancel',e=>{mapPtr.delete(e.pointerId);mapPinch=null;});
+cv.addEventListener('wheel',e=>{if(state!=='map')return;e.preventDefault();setZoom(MV.z*(e.deltaY<0?1.25:0.8),e.clientX,e.clientY);},{passive:false});
 const endJoy=e=>{if(e.pointerId===joy.id)joy.id=null;};
 cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);cv.addEventListener('lostpointercapture',endJoy);
 window.addEventListener('blur',releaseInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseInput();});
@@ -459,7 +520,7 @@ document.addEventListener('contextmenu',e=>{if(!isTyping(e.target))e.preventDefa
 const NOSCROLL_KEYS={arrowup:1,arrowdown:1,arrowleft:1,arrowright:1,' ':1};
 window.addEventListener('keydown',e=>{if(isTyping(e.target)||!$('xfer').classList.contains('hidden'))return;const k=(e.key||'').toLowerCase();keys[k]=true;if(NOSCROLL_KEYS[k])e.preventDefault();
  if(k==='enter'&&T.on&&!$('tutNext').classList.contains('hidden')){$('tutNext').click();return;}
- if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&boardTgt)board(boardTgt);else if((k==='f'||k==='enter')&&actQ)startDig();else if((k==='f'||k==='enter')&&nearPort>=0)tryDock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='b'||k==='shift')boost();if(k==='escape')openMenu();}
+ if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&boardTgt)board(boardTgt);else if((k==='f'||k==='enter')&&(actQ||fortAct))actTap();else if(k==='r')cycleAmmo();else if((k==='f'||k==='enter')&&nearPort>=0)tryDock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='b'||k==='shift')boost();if(k==='escape')openMenu();}
  else if(state==='map'&&(k==='m'||k==='escape'))state='play';});
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 function bindBtn(id,fn){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();fn();});}
@@ -470,7 +531,7 @@ function tapBtn(id,fn){const b=$(id);let pid=null;b.addEventListener('pointerdow
  b.addEventListener('pointerup',e=>{if(e.pointerId!==pid)return;pid=null;e.preventDefault();e.stopPropagation();fn();});b.addEventListener('pointercancel',()=>{pid=null;});
  b.addEventListener('click',e=>{if(e.detail===0)fn();});}
 tapBtn('dockBtn',()=>{if(state==='play'&&nearPort>=0)tryDock(nearPort);});
-tapBtn('boardBtn',()=>{if(state==='play')board(boardTgt);});tapBtn('actBtn',()=>startDig());tapBtn('mTrack',()=>{if(S.quests.length<2)return;const i=S.quests.findIndex(q=>q.id===S.track);const q=S.quests[(i+1)%S.quests.length];S.track=q.id;hudCache.mt=null;toast('📍 Tracking: '+q.title);});tapBtn('seizeBtn',()=>{if(state==='play')seize(boardTgt);});
+tapBtn('boardBtn',()=>{if(state==='play')board(boardTgt);});tapBtn('actBtn',()=>actTap());tapBtn('ammoBtn',()=>{if(state==='play'||state==='map')cycleAmmo();});tapBtn('mTrack',()=>{if(S.quests.length<2)return;const i=S.quests.findIndex(q=>q.id===S.track);const q=S.quests[(i+1)%S.quests.length];S.track=q.id;hudCache.mt=null;toast('📍 Tracking: '+q.title);});tapBtn('seizeBtn',()=>{if(state==='play')seize(boardTgt);});
 tapBtn('menuBtn',()=>{if(state==='play'||state==='map')openMenu();});
 // optional steering buttons (hold to turn / tap to set sails in 25% steps, hold to keep adjusting)
 function bindHold(id,k,onDown){const b=$(id);const ids=new Set();
@@ -488,14 +549,14 @@ function fireBroadside(s,side,n,dmg,owner,range,aim){
  const a=aim!=null?aim:s.h+side*Math.PI/2,ca=Math.cos(s.h),sa=Math.sin(s.h),ox=Math.cos(a),oy=Math.sin(a);const spd=440;
  for(let i=0;i<n;i++){const t=n===1?0:(i/(n-1)-0.5)*s.len*0.62;const px=s.x+ca*t+ox*s.wid*0.55,py=s.y+sa*t+oy*s.wid*0.55;const aa=a+(Math.random()-0.5)*0.07;const sp=spd+Math.random()*30;
   balls.push({x:px,y:py,vx:Math.cos(aa)*sp+s.vx*0.7,vy:Math.sin(aa)*sp+s.vy*0.7,life:range/sp,dmg:dmg*(0.85+Math.random()*0.3),owner});
-  for(let k=0;k<3;k++)addPart('smoke',px+ox*6,py+oy*6,ox*rand(20,60)+rand(-15,15),oy*rand(20,60)+rand(-15,15),rand(0.6,1.1),rand(6,11),null);
+  for(let k=0;k<3;k++)addPart('smoke',px+ox*6,py+oy*6,ox*rand(20,60)+rand(-15,15),oy*rand(20,60)+rand(-15,15),rand(0.6,1.1),rand(6,11),owner==='p'?smokeC():null);
   addPart('flash',px+ox*5,py+oy*5,0,0,0.12,9,null);}
  const d=Math.hypot(s.x-P.x,s.y-P.y);boom(owner==='p'?0.55:clamp(0.5*(1-d/1200),0,0.4),owner==='p'?650:500);}
 function fire(side,scanned){if(P.dead)return;if(side<0){if(P.rl>0)return;P.rl=ST.reload;}else{if(P.rr>0)return;P.rr=ST.reload;}
- if(!scanned){scanTargets();tutEv('shots');tutEv(side<0?'sl':'sr');}fireBroadside(P,side,ST.cannons,ST.dmg,'p',ST.range,autoAim[side]);cam.shake=Math.max(cam.shake,3);}
+ if(!scanned){scanTargets();tutEv('shots');tutEv(side<0?'sl':'sr');}playerVolley(side,autoAim[side]);cam.shake=Math.max(cam.shake,3);}
 // ---------- AUTO-TARGETING ----------
 let autoTgt=null;const autoSide={'-1':null,'1':null};
-function isHostile(e){if(e.kind==='shark')return !e.sinking&&e.hp>0&&e.chase;return !e.sinking&&e.hp>0&&(e.kind!=='merchant'||(e.angry&&!e.surr));}
+function isHostile(e){if(e.kind==='shark')return !e.sinking&&e.hp>0&&e.chase;if(e.kind==='clan')return !e.sinking&&e.hp>0&&(e.angry||clanHostile(e.clan)||e.atkF!=null);return !e.sinking&&e.hp>0&&(e.kind!=='merchant'||(e.angry&&!e.surr));}
 function toggleAuto(){S.autoFire=!S.autoFire;tutEv('toggle');autoTgt=null;autoSide['-1']=autoSide['1']=null;updateAutoBtn();save();toast(S.autoFire?'🎯 Auto-fire ON':'🎯 Auto-fire OFF — fire manually');}
 function updateAutoBtn(){const on=S.autoFire!==false;$('autoBtn').classList.toggle('on',on);$('autoLbl').textContent=on?'AUTO':'OFF';}
 // Gun-laying: broadside guns can train up to TRAIN rad fore/aft of the beam to hit a locked target.
@@ -527,28 +588,29 @@ function drawAutoHud(ts){if(S.autoFire===false||P.dead||state==='title')return;c
  for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(0,0,r,i*Math.PI/2+0.25,i*Math.PI/2+Math.PI/2-0.25);ctx.stroke();ctx.beginPath();ctx.moveTo(r-6,0);ctx.lineTo(r+6,0);ctx.stroke();ctx.rotate(Math.PI/2);}
  ctx.restore();const ap=aimPoint(e);ctx.fillStyle=inArc?'rgba(255,70,50,0.8)':'rgba(255,210,90,0.6)';ctx.beginPath();ctx.arc(ap.x,ap.y,3.5,0,TAU);ctx.fill();}
 function hitTest(s,b,pad){const dx=b.x-s.x,dy=b.y-s.y;if(dx*dx+dy*dy>(s.len*s.len))return false;const c=Math.cos(s.h),sn=Math.sin(s.h);const lx=dx*c+dy*sn,ly=-dx*sn+dy*c;return Math.abs(lx)<s.len/2+pad&&Math.abs(ly)<s.wid/2+pad;}
-function damageEnemy(e,dmg){const was=e.angry;convoyAlarm(e);e.hp-=dmg;e.hitT=0.25;e.angry=true;addText(e.x,e.y-20,'-'+Math.round(dmg),'#ffd27a');
+function damageEnemy(e,dmg){const was=e.angry;convoyAlarm(e);clanDmg(e,was);e.hp-=dmg;e.hitT=0.25;e.angry=true;addText(e.x,e.y-20,'-'+Math.round(dmg),'#ffd27a');
  if(e.kind==='merchant'){if(!was&&!e.surr)addHeat(0.2);
   if(!e.surr&&!e.plundered&&e.hp>0&&e.hp<e.maxHp*(sk('plun')>=2?0.4:0.3)){e.surr=true;e.surrT=0;e.angry=false;addText(e.x,e.y-46,'🏳️ Surrenders!','#ffffff',true);showTip('board');}
   else if(e.surr)e.angry=false;}
  if(e.hp<=0&&!e.sinking){e.sinking=0.001;sinkRewards(e);}}
-function sinkRewards(e){S.kills++;const st=stars(),law=e.kind==='merchant'||e.kind==='navy';S.infamy+=Math.round(e.lvl*10*(e.kind==='boss'?4:1)*(law?1+0.25*st:1));
- const gold=Math.round(e.gold*rand(0.8,1.25)*(law?1+0.15*st:1)*(sk('plun')>=1?1.12:1));const goods={};
+function sinkRewards(e){S.kills++;const st=stars(),law=e.kind==='merchant'||e.kind==='navy';S.infamy+=Math.round(e.lvl*10*(e.kind==='boss'||e.lead?4:1)*(law?1+0.25*st:1));
+ const gold=Math.round(e.gold*rand(0.8,1.25)*(law?1+0.15*st:1)*(sk('plun')>=1?1.12:1)*(sk('plun')>=6?1.15:1));const goods={};
  if(e.kind==='merchant'){S.raids=(S.raids||0)+1;addHeat(PORTS.some(p=>!p.haven&&Math.hypot(p.port.x-e.x,p.port.y-e.y)<900)?1.5:1);}else if(e.kind==='navy')addHeat(0.8);
  if(e.kind==='merchant'){const n=(2+Math.random()*4+e.lvl)|0;const types=1+(Math.random()<0.5?1:0);for(let i=0;i<types;i++){const gi=Math.min(4,(Math.random()*(1+e.lvl/2.2))|0);goods[GOODS[gi].id]=(goods[GOODS[gi].id]||0)+Math.ceil(n/types);}}
  else if(!e.tut&&Math.random()<0.4){const gi=Math.min(4,(Math.random()*(1+e.lvl/2))|0);goods[GOODS[gi].id]=(1+Math.random()*3)|0;}
  if(e.kind==='boss')goods.gems=3+e.lvl;
  const lt={x:e.x,y:e.y,gold,goods,t:0,tut:!!e.tut};loot.push(lt);if(e.tut)T.loot=lt;
- addText(e.x,e.y-40,e.kind==='boss'?`☠ ${e.name} sunk!`:e.tut?'Target sunk!':'Sunk!','#ff8a5c',true);
- for(const q of S.quests){if(q.type==='bounty'&&(e.kind===q.target||(q.target==='pirate'&&e.kind==='boss'))&&q.have<q.need){q.have++;if(q.have>=q.need)completeQuest(q);}
+ addText(e.x,e.y-40,e.kind==='boss'||e.lead||e.lev?`☠ ${e.name} sunk!`:e.tut?'Target sunk!':'Sunk!','#ff8a5c',true);
+ clanSunk(e);levSunk(e);
+ for(const q of S.quests.slice()){if(q.type==='bounty'&&(e.kind===q.target||(q.target==='pirate'&&(e.kind==='boss'||e.kind==='clan')))&&q.have<q.need){q.have++;if(q.have>=q.need)completeQuest(q);}
   if(q.type==='hunt'&&e.qid===q.id)completeQuest(q);}
- grantXP(e.tut?15:(8+6*e.lvl)*(e.kind==='boss'?3:1),e.x,e.y);convoyHit(e);
+ grantXP(e.tut?15:(8+6*e.lvl)*(e.kind==='boss'?3:e.kind==='clan'?1.25:1),e.x,e.y);convoyHit(e);
  if(e.kind==='boss'&&!e.tut&&Math.random()<0.35&&S.quests.length<maxJobs()){const tq=makeTreasureQ(S.lastPort|0,true);if(tq){S.quests.push(tq);setTimeout(()=>toast(`📜 You found a treasure map on ${e.name}'s ship! Check the ❌ on your map.`),900);}}
  chum(e.x,e.y,20);
  for(let k=0;k<14;k++)addPart('fire',e.x+rand(-15,15),e.y+rand(-10,10),rand(-40,40),rand(-40,40),rand(0.5,1.2),rand(6,14),null);
  boom(0.6,400);save();}
-function damagePlayer(dmg,bite){if(P.dead)return;P.hp-=dmg;P.calm=0;cam.shake=Math.max(cam.shake,7);addText(P.x,P.y-24,'-'+Math.round(dmg),'#ff6b6b');
- if(!bite&&Math.random()<0.07&&S.crew>4){S.crew--;recalc();addText(P.x+20,P.y-44,'-1 crew','#ffb3b3');chum(P.x,P.y,12);}
+function damagePlayer(dmg,bite){if(P.dead)return;if(!bite&&sk('war')>=5)dmg*=0.88;P.hp-=dmg;P.calm=0;cam.shake=Math.max(cam.shake,7);addText(P.x,P.y-24,'-'+Math.round(dmg),'#ff6b6b');
+ if(!bite&&Math.random()<(S.off.sg?0.035:0.07)&&S.crew>4){S.crew--;recalc();addText(P.x+20,P.y-44,'-1 crew','#ffb3b3');chum(P.x,P.y,12);}
  if(P.hp<=0){P.hp=0;P.dead=0.001;boom(0.7,300);chum(P.x,P.y,25);}}
 function playerDied(){const early=S.infamy<300;const lostG=Math.round(S.gold*(early?0.1:0.25));S.gold-=lostG;let lostC=0;for(const g of GOODS){const n=early?Math.ceil(S.cargo[g.id]/2):S.cargo[g.id];lostC+=n;S.cargo[g.id]-=n;}
  S.heat=(S.heat||0)*0.5;
@@ -564,11 +626,11 @@ function genQuestOld(pi){const p=PORTS[pi];const L=lvlAt(p.port.x,p.port.y);cons
  if(r<0.4){const tgt=Math.random()<0.75?'pirate':'merchant';const need=2+((Math.random()*3)|0);return{id,from:pi,type:'bounty',target:tgt,need,have:0,reward:need*(45+28*L),
   title:tgt==='pirate'?`Rivalry: sink ${need} rival pirate ships`:`Raid: plunder ${need} merchant ships`,text:'Anywhere on the sea. Paid as soon as you finish.'};}
  if(r<0.72){let pt=null;for(let i=0;i<20&&!pt;i++){pt=randomWater(p.port.x,p.port.y,1100,2300);}if(!pt)pt={x:clamp(p.port.x+900,300,WORLD-300),y:clamp(p.port.y+900,300,WORLD-300)};
-  const lvl=clamp(lvlAt(pt.x,pt.y)+1,2,10);const name=pick(PNAMES);return{id,from:pi,type:'hunt',name,x:pt.x,y:pt.y,lvl,reward:220+130*lvl,title:`Bounty contract: ☠ ${name} (Lv${lvl})`,text:'Hunt down the rival captain at the ☠ marked on your map'+(lvl>=4?' — he sails with an escort.':'.')};}
- let to=pi;while(to===pi)to=(Math.random()*PORTS.length)|0;const crates=3+((Math.random()*5)|0);const dist=Math.hypot(PORTS[to].port.x-p.port.x,PORTS[to].port.y-p.port.y);
+  const lvl=clamp(lvlAt(pt.x,pt.y)+1,2,13);const name=pick(PNAMES);return{id,from:pi,type:'hunt',name,x:pt.x,y:pt.y,lvl,reward:220+130*lvl,title:`Bounty contract: ☠ ${name} (Lv${lvl})`,text:'Hunt down the rival captain at the ☠ marked on your map'+(lvl>=4?' — he sails with an escort.':'.')};}
+ const cand=PORTS.map((x,i)=>i).filter(i=>i!==pi&&Math.hypot(PORTS[i].port.x-p.port.x,PORTS[i].port.y-p.port.y)<7000);let to=cand.length?pick(cand):(pi?0:1);const crates=3+((Math.random()*5)|0);const dist=Math.hypot(PORTS[to].port.x-p.port.x,PORTS[to].port.y-p.port.y);
  return{id,from:pi,type:'deliver',to,crates,reward:Math.round(40+dist/1000*45*(1+crates/5)*(1+lvlAt(PORTS[to].port.x,PORTS[to].port.y)*0.15)),title:`Deliver ${crates} crates to ${PORTS[to].name}`,text:`Takes ${crates} cargo space until delivered.`};}
 function offersFor(pi){let o=S.offers[pi];if(!o)o=S.offers[pi]=[];while(o.length<4)o.push(genQuest(pi,o.map(q=>q.type)));return o;}
-function completeQuest(q){if(!S.quests.includes(q))return;S.quests=S.quests.filter(x=>x!==q);const r=Math.round(q.reward*(sk('plun')>=4?1.2:1)*(S.infamy>=6000?1.1:1));S.gold+=r;S.earned+=r;S.infamy+=Math.round(r/5);S.st.jobs=(S.st.jobs|0)+1;statFor(q);questCleanup(q.id);if(digQ===q)digQ=null;grantXP(25+r/4,P.x,P.y);toast(`📜 Job done: ${q.title} — +${r} 💰`);chime();save();}
+function completeQuest(q){if(!S.quests.includes(q))return;S.quests=S.quests.filter(x=>x!==q);const r=Math.round(q.reward*(sk('plun')>=4?1.2:1)*(S.infamy>=6000?1.1:1));S.gold+=r;S.earned+=r;S.infamy+=Math.round(r/5);S.st.jobs=(S.st.jobs|0)+1;statFor(q);clanJobDone(q);questCleanup(q.id);if(digQ===q)digQ=null;grantXP(25+r/4,P.x,P.y);toast(`📜 Job done: ${q.title} — +${r} 💰`);chime();save();}
 // ---------- WANTED / BOUNTY ----------
 const STAR_AT=[0,2.5,5,8,12,17],NAVYMAX=[0,1,2,2,3,4];
 function stars(){const h=S.heat||0;let n=0;for(let i=1;i<6;i++)if(h>=STAR_AT[i])n=i;return n;}
@@ -576,25 +638,25 @@ const starStr=n=>'★'.repeat(n)+'☆'.repeat(5-n);
 function bountyGold(){const h=S.heat||0;return Math.round(h*45+h*h*5);}
 function bribeCost(){return Math.round(60+bountyGold()*0.35);}
 function lowerCost(){return Math.round(50+bountyGold()*0.4);}
-function mk(){const p=PORTS[curPort];return p&&!p.haven?1+0.15*stars():1;}
+function mk(){const p=PORTS[curPort];return p&&!p.haven?1+0.15*stars():(p&&p.clan!=null&&rep(p.clan)>=REP_ALLY?0.85:1);}
 const pCost=(d,l)=>Math.ceil(upCost(d,l)*mk());
 let lastStars=0,navyT=30,boardTgt=null;
 function addHeat(v){const before=stars();S.heat=Math.min(24,(S.heat||0)+v);S.heatT=S.playTime;const now=stars();
  if(now>before){toast(`🚨 Wanted ${starStr(now)} — ${now>=4?'bounty hunters are after you!':now>=2?'Navy patrols are hunting you!':'the Navy is looking for you.'}`);if(before===0)navyT=Math.min(navyT,30);showTip('wanted');}}
 function spawnNavy(n){const pt=randomWater(P.x,P.y,1300,1800);if(!pt)return;const lvl=clamp(lvlAt(P.x,P.y)+n-1,1,10);enemies.push(makeEnemy('navy',pt.x,pt.y,lvl,{hunter:n>=4}));}
 function wantedTick(dt){if(S.heat>0&&S.playTime-(S.heatT||0)>40)S.heat=Math.max(0,S.heat-dt*0.02*(sk('cmd')>=3?1.5:1));
- const n=stars();if(n>=1&&!tutPeace){navyT-=dt;if(navyT<=0){const fc=S.fleet.length;navyT=Math.max(14,40-5*n-3*fc);let c=0;for(const e of enemies)if(e.kind==='navy'&&!e.sinking)c++;if(c<NAVYMAX[n]+(fc>=2?1:0))spawnNavy(n);}}
+ const n=stars();if(n>=1&&!tutPeace){const core=inCore(P.x,P.y);navyT-=dt*(core?1:0.3);if(navyT<=0){const fc=S.fleet.length;navyT=Math.max(14,40-5*n-3*fc);let c=0;for(const e of enemies)if(e.kind==='navy'&&!e.sinking)c++;if(c<(core?NAVYMAX[n]+(fc>=2?1:0):Math.min(2,NAVYMAX[n])))spawnNavy(n);}}
  if(n===0&&lastStars>0)toast('✅ The Navy lost your trail — Wanted level cleared.');lastStars=n;
  boardTgt=null;let bd=150;for(const e of enemies){if(!e.surr||e.sinking)continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;boardTgt=e;}}}
 function board(e){if(!e||!e.surr||e.sinking||state!=='play'||P.dead)return;const n=stars();e.surr=false;e.plundered=true;e.angry=false;
- const gold=Math.round(e.gold*1.6*(1+0.15*n)*(sk('plun')>=1?1.12:1));S.gold+=gold;S.earned+=gold;let msg=`🏴‍☠️ Plundered! +${gold} 💰`;
+ const gold=Math.round(e.gold*1.6*(1+0.15*n)*(sk('plun')>=1?1.12:1)*(sk('plun')>=6?1.15:1));S.gold+=gold;S.earned+=gold;let msg=`🏴‍☠️ Plundered! +${gold} 💰`;
  const want=(3+Math.random()*4+e.lvl*1.5)|0,gi=Math.min(4,(Math.random()*(1+e.lvl/2.2))|0);const got=Math.min(Math.max(0,ST.cargoCap-cargoUsed()),want);S.cargo[GOODS[gi].id]+=got;if(got)msg+=` +${got}${GOODS[gi].icon}`;
  S.infamy+=Math.round(e.lvl*8*(1+0.25*n));S.raids=(S.raids||0)+1;addHeat(0.6);
  for(const q of S.quests)if(q.type==='bounty'&&q.target==='merchant'&&q.have<q.need){q.have++;if(q.have>=q.need)completeQuest(q);}
  grantXP(6+5*e.lvl,e.x,e.y);convoyHit(e);
  if(sharkBoarding())msg+=' — a boarder fell to the sharks 🦈';
  addText(P.x,P.y-50,msg,'#ffe066',true);toast(msg+(got<want?' (hold full)':''));chime();boom(0.3,900);save();}
-function tryDock(pi){const p=PORTS[pi];if(!p.haven&&stars()>=3){const c=bribeCost();
+function tryDock(pi){const p=PORTS[pi];if(p.clan!=null&&clanHostile(p.clan)){toast(`⛔ ${p.name} bars its harbour — you are at war with the ${CLANS[p.clan].name}.`);return;}if(!p.haven&&stars()>=3){const c=bribeCost();
   if(S.gold<c){toast(`⛔ ${p.name} turns away a ${stars()}★ wanted pirate! Bribe ${c}💰 or sail to a 🏴‍☠️ pirate haven.`);return;}
   S.gold-=c;setTimeout(()=>toast(`💰 You slipped the harbour master ${c}💰 to look the other way.`),60);}
  dock(pi);}
@@ -602,18 +664,21 @@ function tryDock(pi){const p=PORTS[pi];if(!p.haven&&stars()>=3){const c=bribeCos
 const TIPS={merchant:"💰 <b>Merchant ship!</b> You're a pirate — fat merchants are yours to plunder. <b>Fire on one yourself</b> (AUTO only joins in once you've attacked it). Badly damaged merchants may <b>surrender</b> so you can board them.",
  wanted:"🚨 <b>You're Wanted!</b> Raiding merchants raises your Wanted ★ level (top left) and the <b>Navy</b> hunts you. Lie low and it fades, or pay it off at a 🏴‍☠️ pirate haven like Port Royal or Tortuga. ⚖️ Lawful ports charge more and turn away ★★★ pirates.",
  shark:"🦈 <b>Sharks!</b> Fins circle the deeper waters. They gather where ships sink and <b>bite when your hull is low</b> (below 35%). Shoot them for 🦷 shark teeth — and steer clear of red 🦈 waters on the map.",
+ republic:"⚔️ <b>Pirate Republic Wars!</b> Four pirate clans fight over these outer waters. Attack a clan and it goes to war with you; do its contracts and it becomes an ally (☰ ➜ 🏴 Republic). 🏰 <b>Forts</b> shoot hostile ships — silence the cannons, breach the walls, then <b>Storm</b> them.",
+ fort:"🏰 <b>Your first fort!</b> It pays tribute over time (collected when you sail by, or by courier at havens), shoots your enemies, and can be upgraded (tap 🏰 Manage nearby). The clan will try to take it back — defend it when the 🛡️ appears!",
+ ammo:"⛓️ <b>Special ammo!</b> Tap the ammo button beside your fire buttons (key R) to switch shot. Chain shot slows ships; fire and mortar come later. Buy more volleys in port (🛠️ Ship tab).",
  board:"🏳️ <b>They surrendered!</b> Sail alongside and tap <b>Plunder</b> for extra loot (smaller bounty than sinking), or <b>⛓ Seize</b> the ship to join your fleet."};
 let tipTO=0;function showTip(k){if(T.on||!S.tips||S.tips[k]||state==='title')return;S.tips[k]=1;$('tipTxt').innerHTML=TIPS[k];$('tipBox').classList.remove('hidden');clearTimeout(tipTO);tipTO=setTimeout(hideTip,15000);}
 function hideTip(){$('tipBox').classList.add('hidden');}
 $('tipOk').addEventListener('click',hideTip);
 let QT=[];
-function questTargets(){const out=[];for(const q of S.quests){const t=qTarget(q);if(t)out.push(t);}return out;}
+function questTargets(){const out=[];for(const q of S.quests){const t=qTarget(q);if(t)out.push(t);}defendTargets(out);return out;}
 
 // ---------- PORT UI ----------
 let curPort=-1,tab='dock',fDisArm=0;let nearPort=-1;
 function dock(pi){curPort=pi;state='port';P.vx=P.vy=P.speed=0;P.throttle=0;P.boost=0;joy.id=null;S.lastPort=pi;
  if(pi===0&&S.infamy<300&&P.hp<ST.maxHp){P.hp=ST.maxHp;setTimeout(()=>toast('🔧 Port Royal shipwrights patched your hull for free (until you reach Buccaneer).'),50);}
- dockQuests(pi);
+ dockQuests(pi);exDock(pi);
  offersFor(pi);tab='dock';$('port').classList.remove('hidden');renderPort();save();}
 function leavePort(){const p=PORTS[curPort];$('port').classList.add('hidden');P.x=p.port.x;P.y=p.port.y;P.h=p.pa;P.throttle=0.35;state='play';curPort=-1;placeFleet();save();}
 $('pLeave').addEventListener('click',leavePort);
@@ -631,7 +696,7 @@ function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.nam
    if((S.heat||0)>0.05){if(p.haven)h+=row('🚨 Pay off your bounty',`Wanted ${starStr(n)} • bounty ${bountyGold()} 💰. Pay the Brethren to make the Navy forget you.`,btn('payoff',`Pay ${bountyGold()}💰`,S.gold>=bountyGold()));
     else if(n>=1)h+=row('🤝 Bribe the governor',`Wanted ${starStr(n)}. Lower it by one ★ for ${lowerCost()} 💰.`,btn('bribe',`Bribe ${lowerCost()}💰`,S.gold>=lowerCost()));}}
   h+=`<div class="note">${p.desc} <br>Danger nearby: <b>Lv${L}</b>. Rank: <b>${rankOf(S.infamy)}</b> (${S.infamy} infamy) • Ships sunk: ${S.kills}</div>`;
-  h+=row('🔧 Repair hull',miss>0?`${Math.ceil(P.hp)}/${ST.maxHp} HP — full repair ${cost} 💰`:'Your hull is in perfect shape.',btn('repair',miss>0?(S.gold>=cost?`Repair ${cost}💰`:'Repair (partial)'):'✓ Repaired',miss>0&&S.gold>0));
+  h+=dockExtraHTML(p);h+=row('🔧 Repair hull',miss>0?`${Math.ceil(P.hp)}/${ST.maxHp} HP — full repair ${cost} 💰`:'Your hull is in perfect shape.',btn('repair',miss>0?(S.gold>=cost?`Repair ${cost}💰`:'Repair (partial)'):'✓ Repaired',miss>0&&S.gold>0));
   h+=`<h3>⚔️ Your ship</h3>`;
   h+=row('Speed',`${Math.round(ST.maxSpeed)} knots max`,'');h+=row('Cannons',`${ST.cannons} per side • ${ST.dmg.toFixed(1)} dmg • reload ${ST.reload.toFixed(1)}s`,'');
   h+=row('Hull',`${hullC().icon} ${hullC().name} — bigger hulls are sold at 🏴‍☠️ havens (🛠️ Ship tab)`,'');h+=row('Crew',`${S.crew} aboard, ${ST.crewNeed} needed for full efficiency (${Math.round(ST.eff*100)}%)`,'');
@@ -641,13 +706,13 @@ function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.nam
  else if(tab==='ship'){h+=`<div class="note">Shipwrights here can refit your vessel. Each upgrade costs more than the last.</div>`;
   for(const k in UPG){const d=UPG[k],l=S.up[k];const c=pCost(d,l);const max=l>=d.max;
    h+=row(`${d.icon} ${d.name} ${pips(l,d.max)}`,max?d.desc(l)+' (MAX)':`${d.desc(l)}<br>➜ ${d.desc(l+1)}`,btn('up',max?'MAX':`${c} 💰`,!max&&S.gold>=c,k));}
-  h+=hullShopHTML(p);}
+  h+=hullShopHTML(p);h+=armoryHTML();}
  else if(tab==='crew'){const hire=Math.ceil((15+2*S.up.hull)*mk());const room=ST.maxCrew-S.crew;
   h+=row(`👥 Hire sailors (${S.crew}/${ST.maxCrew})`,`${hire} 💰 each. Need ${ST.crewNeed} to work all guns & sails. Crew can be lost in battle.`,
    btn('hire','+1',room>0&&S.gold>=hire,1)+btn('hire','+5',room>=5&&S.gold>=hire*5,5)+btn('hire','Fill',room>0&&S.gold>=hire*Math.min(room,Math.max(1,ST.crewNeed-S.crew)),'fill'));
   h+=`<h3>⭐ Officers & specialists</h3>`;
   for(const k in ROLES){const d=ROLES[k],l=S.roles[k];const c=pCost(d,l);const max=l>=d.max;
-   h+=row(`${d.icon} ${d.name} ${pips(l,d.max)}`,max?d.desc(l)+' (MAX)':`${l?d.desc(l)+'<br>➜ ':''}${d.desc(l+1)}`,btn('role',max?'MAX':(l?'Train ':'Hire ')+c+' 💰',!max&&S.gold>=c,k));}}
+   h+=row(`${d.icon} ${d.name} ${pips(l,d.max)}`,max?d.desc(l)+' (MAX)':`${l?d.desc(l)+'<br>➜ ':''}${d.desc(l+1)}`,btn('role',max?'MAX':(l?'Train ':'Hire ')+c+' 💰',!max&&S.gold>=c,k));}h+=officersHTML(p);}
  else if(tab==='market'){const used=cargoUsed();h+=`<div class="note">Hold: ${used}/${ST.cargoCap} crates. Buy low, sell high in another port. Prices drift over time.</div>`;
   GOODS.forEach((g,gi)=>{const b=Math.ceil(price(curPort,gi)*mk()),s=sellPrice(curPort,gi);const own=S.cargo[g.id];const tag=p.cheap===g.id?' <small style="display:inline;color:#2f7d3b">▼ cheap here</small>':p.want===g.id?' <small style="display:inline;color:#a12a1d">▲ in demand</small>':'';
    h+=row(`${g.icon} ${g.name}${tag}`,`Buy ${b} • Sell ${s} • You have ${own}`,btn('buy','Buy',S.gold>=b&&used<ST.cargoCap,gi)+btn('buy','×5',S.gold>=b*5&&used+5<=ST.cargoCap,gi+':5')+btn('sell','Sell',own>0,gi,'sell')+btn('sell','All',own>0,gi+':all','sell'));});
@@ -672,7 +737,7 @@ function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.nam
   if(S.quests.length>=mj)h+=`<div class="note">You can hold ${mj} jobs at a time${mj<4?' (4 at the rank of Captain)':''}.</div>`;}
  $('pBody').innerHTML=h;}
 $('pBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled)return;portAction(b.dataset.act,b.dataset.arg);});
-function portAction(act,arg){if(act==='xfer'){openXfer();return;}
+function portAction(act,arg){if(act==='xfer'){openXfer();return;}if(exPortAction(act,arg)){if(state==='port')renderPort();save();return;}
  if(act==='payoff'){const c=bountyGold();if(S.gold>=c&&PORTS[curPort].haven){S.gold-=c;S.heat=0;lastStars=0;chime();toast('🏴‍☠️ Bounty paid off — the Navy forgets your face.');}}
  else if(act==='bribe'){const c=lowerCost(),n=stars();if(S.gold>=c&&n>=1){S.gold-=c;S.heat=STAR_AT[n]-0.5;S.heatT=S.playTime;chime();toast(`🤝 Bribe accepted — Wanted ${starStr(stars())}`);}}
  if(act==='repair'){const miss=ST.maxHp-P.hp;let cost=repairCost(miss);if(S.gold>=cost){S.gold-=cost;P.hp=ST.maxHp;}else{const hp=S.gold/(0.9*(1-0.1*S.roles.carpenter)*mk());P.hp=Math.min(ST.maxHp,P.hp+hp);S.gold=0;}chime();tutEv('repair');}
@@ -695,9 +760,10 @@ function portAction(act,arg){if(act==='xfer'){openXfer();return;}
 let resetArm=false,mView='log',menuOpenT=0,menuPD=false;
 const ghost=()=>!menuPD&&performance.now()-menuOpenT<450;
 function openMenu(){state='menu';resetArm=false;mView='log';menuOpenT=performance.now();menuPD=false;$('menu').classList.remove('hidden');renderMenu();}
-function renderMenu(){[...$('mTabs').children].forEach(b=>b.classList.toggle('on',b.dataset.m===mView));if(mView==='skills'){$('mBody').innerHTML=skillsHTML();return;}if(mView==='trophies'){$('mBody').innerHTML=trophiesHTML();return;}const used=cargoUsed();let cg=GOODS.filter(g=>S.cargo[g.id]).map(g=>`${g.icon}${S.cargo[g.id]}`).join(' ')||'empty';
+function renderMenu(){[...$('mTabs').children].forEach(b=>b.classList.toggle('on',b.dataset.m===mView));if(mView==='skills'){$('mBody').innerHTML=skillsHTML();return;}if(mView==='trophies'){$('mBody').innerHTML=trophiesHTML();return;}if(mView==='style'){$('mBody').innerHTML=styleHTML();return;}if(mView==='rep'){$('mBody').innerHTML=repHTML();return;}const used=cargoUsed();let cg=GOODS.filter(g=>S.cargo[g.id]).map(g=>`${g.icon}${S.cargo[g.id]}`).join(' ')||'empty';
  let h=`<div class="note"><b>${rankOf(S.infamy)}</b> • ${S.infamy} infamy • ${S.kills} ships sunk • ${S.earned} gold earned</div>`;
  {const X=lvlFromXp(S.xp||0);h+=row(`🎖️ Captain level ${S.clvl}`,`${X.rem}/${X.need} XP • ${S.sp|0} skill point${(S.sp|0)===1?'':'s'} • ${hullC().icon} ${hullC().name} • 🏆 ${ACH.filter(a=>S.ach[a[0]]).length}/${ACH.length}`,btn('mv',S.sp>0?'Spend points':'Skills',true,'skills'));}
+ h+=row('🏴 Pirate Republic',`${ownedForts()} forts • ${leadersDown()}/4 clan leaders sunk${S.king?' • 👑 Pirate King':''}`,btn('mv','Open',true,'rep'));
  h+=row('📦 Cargo',`${used}/${ST.cargoCap}: ${cg}`,'');
  h+=row('📜 Jobs',S.quests.length?S.quests.map(q=>q.title+(qProg(q)?` (${qProg(q)})`:'')).join('<br>'):'none','');
  h+=row('🔊 Sound',S.muted?'Muted':'On',btn('mute',S.muted?'Unmute':'Mute',true));
@@ -711,6 +777,7 @@ function renderMenu(){[...$('mTabs').children].forEach(b=>b.classList.toggle('on
  h+=row('⚠️ Reset progress','Delete your save and start over.',btn('reset',resetArm?'Tap again!':'Reset',true,'','red'));
  h+=`<div class="note">Progress saves automatically on this device. Use 💾 Save Transfer to move it to another one.</div>`;$('mBody').innerHTML=h;}
 $('mBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled||ghost())return;const a=b.dataset.act;
+ if(a==='cos'){equipCos(b.dataset.arg);renderMenu();return;}if(a==='leg'){learnLeg();renderMenu();return;}
  if(a==='learn'){learn(b.dataset.arg);renderMenu();}
  else if(a==='mv'){mView=b.dataset.arg;renderMenu();$('mBody').scrollTop=0;}
  else if(a==='xfer'){openXfer();}
@@ -723,6 +790,7 @@ $('mBody').addEventListener('click',e=>{const b=e.target.closest('button[data-ac
  else if(a==='reset'){if(!resetArm){resetArm=true;renderMenu();return;}resetAll();countHit('newgames');$('menu').classList.add('hidden');state='play';toast('New game! Fair winds, Captain.');tutStart(0);}});
 $('menu').addEventListener('pointerdown',()=>{menuPD=true;},true);
 $('mTabs').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b||ghost())return;mView=b.dataset.m;renderMenu();$('mBody').scrollTop=0;});
+$('fClose').addEventListener('click',closeFort);$('fBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled||!curFort)return;const f=curFort,s=S.forts[f.id];if(!s)return;const k=b.dataset.act==='fug'?'g':'w';const c=fortUpCost(f,k);const key=k==='g'?'ug':'uw';if((s[key]|0)<3&&S.gold>=c){S.gold-=c;s[key]=(s[key]|0)+1;delete FRT[f.id];chime();toast(`🏰 ${f.name} upgraded!`);save();}renderFort();});
 $('mClose').addEventListener('click',()=>{$('menu').classList.add('hidden');state='play';});
 
 let toastT=0;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
@@ -734,7 +802,7 @@ function moveShip(s,desired,thr,maxSpeed,turn,dt,acc){
  const target=thr*maxSpeed*windFactor(s.h);s.speed+=clamp(target-s.speed,-70*dt,50*(acc||1)*dt);
  const k=Math.min(1,dt*2.2);s.vx+=(Math.cos(s.h)*s.speed-s.vx)*k;s.vy+=(Math.sin(s.h)*s.speed-s.vy)*k;
  s.x+=s.vx*dt;s.y+=s.vy*dt;
- for(const o of ISL){const m=s.wid*0.7;if(insideIsland(o,s.x,s.y,m)){const a=Math.atan2(s.y-o.y,s.x-o.x);const rr=radiusAt(o,a)+m+0.5;s.x=o.x+Math.cos(a)*rr;s.y=o.y+Math.sin(a)*rr;
+ for(const o of islCell(s.x,s.y)){const m=s.wid*0.7;if(insideIsland(o,s.x,s.y,m)){const a=Math.atan2(s.y-o.y,s.x-o.x);const rr=radiusAt(o,a)+m+0.5;s.x=o.x+Math.cos(a)*rr;s.y=o.y+Math.sin(a)*rr;
   const nx=Math.cos(a),ny=Math.sin(a);const vn=s.vx*nx+s.vy*ny;if(vn<0){s.vx-=nx*vn*1.6;s.vy-=ny*vn*1.6;}s.speed*=0.6;}}
  if(s.x<60){s.x=60;s.vx=Math.abs(s.vx)*0.3;}if(s.y<60){s.y=60;s.vy=Math.abs(s.vy)*0.3;}if(s.x>WORLD-60){s.x=WORLD-60;s.vx=-Math.abs(s.vx)*0.3;}if(s.y>WORLD-60){s.y=WORLD-60;s.vy=-Math.abs(s.vy)*0.3;}
  s.wakeT-=dt;if(s.wakeT<=0&&Math.abs(s.speed)>25){s.wakeT=s.boost>0?0.035:0.07;if(s.boost>0)for(let k=-1;k<=1;k+=2)addPart('foam',s.x-Math.cos(s.h)*s.len*0.4-Math.sin(s.h)*k*s.wid*0.5,s.y-Math.sin(s.h)*s.len*0.4+Math.cos(s.h)*k*s.wid*0.5,-Math.sin(s.h)*k*30-s.vx*0.15,Math.cos(s.h)*k*30-s.vy*0.15,0.9,rand(3,6),null);if(wakes.length>260)wakes.shift();wakes.push({x:s.x-Math.cos(s.h)*s.len*0.45,y:s.y-Math.sin(s.h)*s.len*0.45,life:1.6,w:s.wid});}}
@@ -745,10 +813,10 @@ function boost(){if(state!=='play'||P.dead||P.boost>0||P.boostCd>0)return;P.boos
  tutEv('boost');if(!S.boostTip){S.boostTip=true;$('boostBtn').classList.remove('tip');}
  if(actx&&!S.muted)boom(0.25,1400);toast(`🚀 Boost! +25% speed for ${ST.boostDur}s — turning is harder`);}
 // lawful ports stop protecting you once you're Wanted; pirate havens always do
-function nearSafePort(x,y){const w=stars()>0;for(const p of PORTS)if((p.haven||!w)&&Math.hypot(p.port.x-x,p.port.y-y)<420)return true;return false;}
+function nearSafePort(x,y){const w=stars()>0;for(const p of PORTS){const ok=p.clan!=null?!clanHostile(p.clan):(p.haven||!w);if(ok&&Math.hypot(p.port.x-x,p.port.y-y)<420)return true;}return false;}
 function updateEnemy(e,dt){
  if(e.sinking){e.sinking+=dt;e.speed*=0.97;e.x+=e.vx*dt*0.3;e.y+=e.vy*dt*0.3;if(Math.random()<0.3)addPart('smoke',e.x+rand(-10,10),e.y+rand(-10,10),rand(-10,10),rand(-20,0),1,rand(6,12),null);return;}
- e.rl-=dt;e.rr-=dt;e.hitT-=dt;
+ e.rl-=dt;e.rr-=dt;e.hitT-=dt;burnTick(e,dt);if(e.sinking)return;
  const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy);const toP=Math.atan2(dy,dx);let desired=e.h,thr=0.55;
  let td=d,tto=toP;if(e.kind!=='merchant'&&fleet.length){for(const f of fleet){if(f.sinking)continue;const fd=Math.hypot(f.x-e.x,f.y-e.y);if(fd<td*0.75){td=fd;tto=Math.atan2(f.y-e.y,f.x-e.x);}}}
  if(e.tut){e.hitT-=dt;e.h+=dt*0.12;return;}
@@ -757,7 +825,8 @@ function updateEnemy(e,dt){
  if(e.kind==='merchant'){
   if(e.surr){thr=0;desired=e.h;if(d>700){e.surrT+=dt;if(e.surrT>25){e.surr=false;e.angry=false;}}}
   else if(!P.dead&&(d<520||(e.angry&&d<900))){desired=toP+Math.PI;thr=1;}
-  else{if(!e.wp||Math.hypot(e.wp.x-e.x,e.wp.y-e.y)<260){const pp=pick(PORTS).port;e.wp={x:pp.x,y:pp.y};}desired=Math.atan2(e.wp.y-e.y,e.wp.x-e.x);}
+  else{if(!e.wp||Math.hypot(e.wp.x-e.x,e.wp.y-e.y)<260){const pp=pick(nearPorts(e.x,e.y,7000)).port;e.wp={x:pp.x,y:pp.y};}desired=Math.atan2(e.wp.y-e.y,e.wp.x-e.x);}
+ }else if(e.kind==='clan'){clanAI(e,dt,d,safe);desired=e._des;thr=e._thr;td=e._td;tto=e._tto;
  }else{
   if(e.kind==='boss'&&!e.angry&&d<e.aggro)e.angry=true;
   if(!safe&&(d<e.aggro||(e.angry&&d<e.aggro*1.8))){if(d>e.aggro*1.8)e.angry=false;thr=1;
@@ -767,12 +836,12 @@ function updateEnemy(e,dt){
  // island avoidance
  const ca=Math.cos(e.h),sa=Math.sin(e.h);
  for(const look of LOOKS){const ax=e.x+ca*look,ay=e.y+sa*look;const o=inAnyIsland(ax,ay,35);if(o){const ai=Math.atan2(o.y-e.y,o.x-e.x);const s=angDiff(ai,e.h)>=0?1:-1;desired=e.h+s*1.4;break;}}
- moveShip(e,desired,thr,e.maxSpeed,1.3,dt);
+ moveShip(e,desired,thr,e.maxSpeed*(e.slowT>0?0.55:1),1.3*(e.slowT>0?0.6:1),dt);
  // fire
  if(e.kind!=='merchant'){/* aim at whichever target (you or a fleet ship) is chosen */}
- if(e.cannons>0&&!P.dead&&(e.kind==='merchant'?d:td)<e.range&&(e.angry||e.kind!=='merchant')&&!safe){const rel=angDiff(e.h,e.kind==='merchant'?toP:tto);
-  if(Math.abs(rel-Math.PI/2)<0.3&&e.rr<=0){e.rr=e.reload*rand(0.9,1.2);fireBroadside(e,1,e.cannons,e.dmg,'e',e.range);}
-  else if(Math.abs(rel+Math.PI/2)<0.3&&e.rl<=0){e.rl=e.reload*rand(0.9,1.2);fireBroadside(e,-1,e.cannons,e.dmg,'e',e.range);}}
+ if(e.cannons>0&&!P.dead&&(e.kind==='merchant'?d:td)<e.range&&(e.angry||e.kind!=='merchant')&&!safe&&(e.kind!=='clan'||e.fireOk)){const rel=angDiff(e.h,e.kind==='merchant'?toP:tto);
+  if(Math.abs(rel-Math.PI/2)<0.3&&e.rr<=0){e.rr=e.reload*rand(0.9,1.2);efire(e,1);}
+  else if(Math.abs(rel+Math.PI/2)<0.3&&e.rl<=0){e.rl=e.reload*rand(0.9,1.2);efire(e,-1);}}
  // ship-ship push
  const md=(e.len+P.len)*0.38;if(d<md&&d>0.01){const push=(md-d)*0.5;e.x-=dx/d*push;e.y-=dy/d*push;P.x+=dx/d*push;P.y+=dy/d*push;}}
 let saveT=0,spawnT=0,fogT=0,hudT=0;
@@ -800,19 +869,23 @@ function update(dt){
  // enemies
  for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];updateEnemy(e,dt);if(e.sinking>2.5)enemies.splice(i,1);}
  spawnT-=dt;if(spawnT<=0){spawnT=1;
-  const st0=stars();for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];const d=Math.hypot(e.x-P.x,e.y-P.y);if(!e.keep&&((e.kind!=='boss'&&d>2800)||(e.kind==='navy'&&st0===0&&d>1400&&!e.sinking)))enemies.splice(i,1);}
+  const st0=stars();for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];const d=Math.hypot(e.x-P.x,e.y-P.y);if(!e.keep&&((e.kind!=='boss'&&d>(e.kind==='clan'?3200:2800))||(e.kind==='navy'&&st0===0&&d>1400&&!e.sinking)))enemies.splice(i,1);}
   if(!S.tips.merchant&&!T.on){for(const e of enemies)if(e.kind==='merchant'&&!e.sinking&&Math.hypot(e.x-P.x,e.y-P.y)<750){showTip('merchant');break;}}
-  if(enemies.filter(e=>e.kind!=='boss').length<14)spawnNear(1000,2000);
-  sharkSpawnTick();
+  if(enemies.filter(e=>e.kind!=='boss'&&!e.lead).length<14)spawnNear(1000,2000);
+  sharkSpawnTick();expSlowTick();
   for(const q of S.quests)if(q.type==='hunt'&&!q.spawned&&Math.hypot(q.x-P.x,q.y-P.y)<1500){q.spawned=true;enemies.push(makeEnemy('boss',q.x,q.y,q.lvl,{name:q.name,qid:q.id,home:{x:q.x,y:q.y}}));if(q.lvl>=4)enemies.push(makeEnemy('pirate',q.x+90,q.y+70,q.lvl-1,{home:{x:q.x,y:q.y}}));}
  }
  // balls
  for(let i=balls.length-1;i>=0;i--){const b=balls[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;let hit=false;
-  if(b.owner==='p'||b.owner==='f'){for(const e of enemies){if(!e.sinking&&hitTest(e,b,5)){damageEnemy(e,b.dmg);hit=true;break;}}
-   if(!hit)for(const sk of sharks){if(!sk.sinking&&hitTest(sk,b,5)){damageShark(sk,b.dmg);hit=true;break;}}}
+  if(b.ig>0)b.ig-=dt;
+  if(b.owner==='p'||b.owner==='f'){for(const e of enemies){if(!e.sinking&&hitTest(e,b,5)){damageEnemy(e,b.dmg);if(b.am)ammoHit(e,b);hit=true;break;}}
+   if(!hit)for(const sk of sharks){if(!sk.sinking&&hitTest(sk,b,5)){damageShark(sk,b.dmg);hit=true;break;}}
+   if(!hit&&b.owner==='p')hit=fortBallHit(b);}
+  else if(b.owner==='c'&&clanBallHit(b))hit=true;
+  else if(b.owner==='c'&&!b.pl){}
   else if(!P.dead&&hitTest(P,b,2)){damagePlayer(b.dmg);hit=true;}
   else{for(const f of fleet){if(!f.sinking&&hitTest(f,b,2)){damageFleet(f,b.dmg);hit=true;break;}}}
-  if(!hit&&inAnyIsland(b.x,b.y,0)){hit=true;addPart('dust',b.x,b.y,0,0,0.5,10,null);}
+  if(!hit&&!(b.ig>0)&&inAnyIsland(b.x,b.y,0)){hit=true;addPart('dust',b.x,b.y,0,0,0.5,10,null);}
   if(hit){for(let k=0;k<6;k++)addPart('fire',b.x,b.y,rand(-60,60),rand(-60,60),rand(0.3,0.6),rand(4,8),null);addPart('smoke',b.x,b.y,0,0,0.9,10,null);balls.splice(i,1);}
   else if(b.life<=0){addPart('splash',b.x,b.y,0,0,0.7,6,null);for(let k=0;k<4;k++)addPart('drop',b.x,b.y,rand(-40,40),rand(-40,40),0.4,2.5,null);balls.splice(i,1);}}
  // loot
@@ -829,7 +902,7 @@ function update(dt){
   for(let j=cj-n;j<=cj+n;j++)for(let i=ci-n;i<=ci+n;i++){if(i<0||j<0||i>=FOGN||j>=FOGN)continue;const idx=j*FOGN+i;if(fog[idx])continue;const cx=(i+0.5)*FOGC,cy=(j+0.5)*FOGC;if(Math.hypot(cx-P.x,cy-P.y)<R){fog[idx]=1;fogCtx.clearRect(i,j,1,1);}}}
  for(let i=sharks.length-1;i>=0;i--){const sk=sharks[i];updateShark(sk,dt);if(sk.sinking>1.2)sharks.splice(i,1);}
  for(let i=attract.length-1;i>=0;i--){attract[i].t-=dt;if(attract[i].t<=0)attract.splice(i,1);}
- updateFleet(dt);missionTick(dt);
+ updateFleet(dt);missionTick(dt);expTick(dt);
  saveT-=dt;if(saveT<=0){saveT=5;save();}
 }
 
@@ -840,8 +913,8 @@ function drawShip(s,sail,flag,thr){const L=s.len,W=s.wid;ctx.save();ctx.translat
  ctx.rotate(s.h);
  ctx.fillStyle='rgba(0,0,0,0.18)';ctx.beginPath();ctx.ellipse(3,4,L/2,W/2,0,0,TAU);ctx.fill();
  ctx.beginPath();ctx.moveTo(L/2,0);ctx.quadraticCurveTo(L*0.28,-W/2,-L*0.32,-W/2);ctx.lineTo(-L/2,-W*0.36);ctx.lineTo(-L/2,W*0.36);ctx.lineTo(-L*0.32,W/2);ctx.quadraticCurveTo(L*0.28,W/2,L/2,0);ctx.closePath();
- ctx.fillStyle=s.hitT>0?'#c0503a':'#7b4a23';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#3d220c';ctx.stroke();
- ctx.beginPath();ctx.moveTo(L*0.4,0);ctx.quadraticCurveTo(L*0.22,-W*0.36,-L*0.3,-W*0.36);ctx.lineTo(-L*0.44,-W*0.26);ctx.lineTo(-L*0.44,W*0.26);ctx.lineTo(-L*0.3,W*0.36);ctx.quadraticCurveTo(L*0.22,W*0.36,L*0.4,0);ctx.fillStyle='#b07b45';ctx.fill();
+ ctx.fillStyle=s.hitT>0?'#c0503a':(s.paint||'#7b4a23');ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#3d220c';ctx.stroke();
+ ctx.beginPath();ctx.moveTo(L*0.4,0);ctx.quadraticCurveTo(L*0.22,-W*0.36,-L*0.3,-W*0.36);ctx.lineTo(-L*0.44,-W*0.26);ctx.lineTo(-L*0.44,W*0.26);ctx.lineTo(-L*0.3,W*0.36);ctx.quadraticCurveTo(L*0.22,W*0.36,L*0.4,0);ctx.fillStyle=s.deck||'#b07b45';ctx.fill();
  ctx.strokeStyle='rgba(90,55,25,0.6)';ctx.lineWidth=1;ctx.beginPath();for(let i=-2;i<=2;i++){ctx.moveTo(-L*0.42,i*W*0.11);ctx.lineTo(L*0.3,i*W*0.11);}ctx.stroke();
  const n=s.cannons||ST.cannons||2;ctx.fillStyle='#222';for(let i=0;i<n;i++){const t=n===1?0:(i/(n-1)-0.5)*L*0.62;ctx.fillRect(t-2.5,-W/2-3,5,4);ctx.fillRect(t-2.5,W/2-1,5,4);}
  ctx.fillStyle='#5a3812';ctx.fillRect(-L*0.48,-W*0.3,L*0.14,W*0.6);
@@ -849,8 +922,8 @@ function drawShip(s,sail,flag,thr){const L=s.len,W=s.wid;ctx.save();ctx.translat
  for(const mx of masts){ctx.beginPath();ctx.moveTo(mx,-W*0.85);ctx.quadraticCurveTo(mx+bul*2,0,mx,W*0.85);ctx.quadraticCurveTo(mx+bul*0.6,0,mx,-W*0.85);ctx.fillStyle=sail;ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1;ctx.stroke();
   ctx.fillStyle='#3d220c';ctx.beginPath();ctx.arc(mx,0,2.6,0,TAU);ctx.fill();}
  const fm=masts[masts.length-1];
- if(s.kind==='player'||s.kind==='fleet'){const wv=Math.sin(perfT*0.008)*1.5;ctx.fillStyle='#111';ctx.beginPath();ctx.moveTo(fm,-7);ctx.lineTo(fm-20,-7+wv);ctx.lineTo(fm-20,7+wv);ctx.lineTo(fm,7);ctx.closePath();ctx.fill();ctx.strokeStyle='#eee';ctx.lineWidth=0.8;ctx.stroke();
-  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(fm-10,-1+wv*0.5,3.2,0,TAU);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(fm-15,2+wv*0.5);ctx.lineTo(fm-5,6+wv*0.5);ctx.moveTo(fm-15,6+wv*0.5);ctx.lineTo(fm-5,2+wv*0.5);ctx.stroke();
+ if(s.kind==='player'||s.kind==='fleet'){const wv=Math.sin(perfT*0.008)*1.5;ctx.fillStyle=(s.kind==='player'&&s.flagC)||'#111';ctx.beginPath();ctx.moveTo(fm,-7);ctx.lineTo(fm-20,-7+wv);ctx.lineTo(fm-20,7+wv);ctx.lineTo(fm,7);ctx.closePath();ctx.fill();ctx.strokeStyle='#eee';ctx.lineWidth=0.8;ctx.stroke();
+  ctx.fillStyle=(s.kind==='player'&&s.flagS)||'#fff';ctx.beginPath();ctx.arc(fm-10,-1+wv*0.5,3.2,0,TAU);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(fm-15,2+wv*0.5);ctx.lineTo(fm-5,6+wv*0.5);ctx.moveTo(fm-15,6+wv*0.5);ctx.lineTo(fm-5,2+wv*0.5);ctx.stroke();
   ctx.fillStyle='#111';ctx.fillRect(fm-11.4,-1.6+wv*0.5,1.1,1.1);ctx.fillRect(fm-9.4,-1.6+wv*0.5,1.1,1.1);}
  else{ctx.fillStyle=flag;ctx.beginPath();ctx.moveTo(fm,0);ctx.lineTo(fm-11,-3+Math.sin(perfT*0.008+s.x)*2);ctx.lineTo(fm-11,4);ctx.closePath();ctx.fill();}
  ctx.restore();ctx.globalAlpha=1;}
@@ -872,7 +945,7 @@ function render(t){perfT=t;
  // wakes
  for(const w of wakes){const a=w.life/1.6;ctx.globalAlpha=a*0.35;ctx.fillStyle='#e8f6ff';ctx.beginPath();ctx.arc(w.x,w.y,w.w*0.4+(1-a)*w.w*0.9,0,TAU);ctx.fill();}ctx.globalAlpha=1;
  // islands
- for(const o of ISL){if(o.x+o.half<x0||o.x-o.half>x1||o.y+o.half<y0||o.y-o.half>y1)continue;ctx.drawImage(o.canvas,o.x-o.half,o.y-o.half);}
+ drawIslands(x0,x1,y0,y1);drawForts(x0,x1,y0,y1,ts);
  // port rings
  PORTS.forEach((p,i)=>{if(p.port.x<x0||p.port.x>x1||p.port.y<y0||p.port.y>y1)return;ctx.strokeStyle=i===nearPort?'rgba(255,220,90,0.9)':'rgba(255,220,90,0.35)';ctx.lineWidth=3;ctx.setLineDash([12,10]);ctx.lineDashOffset=-ts*20;ctx.beginPath();ctx.arc(p.port.x,p.port.y,160,0,TAU);ctx.stroke();ctx.setLineDash([]);});
  // loot
@@ -882,15 +955,15 @@ function render(t){perfT=t;
  // ships
  for(const f of fleet){if(f.x<x0-80||f.x>x1+80||f.y<y0-80||f.y>y1+80)continue;drawShip(f,f.d.type==='prize'?'#efe2c4':'#f6efe0','#111',clamp(f.speed/(ST.maxSpeed||1),0,1));}
  for(const e of enemies){if(e.x<x0-80||e.x>x1+80||e.y<y0-80||e.y>y1+80)continue;
-  if(e.tut)drawShip(e,'#f3e2b0','#ffd34d',0.3);else if(e.kind==='navy')drawShip(e,e.hunter?'#6b2a2a':'#eef3fb',e.hunter?'#c0392b':'#1d4fa8',1);else if(e.kind==='merchant')drawShip(e,'#f4ead2',e.surr?'#ffffff':'#2b5fb5',e.surr?0:0.6);else if(e.kind==='boss')drawShip(e,'#8c1c26','#111',1);else drawShip(e,'#3b3b42','#111',0.9);}
+  if(e.tut)drawShip(e,'#f3e2b0','#ffd34d',0.3);else if(e.kind==='navy')drawShip(e,e.hunter?'#6b2a2a':'#eef3fb',e.hunter?'#c0392b':'#1d4fa8',1);else if(e.kind==='merchant')drawShip(e,'#f4ead2',e.surr?'#ffffff':'#2b5fb5',e.surr?0:0.6);else if(e.kind==='clan')drawShip(e,e.rev?'rgba(200,255,230,0.55)':CLANS[e.clan].sail,CLANS[e.clan].col,1);else if(e.kind==='boss')drawShip(e,'#8c1c26','#111',1);else drawShip(e,'#3b3b42','#111',0.9);}
  if(P.boost>0&&!P.dead){const g=0.35+0.2*Math.sin(ts*14);ctx.fillStyle=`rgba(255,190,60,${g})`;ctx.beginPath();ctx.ellipse(P.x,P.y,P.len*0.8,P.len*0.8,0,0,TAU);ctx.fill();drawShip(P,'#ffd27a','#111',1.4);}
- else drawShip(P,S.infamy>=6000?'#ffe08a':'#fff8e7','#111',P.throttle);
+ else drawShip(P,playerSail(),'#111',P.throttle);
  drawAutoHud(ts);
  // balls
- ctx.fillStyle='#111';for(const b of balls){ctx.beginPath();ctx.arc(b.x,b.y,3.6,0,TAU);ctx.fill();}
+ drawBallsX();drawShells();
  // particles
  for(const p of parts){const a=p.life/p.max;
-  if(p.type==='smoke'){ctx.globalAlpha=a*0.5;ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.8-a),0,TAU);ctx.fill();}
+  if(p.type==='smoke'){ctx.globalAlpha=a*0.5;ctx.fillStyle=p.color||'#ddd';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.8-a),0,TAU);ctx.fill();}
   else if(p.type==='fire'){ctx.globalAlpha=a;ctx.fillStyle=a>0.5?'#ffd25a':'#ff6a2a';ctx.beginPath();ctx.arc(p.x,p.y,p.size*a,0,TAU);ctx.fill();}
   else if(p.type==='flash'){ctx.globalAlpha=a;ctx.fillStyle='#fff3a0';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,TAU);ctx.fill();}
   else if(p.type==='splash'){ctx.globalAlpha=a*0.8;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,p.size+(1-a)*16,0,TAU);ctx.stroke();}
@@ -914,8 +987,9 @@ function render(t){perfT=t;
  for(const s2 of sharks){if(s2.sinking||!(s2.mega||s2.hp<s2.maxHp))continue;const X=sx(s2.x),Y=sy(s2.y)-(s2.mega?50:22)*zoom-6;if(X<-40||X>vw+40||Y<-40||Y>vh+40)continue;
   ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-19,Y,38,4);ctx.fillStyle='#ff5a4a';ctx.fillRect(X-19,Y,38*clamp(s2.hp/s2.maxHp,0,1),4);if(s2.mega){ctx.font='bold 12px sans-serif';ctx.fillStyle='#ffb0b0';ctx.fillText('🦈 MEGALODON',X,Y-8);}}
  for(const e of enemies){if(e.sinking)continue;const X=sx(e.x),Y=avoidY(sx(e.x),sy(e.y)-e.len*zoom*0.6-8);if(X<-40||X>vw+40||Y<-40||Y>vh+40)continue;
-  const bw=38;if(e.hp<e.maxHp||e.kind==='boss'||e.tut){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-bw/2,Y,bw,5);ctx.fillStyle=e.kind==='merchant'?'#8fd0ff':'#ff5a4a';ctx.fillRect(X-bw/2,Y,bw*clamp(e.hp/e.maxHp,0,1),5);}
-  ctx.font='bold 11px sans-serif';ctx.fillStyle=e.kind==='merchant'?(e.surr?'#ffffff':'#cfe8ff'):e.kind==='navy'?'#bcd6ff':e.kind==='boss'?'#ffb0b0':'#ffd0c0';ctx.fillText(e.tut?'🎯 Training Target':e.kind==='boss'?`☠ ${e.name} Lv${e.lvl}`:e.kind==='navy'?(e.hunter?`🎯 Bounty Hunter Lv${e.lvl}`:e.mq?`🧨 Blockade Lv${e.lvl}`:e.guard?`⚓ Convoy Escort Lv${e.lvl}`:`⚓ Navy Lv${e.lvl}`):e.kind==='merchant'?(e.surr?(e===boardTgt?'🏳️ Surrendered':'🏳️ Surrendered — Board!'):e.plundered?'💰 Merchant (plundered)':(e.cid?`💰 Convoy Lv${e.lvl}`:`💰 Merchant Lv${e.lvl}`)):`☠ Rival Pirate Lv${e.lvl}`,X,Y-8);}
+  const bw=38;if(e.hp<e.maxHp||e.kind==='boss'||e.tut||e.lead||e.lev){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-bw/2,Y,bw,5);ctx.fillStyle=e.kind==='merchant'?'#8fd0ff':'#ff5a4a';ctx.fillRect(X-bw/2,Y,bw*clamp(e.hp/e.maxHp,0,1),5);}
+  ctx.font='bold 11px sans-serif';ctx.fillStyle=e.kind==='clan'?CLANS[e.clan].lc:e.lev?'#ffd0d0':e.kind==='merchant'?(e.surr?'#ffffff':'#cfe8ff'):e.kind==='navy'?'#bcd6ff':e.kind==='boss'?'#ffb0b0':'#ffd0c0';ctx.fillText(e.kind==='clan'?clanLabel(e):e.lev?`🐋 HMS Leviathan Lv${e.lvl}`:e.tut?'🎯 Training Target':e.kind==='boss'?`☠ ${e.name} Lv${e.lvl}`:e.kind==='navy'?(e.hunter?`🎯 Bounty Hunter Lv${e.lvl}`:e.mq?`🧨 Blockade Lv${e.lvl}`:e.guard?`⚓ Convoy Escort Lv${e.lvl}`:`⚓ Navy Lv${e.lvl}`):e.kind==='merchant'?(e.surr?(e===boardTgt?'🏳️ Surrendered':'🏳️ Surrendered — Board!'):e.plundered?'💰 Merchant (plundered)':(e.cid?`💰 Convoy Lv${e.lvl}`:`💰 Merchant Lv${e.lvl}`)):`☠ Rival Pirate Lv${e.lvl}`,X,Y-8);}
+ drawFortLabels();
  for(const tx of texts){const a=clamp(tx.life/tx.max*1.5,0,1);ctx.globalAlpha=a;ctx.font=(tx.big?'bold 18px':'bold 14px')+' sans-serif';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,0.7)';ctx.strokeText(tx.t,sx(tx.x),sy(tx.y));ctx.fillStyle=tx.c;ctx.fillText(tx.t,sx(tx.x),sy(tx.y));}ctx.globalAlpha=1;
  // side range hint when ready
  // quest arrows
@@ -935,30 +1009,16 @@ function render(t){perfT=t;
  // wind & sail gauge
  const wx=m.x+m.s/2,wy=m.y+m.s+16;ctx.fillStyle='rgba(10,25,40,0.55)';ctx.fillRect(m.x,m.y+m.s+4,m.s,24);ctx.save();ctx.translate(m.x+14,wy);ctx.rotate(wind.dir);ctx.fillStyle='#bfe8ff';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-7,-6);ctx.lineTo(-3,0);ctx.lineTo(-7,6);ctx.closePath();ctx.fill();ctx.restore();
  ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(P.boost>0?`${Math.round(Math.hypot(P.vx,P.vy))}kn  🚀${P.boost.toFixed(1)}s`:`${Math.round(Math.hypot(P.vx,P.vy))}kn  ⛵${Math.round(P.throttle*100)}%`,m.x+26,wy);ctx.textAlign='center';
- if(state==='map'){drawBigMap();}
+ if(state==='map'){drawBigMap();}else mapOpen=false;
 }
-function drawMap(X,Y,s,big){const k=s/WORLD;ctx.save();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-2,Y-2,s+4,s+4);ctx.imageSmoothingEnabled=true;ctx.drawImage(mapBase,X,Y,s,s);ctx.globalAlpha=0.92;ctx.drawImage(fogCv,X,Y,s,s);ctx.globalAlpha=1;
- ctx.beginPath();ctx.rect(X,Y,s,s);ctx.clip();
- ctx.textAlign='center';ctx.textBaseline='middle';
- for(const p of PORTS){ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.arc(X+p.port.x*k,Y+p.port.y*k,big?5:2.5,0,TAU);ctx.fill();if(big){ctx.font='bold 12px sans-serif';ctx.fillStyle='#fff';ctx.fillText((p.haven?'🏴‍☠️ ':'')+p.name,X+p.port.x*k,Y+p.port.y*k-12);}}
- for(const z of SHARKZ){ctx.fillStyle='rgba(200,40,50,0.22)';ctx.beginPath();ctx.arc(X+z.x*k,Y+z.y*k,z.r*k,0,TAU);ctx.fill();if(big){ctx.font='16px serif';ctx.fillText('🦈',X+z.x*k,Y+z.y*k);}}
- for(const f of fleet){if(f.sinking)continue;ctx.fillStyle='#5be36a';ctx.fillRect(X+f.x*k-2,Y+f.y*k-2,big?5:3.5,big?5:3.5);}
- if(ST.radar){for(const e of enemies){if(e.sinking||Math.hypot(e.x-P.x,e.y-P.y)>ST.radar)continue;ctx.fillStyle=e.kind==='merchant'?'#9fd8ff':e.kind==='navy'?'#ffffff':'#ff4a4a';ctx.fillRect(X+e.x*k-1.5,Y+e.y*k-1.5,big?4:3,big?4:3);}}
- for(const q of QT){ctx.font=(big?18:11)+'px serif';ctx.fillText(q.icon,X+q.x*k,Y+q.y*k);}
- ctx.save();ctx.translate(X+P.x*k,Y+P.y*k);ctx.rotate(P.h);ctx.fillStyle='#fff';ctx.beginPath();const z=big?8:5;ctx.moveTo(z,0);ctx.lineTo(-z*0.7,-z*0.6);ctx.lineTo(-z*0.7,z*0.6);ctx.closePath();ctx.fill();ctx.restore();
- ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;ctx.strokeRect(X,Y,s,s);ctx.restore();}
-function drawBigMap(){ctx.fillStyle='rgba(5,10,20,0.75)';ctx.fillRect(0,0,vw,vh);const s=Math.min(vw,vh)-60;const X=(vw-s)/2,Y=(vh-s)/2+8;drawMap(X,Y,s,true);
- ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('🗺️ Sea chart — tap to close',vw/2,Y-14);
- ctx.font='12px sans-serif';ctx.fillText(ST.radar?'Red = rivals, white = Navy, blue = merchants, green = your fleet • 🏴‍☠️ haven • 🦈 shark waters':'🏴‍☠️ = pirate haven • 🦈 red = shark-infested • Navigators reveal ships & map',vw/2,Y+s+14);}
-
 // ---------- HUD ----------
 const hudCache={};let boostTipShown=false;function setTxt(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v;}}
 function updateHUD(){QT=questTargets();setTxt('hGold','💰 '+S.gold);setTxt('hCrew','👥 '+S.crew+'/'+ST.maxCrew);setTxt('hCargo','📦 '+cargoUsed()+'/'+ST.cargoCap);
  const hp=clamp(P.hp/ST.maxHp,0,1);const w=Math.round(hp*100)+'%';if(hudCache.hpw!==w){hudCache.hpw=w;$('hHp').style.width=w;$('hHp').style.background=hp>0.5?'linear-gradient(#5be36a,#2c9c3a)':hp>0.25?'linear-gradient(#ffd34d,#d99a1a)':'linear-gradient(#ff6b5b,#b8281a)';}
- setTxt('hHpT',`❤️ ${Math.ceil(P.hp)}/${ST.maxHp}`);setTxt('hRank','⭐ '+rankOf(S.infamy));{const X=lvlFromXp(S.xp||0);setTxt('hLvl','🎖️ Lv'+S.clvl);const w=Math.round(X.rem/X.need*100)+'%';if(hudCache.xpw!==w){hudCache.xpw=w;$('hXp').style.width=w;}}const L=lvlAt(P.x,P.y);setTxt('hDanger',(L<=2?'🟢':L<=4?'🟡':L<=6?'🟠':'🔴')+' Waters Lv'+L);
- const showDock=state==='play'&&nearPort>=0;$('dockBtn').classList.toggle('hidden',!showDock);if(showDock){const pp=PORTS[nearPort];setTxt('dockBtn',!pp.haven&&stars()>=3?`⚖️ Bribe & dock (${bribeCost()}💰)`:(pp.haven?'🏴‍☠️ Dock at ':'⚓ Dock at ')+pp.name);}
+ setTxt('hHpT',`❤️ ${Math.ceil(P.hp)}/${ST.maxHp}`);setTxt('hRank',(S.king?'👑 ':'⭐ ')+rankOf(S.infamy));{const X=lvlFromXp(S.xp||0);setTxt('hLvl','🎖️ Lv'+S.clvl);const w=Math.round(X.rem/X.need*100)+'%';if(hudCache.xpw!==w){hudCache.xpw=w;$('hXp').style.width=w;}}const L=lvlAt(P.x,P.y);setTxt('hDanger',(L<=2?'🟢':L<=4?'🟡':L<=6?'🟠':'🔴')+' Waters Lv'+L);
+ const showDock=state==='play'&&nearPort>=0;$('dockBtn').classList.toggle('hidden',!showDock);if(showDock){const pp=PORTS[nearPort];setTxt('dockBtn',pp.clan!=null&&clanHostile(pp.clan)?`⛔ ${pp.name} (at war)`:!pp.haven&&stars()>=3?`⚖️ Bribe & dock (${bribeCost()}💰)`:(pp.haven?'🏴‍☠️ Dock at ':'⚓ Dock at ')+pp.name);}
  $('boardBar').classList.toggle('hidden',!(state==='play'&&boardTgt));if(boardTgt){const full=S.fleet.length>=fleetCap();setTxt('seizeBtn',full?`⛓ Fleet full (${fleetCap()})`:'⛓ Seize ship');}
- {const show=state==='play'&&!!actQ&&!boardTgt;$('actBtn').classList.toggle('hidden',!show);if(show)setTxt('actBtn',digQ?`⛏ Digging… ${Math.min(99,Math.round(digT/2.2*100))}%`:'⛏ Dig for treasure');}
+ {const a=actLabel();const show=state==='play'&&!!a&&!boardTgt;$('actBtn').classList.toggle('hidden',!show);if(show)setTxt('actBtn',a);}updAmmoBtn();
  trackHUD();layoutTop();progT-=0.1;if(progT<=0){progT=1;progTick();}ctrlT-=0.1;if(ctrlT<=0){ctrlT=0.5;updCtrlRects();}
  if(state!=='play'&&state!=='map'&&!$('tipBox').classList.contains('hidden'))hideTip();
  {const h=S.heat||0,n=stars();const show=h>=0.05;if(hudCache.want!==show){hudCache.want=show;$('hWant').classList.toggle('hidden',!show);}
@@ -1108,8 +1168,10 @@ function drawTut(ts){if(!T.on||state==='title'||state==='map')return;const tg=T.
   ctx.font='34px serif';ctx.fillText('👆',kx+6,ky+26);ctx.font='bold 13px sans-serif';ctx.fillStyle='#fff';ctx.fillText(tg.zone==='sail'?'drag far = full sails':'drag left / right',bx,by+JR+22);}}
 // ---------- SHARKS ----------
 const sharks=[],attract=[];
-const SHARKZ=[];(function(){const r=rng(777);let t=0;while(SHARKZ.length<5&&t<400){t++;const x=500+r()*(WORLD-1000),y=500+r()*(WORLD-1000),rad=330+r()*250;
+const SHARKZ=[];(function(){const r=rng(777);let t=0;while(SHARKZ.length<5&&t<400){t++;const x=OFF+500+r()*(OLDW-1000),y=OFF+500+r()*(OLDW-1000),rad=330+r()*250;
  if(Math.hypot(x-START.x,y-START.y)<2400)continue;if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<rad+320))continue;if(SHARKZ.some(z=>Math.hypot(z.x-x,z.y-y)<z.r+rad+400))continue;SHARKZ.push({x,y,r:rad});}})();
+(function(){const r=rng(5150);let t=0;while(SHARKZ.length<14&&t<600){t++;const x=600+r()*(WORLD-1200),y=600+r()*(WORLD-1200),rad=380+r()*270;if(Math.abs(x-START.x)<CORE_R+400&&Math.abs(y-START.y)<CORE_R+400)continue;
+ if(PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<rad+500))continue;if(FORTS.some(f=>Math.hypot(f.x-x,f.y-y)<rad+300))continue;if(SHARKZ.some(z=>Math.hypot(z.x-x,z.y-y)<z.r+rad+600))continue;SHARKZ.push({x,y,r:rad});}})();
 function inSharkZone(x,y){for(const z of SHARKZ){const dx=x-z.x,dy=y-z.y;if(dx*dx+dy*dy<z.r*z.r)return z;}return null;}
 function sharkWant(){const L=lvlAt(P.x,P.y);let n=L<=1?0:L<=2?2:L<=4?4:L<=6?5:7;if(inSharkZone(P.x,P.y))n+=5;return n;}
 function makeShark(x,y,lvl,mega){const hp=mega?520:16+5*lvl;return{kind:'shark',x,y,h:rand(0,TAU),vx:0,vy:0,speed:0,cx:x,cy:y,orb:mega?220:rand(60,140),dir:Math.random()<0.5?1:-1,ph:rand(0,TAU),lvl,mega:!!mega,
@@ -1119,7 +1181,7 @@ function sharkSpawnTick(){
  const want=sharkWant();let n=0,mega=null;for(const s of sharks){if(s.mega)mega=s;else n++;}
  if(n<want){for(let k=0;k<8;k++){const a=Math.random()*TAU,d=rand(450,1100);const x=P.x+Math.cos(a)*d,y=P.y+Math.sin(a)*d;
   if(x<100||y<100||x>WORLD-100||y>WORLD-100||inAnyIsland(x,y,40)||PORTS.some(p=>Math.hypot(p.port.x-x,p.port.y-y)<420))continue;sharks.push(makeShark(x,y,lvlAt(x,y)));break;}}
- if(!mega&&!tutPeace&&lvlAt(P.x,P.y)>=7&&Math.random()<(inSharkZone(P.x,P.y)?1/60:1/200)){const pt=randomWater(P.x,P.y,900,1300);if(pt){sharks.push(makeShark(pt.x,pt.y,9,true));toast('🦈 Something HUGE is circling out there… a MEGALODON!');}}
+ if(!mega&&!tutPeace&&lvlAt(P.x,P.y)>=7&&sharks.length<14&&Math.random()<(inSharkZone(P.x,P.y)?1/60:1/200)){const pt=randomWater(P.x,P.y,900,1300);if(pt){sharks.push(makeShark(pt.x,pt.y,9,true));toast('🦈 Something HUGE is circling out there… a MEGALODON!');}}
  if(!S.tips.shark&&!T.on)for(const s of sharks)if(Math.hypot(s.x-P.x,s.y-P.y)<650){showTip('shark');break;}
  const z=inSharkZone(P.x,P.y);if(z&&z!==lastZone)toast('🦈 Shark-infested waters! Keep your hull patched…');lastZone=z;}
 let lastZone=null,lastBite=-9;
@@ -1155,7 +1217,7 @@ const FNAMES=['Sea Wolf','Black Gull','Red Tide','Salty Dog','Storm Crow','Lucky
 const FOFF=[[-95,-80],[-95,80],[-190,-135],[-190,135]];
 const fleet=[];
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function fleetCap(){return 1+(S.up.command||0);}
+function fleetCap(){return 1+(S.up.command||0)+(sk('cmd')>=6?1:0);}
 function wagesTotal(){let w=0;for(const d of S.fleet)w+=d.wage||0;return Math.round(w*(sk('cmd')>=2?0.75:1));}
 function freeName(){const used=new Set(S.fleet.map(d=>d.name));const n=FNAMES.filter(x=>!used.has(x));return n.length?pick(n):'Ship '+((S.fid||1));}
 function cleanFleet(arr){if(!Array.isArray(arr))return[];const out=[];for(const d of arr){if(!d||!FTYPES[d.type])continue;const mh=Math.max(20,+d.maxHp||60);
@@ -1174,8 +1236,8 @@ function updateFleet(dt){const safe=nearSafePort(P.x,P.y);
   let desired=f.h,thr=0.5;
   if(f.tgt){const e=f.tgt,dx=e.x-f.x,dy=e.y-f.y,d=Math.hypot(dx,dy),toE=Math.atan2(dy,dx);thr=1;desired=d>300?toE+f.side*0.3:toE-f.side*Math.PI/2;
    if(d<370){const rel=angDiff(f.h,toE);
-    if(Math.abs(rel-Math.PI/2)<0.5&&f.rr<=0){f.rr=3.2;fireBroadside(f,1,f.d.cannons,f.d.dmg*(sk('cmd')>=1?1.15:1),'f',370);}
-    else if(Math.abs(rel+Math.PI/2)<0.5&&f.rl<=0){f.rl=3.2;fireBroadside(f,-1,f.d.cannons,f.d.dmg*(sk('cmd')>=1?1.15:1),'f',370);}}}
+    if(Math.abs(rel-Math.PI/2)<0.5&&f.rr<=0){f.rr=3.2;fireBroadside(f,1,f.d.cannons,f.d.dmg*(sk('cmd')>=1?1.15:1)*(sk('cmd')>=5?1.15:1)*(S.off.ad?1.2:1),'f',370);}
+    else if(Math.abs(rel+Math.PI/2)<0.5&&f.rl<=0){f.rl=3.2;fireBroadside(f,-1,f.d.cannons,f.d.dmg*(sk('cmd')>=1?1.15:1)*(sk('cmd')>=5?1.15:1)*(S.off.ad?1.2:1),'f',370);}}}
   else{const p=slotPos(i),dx=p.x-f.x,dy=p.y-f.y,dist=Math.hypot(dx,dy);
    if(dist>1600){f.x=p.x;f.y=p.y;f.h=P.h;f.vx=P.vx;f.vy=P.vy;f.speed=P.speed;}
    if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(Math.hypot(P.vx,P.vy)/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(Math.hypot(P.vx,P.vy)/(ms*0.95),0,1);}}
@@ -1186,7 +1248,7 @@ function updateFleet(dt){const safe=nearSafePort(P.x,P.y);
   for(const g of fleet){if(g===f||g.sinking)continue;const gx=f.x-g.x,gy=f.y-g.y,gd=Math.hypot(gx,gy),mg=(f.len+g.len)*0.42;if(gd<mg&&gd>0.01){f.x+=gx/gd*(mg-gd)*0.5;f.y+=gy/gd*(mg-gd)*0.5;}}
   {const hc=sk('cmd')>=4?0.8:0.6;if(P.calm>6&&f.d.hp<f.d.maxHp*hc)f.d.hp=Math.min(f.d.maxHp*hc,f.d.hp+dt);}}
  S.upkT=(S.upkT||0)+dt;if(S.upkT>=60){S.upkT=0;payWages();}}
-function damageFleet(f,dmg){if(sk('cmd')>=4)dmg*=0.8;f.d.hp-=dmg;f.hitT=0.25;addText(f.x,f.y-22,'-'+Math.round(dmg),'#ff9a6b');
+function damageFleet(f,dmg){if(sk('cmd')>=4)dmg*=0.8;if(sk('cmd')>=5)dmg*=0.85;f.d.hp-=dmg;f.hitT=0.25;addText(f.x,f.y-22,'-'+Math.round(dmg),'#ff9a6b');
  if(f.d.hp<=0&&!f.sinking){f.d.hp=0;f.sinking=0.001;S.fleet=S.fleet.filter(x=>x!==f.d);chum(f.x,f.y,22);toast(`💀 Your ship ${f.d.name} was sunk!`);boom(0.6,380);save();}}
 function payWages(){const w=wagesTotal();if(!w)return;
  if(S.gold>=w){S.gold-=w;for(const d of S.fleet)d.unpaid=0;toast(`⛵ Fleet wages paid: -${w} 💰`);}
@@ -1204,22 +1266,25 @@ function seize(e){if(!e||!e.surr||e.sinking||state!=='play'||P.dead)return;if(S.
 function sharkBoarding(){let near=!!inSharkZone(P.x,P.y);if(!near)for(const s of sharks)if(!s.harmless&&!s.sinking&&Math.hypot(s.x-P.x,s.y-P.y)<350){near=true;break;}
  if(near&&S.crew>4&&Math.random()<0.35){S.crew--;recalc();addText(P.x,P.y-60,'-1 crew 🦈','#ffb3b3');return true;}return false;}
 // ---------- PROGRESSION: captain XP, skills, ranks, trophies ----------
-const MAXLVL=30;
-function xpNeed(l){return 60+40*l;}
+const MAXLVL=60;
+function xpNeed(l){return 60+40*l+(l>=30?8*(l-29)*(l-29):0);}
 function lvlFromXp(x){let l=1;x=Math.max(0,x||0);while(l<MAXLVL&&x>=xpNeed(l)){x-=xpNeed(l);l++;}return{l,rem:Math.floor(x),need:xpNeed(l)};}
 function sk(k){return(S.sk&&S.sk[k])|0;}
-function grantXP(n,x,y){n=Math.round(n);if(!(n>0))return;S.xp=(S.xp||0)+n;if(x!=null)addText(x,y-62,'+'+n+' XP','#d6b8ff');
+function grantXP(n,x,y){n=Math.round(n*(sk('war')>=6?1.25:1));if(!(n>0))return;S.xp=(S.xp||0)+n;if(x!=null)addText(x,y-62,'+'+n+' XP','#d6b8ff');
  const L=lvlFromXp(S.xp).l;while((S.clvl||1)<L){S.clvl=(S.clvl||1)+1;S.sp=(S.sp||0)+1;
   addText(P.x,P.y-90,'🎖️ LEVEL UP!','#ffd34d',true);for(let k=0;k<18;k++){const a=k/18*TAU;addPart('fire',P.x,P.y,Math.cos(a)*110,Math.sin(a)*110,0.8,7,null);}
-  toast(`🎖️ Captain level ${S.clvl}! +1 skill point — spend it in ☰ ➜ 🎖️ Skills`);chime();}}
+  toast(lvlUpMsg(S.clvl));chime();}}
 const SKILLS={
  gun:{name:'Gunnery',icon:'💥',p:[['Steady Hands','+8% cannon damage'],['Quick Crews','−8% reload time'],['Long Nines','+12% cannon range'],['Double Shot','+1 gun per side']]},
  sea:{name:'Seamanship',icon:'🧭',p:[['Trim the Sails','+5% top speed'],['Hard Over','+10% turning'],['Second Wind','Boost recharges 20% faster'],["Ship's Surgeon",'Hull repairs +1 HP/s at sea']]},
  plun:{name:'Plunder',icon:'💰',p:[['Sharp Eyes','+12% gold from sinking & plundering'],['Fearsome Flag','Merchants surrender at 40% hull (not 30%)'],['Fence','+10% cargo sell prices'],['Treasure Nose','+20% job rewards']]},
- cmd:{name:'Command',icon:'⚓',p:[['Drill','Fleet ships deal +15% damage'],['Loyal Crews','Fleet wages −25%'],['Low Profile','Wanted level fades 50% faster'],['Admiral','Fleet ships take 20% less damage and heal to 80% when calm']]}};
-function learn(k){const l=sk(k);if(!SKILLS[k]||l>=4||(S.sp|0)<1)return;S.sp--;S.sk[k]=l+1;const old=ST.maxHp;recalc();if(ST.maxHp>old)P.hp+=ST.maxHp-old;chime();toast(`${SKILLS[k].icon} Learned ${SKILLS[k].p[l][0]}!`);save();}
+ cmd:{name:'Command',icon:'⚓',p:[['Drill','Fleet ships deal +15% damage'],['Loyal Crews','Fleet wages −25%'],['Low Profile','Wanted level fades 50% faster'],['Admiral','Fleet ships take 20% less damage and heal to 80% when calm'],['Veteran Crews','Fleet ships +15% damage, −15% damage taken'],['Grand Fleet','+1 fleet slot']]},
+ war:{name:'Warlord',icon:'🏰',p:[['Siege Master','+50% damage to forts'],['Boarding Axes','Storm forts twice as fast, lose half the crew'],['Garrison','Your forts get +1 cannon and +25% walls; raids fail more often'],['Diplomat','Clan reputation gains +50%, losses −30%'],['Dread Captain','Take 12% less cannon damage'],["Sovereign's Due",'+25% XP from everything']]}};
+SKILLS.gun.p.push(['Heated Shot','+10% cannon damage'],['Broadside Master','−10% reload time']);SKILLS.sea.p.push(['Storm Rider','+5% top speed'],['Iron Keel','+15% max hull']);
+SKILLS.plun.p.push(['Tribute','Fort tribute +30%'],["King's Ransom",'+15% gold from sinking & plundering']);
+function learn(k){const l=sk(k);if(!SKILLS[k]||l>=SKILLS[k].p.length||(S.sp|0)<1||S.clvl<perkLvl(k,l))return;S.sp--;S.sk[k]=l+1;const old=ST.maxHp;recalc();if(ST.maxHp>old)P.hp+=ST.maxHp-old;chime();toast(`${SKILLS[k].icon} Learned ${SKILLS[k].p[l][0]}!`);save();}
 function rankIdx(){let i=0;RANKS.forEach(([t],k)=>{if(S.infamy>=t)i=k;});return i;}
-const RANK_UNLOCK={Swabbie:'Treasure-map, smuggling & shark-hunt jobs',Buccaneer:'🚢 Brig hulls, convoy raids & blockade runs',Captain:'Hold 4 jobs at once','Sea Wolf':'⚔️ Frigate hulls & Megalodon hunts',Commodore:'👑 Galleon hulls','Pirate Lord':'Golden sails & +10% job pay','Pirate King':'A crown over your flagship 👑'};
+const RANK_UNLOCK={Swabbie:'Treasure-map, smuggling & shark-hunt jobs',Buccaneer:'🚢 Brig hulls, convoy raids & blockade runs',Captain:'Hold 4 jobs at once & storm clan forts','Sea Wolf':'⚔️ Frigate hulls & Megalodon hunts',Commodore:'👑 Galleon hulls','Pirate Lord':'Golden sails & +10% job pay','Pirate King':'A crown over your flagship 👑','Pirate Emperor':'The Crown sends HMS Leviathan after you','Sovereign of the Seas':'Eternal glory — the last rank'};
 function maxJobs(){return rankIdx()>=3?4:3;}
 const ACH=[
  ['first','⚔️','First Blood','Sink your first ship',()=>S.kills>=1],
@@ -1239,18 +1304,29 @@ const ACH=[
  ['rich','💎','Treasure Hoard','Hold 5,000 gold at once',()=>S.gold>=5000],
  ['frigate','🛳️',"Man-o'-War",'Captain a Frigate or Galleon',()=>HORD.indexOf(S.ship)>=2],
  ['lvl10','🎖️','Veteran','Reach captain level 10',()=>(S.clvl|0)>=10],
- ['lord','👑','Pirate Lord','Reach the rank of Pirate Lord',()=>S.infamy>=6000]];
+ ['lord','👑','Pirate Lord','Reach the rank of Pirate Lord',()=>S.infamy>=6000],
+ ['fort1','🏰','Fortress Taker','Capture a clan fort',()=>(S.cst.fort|0)>=1],['fort8','🏯','Warlord','Hold 8 forts at once',()=>ownedForts()>=8],
+ ['leader','⚔️','Kingslayer',"Sink a clan leader's flagship",()=>(S.cst.lead|0)>=1],['leaders4','💀','Breaker of Clans','Defeat all four clan leaders',()=>leadersDown()>=4],
+ ['king','👑','Pirate King of the Republic','Unite the Pirate Republic',()=>!!S.king],['ally','🤝','Sworn Brother','Become allied with a clan',()=>S.rep.some(v=>v>=REP_ALLY)],
+ ['defend3','🛡️','Holdfast','Fight off 3 raids on your forts',()=>(S.cst.def|0)>=3],['cjob5','📜','Clan Mercenary','Finish 5 clan contracts',()=>(S.cst.cj|0)>=5],
+ ['skirm25','🏴','Opportunist','Sink 25 clan ships',()=>(S.cst.sk|0)>=25],['trib','💰','Tribute Lord','Collect 10,000 gold of fort tribute',()=>(S.cst.trib|0)>=10000],
+ ['map50','🗺️','Cartographer','Explore half of the sea chart',()=>explored()>=0.5],['lvl30','🎖️','Legend','Reach captain level 30',()=>S.clvl>=30],
+ ['lvl45','🌟','Living Legend','Reach captain level 45',()=>S.clvl>=45],['lvl60','💫','Immortal','Reach captain level 60',()=>S.clvl>=60],
+ ['rev','👻','Unbreakable','Sink a Revenant flagship',()=>(S.cst.rev|0)>=1],['lev','🐋',"Leviathan's Bane",'Sink HMS Leviathan',()=>(S.cst.lev|0)>=1],
+ ['emperor','💠','Pirate Emperor','Reach the rank of Pirate Emperor',()=>S.infamy>=20000],['style','🎨','Dandy','Equip 3 cosmetics',()=>['sail','flag','hull','fx'].filter(k=>S.cos[k]!=='def').length>=3],
+ ['officers','🎩','Full Wardroom','Hire 5 officers',()=>Object.keys(S.off).length>=5]];
 let achSilent=false,progT=0;
 function progTick(){
  for(const [id,ic,name,,cond] of ACH){if(S.ach[id])continue;let ok=false;try{ok=cond();}catch(e){}if(ok){S.ach[id]=Date.now();if(!achSilent){toast(`🏆 Trophy unlocked: ${ic} ${name}! (+50 XP)`);grantXP(50);chime();}}}
  achSilent=false;
  const r=rankOf(S.infamy);if(!S.lastRank)S.lastRank=r;else if(r!==S.lastRank){S.lastRank=r;const u=RANK_UNLOCK[r];toast(`🏴‍☠️ New rank: ${r}!`+(u?` Unlocked: ${u}`:''));chime();}
  if(S.retro&&state==='play'&&!T.on){toast(`🎖️ Your past deeds made you a level ${S.retro} captain — ${S.retro-1} skill point${S.retro>2?'s':''} to spend (☰ ➜ 🎖️ Skills)!`);S.retro=0;}
- const b=$('menuBtn');const n=S.sp|0;const can=n>0&&Object.keys(SKILLS).some(k=>sk(k)<4);if(hudCache.sp!==(can?n:0)){hudCache.sp=can?n:0;b.classList.toggle('sp',can);b.dataset.sp=n;}}
+ const b=$('menuBtn');const n=S.sp|0;const can=n>0&&(Object.keys(SKILLS).some(k=>sk(k)<SKILLS[k].p.length&&S.clvl>=perkLvl(k,sk(k)))||(S.clvl>=30&&(S.leg|0)<LEG_MAX));if(hudCache.sp!==(can?n:0)){hudCache.sp=can?n:0;b.classList.toggle('sp',can);b.dataset.sp=n;}}
 function skillsHTML(){const X=lvlFromXp(S.xp||0);
  let h=`<div class="note">🎖️ <b>Captain level ${S.clvl}</b> — ${X.rem}/${X.need} XP to the next level<div class="xpb"><i style="width:${Math.round(X.rem/X.need*100)}%"></i></div>Skill points: <b>${S.sp|0}</b>. Earn XP by sinking ships, raiding merchants, hunting sharks, finishing jobs and winning trophies. Each level gives 1 skill point.</div>`;
- for(const k in SKILLS){const d=SKILLS[k],l=sk(k);h+=`<h3>${d.icon} ${d.name} ${pips(l,4)}</h3>`;
-  d.p.forEach((pp,i)=>{const own=i<l,next=i===l;h+=row(`${own?'✅':next?'⬜':'🔒'} ${pp[0]}`,pp[1]+(next||own?'':' (learn the one above first)'),own?'':btn('learn',next?'Learn (1 SP)':'Locked',next&&(S.sp|0)>0,k));});}
+ for(const k in SKILLS){const d=SKILLS[k],l=sk(k);h+=`<h3>${d.icon} ${d.name} ${pips(l,d.p.length)}</h3>`;
+  d.p.forEach((pp,i)=>{const own=i<l,next=i===l,g=perkLvl(k,i),lv=S.clvl>=g;h+=row(`${own?'✅':next&&lv?'⬜':'🔒'} ${pp[0]}`,pp[1]+(own?'':!lv?` (captain level ${g})`:next?'':' (learn the one above first)'),own?'':btn('learn',next&&lv?'Learn (1 SP)':'Locked',next&&lv&&(S.sp|0)>0,k));});}
+ h+=`<h3>⭐ Renown ${pips(Math.min(10,Math.round((S.leg|0)/3)),10)}</h3>`+row(`⭐ Renown ${S.leg|0}/${LEG_MAX}`,S.clvl>=30?`Each point: +1.5% cannon damage and hull (now +${(1.5*(S.leg|0)).toFixed(1)}%).`:'Unlocks at captain level 30 — spend spare skill points here.',btn('leg','+1 (1 SP)',S.clvl>=30&&(S.sp|0)>0&&(S.leg|0)<LEG_MAX));
  return h;}
 function trophiesHTML(){const got=ACH.filter(a=>S.ach[a[0]]).length;
  let h=`<div class="note">🏆 <b>${got}/${ACH.length}</b> trophies. Each one is worth +50 XP.</div>`;
@@ -1262,7 +1338,7 @@ function trophiesHTML(){const got=ACH.filter(a=>S.ach[a[0]]).length;
 
 // ---------- MISSIONS (extra job types) ----------
 const ISLE_NAMES=['Gull Rock','Bone Key','Parrot Cay','Rum Isle','Coral Tooth','Lantern Key','Widow\'s Cay','Turtle Back','Cutlass Key','Pelican Isle','Ghost Cay','Mermaid Rock','Cannon Key','Sable Isle'];
-const ZONE_NAMES=['Bloody Shoals','Jaws Reef','Red Water','Dead Man\'s Deep','Grey Fin Bank'];
+const ZONE_NAMES=['Bloody Shoals','Jaws Reef','Red Water','Dead Man\'s Deep','Grey Fin Bank','The Maw','Widowmaker Deep','Crimson Tide','Bone Gardens','The Churn','Leviathan Trench','Gutter Reef','Blackfin Abyss','Serpent Shallows'];
 const QTYPES=[['bounty',0,3],['hunt',0,3],['deliver',0,3],['rescue',0,3],['race',0,2],['treasure',1,3],['smuggle',1,3],['shark',1,2],['convoy',2,3],['blockade',2,2]];
 const qScale=(dist,L)=>(1+dist/2500)*(1+0.15*L);
 function segClear(a,b){const n=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/60);for(let i=1;i<n;i++){const t=i/n;if(inAnyIsland(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,45))return false;}return true;}
@@ -1274,14 +1350,14 @@ function treasureSpot(pi){const p=PORTS[pi].port;const isl=ISL.filter(o=>!o.isPo
 function makeTreasureQ(pi,free){const sp=treasureSpot(pi);if(!sp)return null;const p=PORTS[pi].port;const lvl=lvlAt(sp.x,sp.y);const dist=Math.hypot(sp.x-p.x,sp.y-p.y);
  return{id:S.qid++,from:pi,type:'treasure',x:sp.x,y:sp.y,lvl,cost:free?0:30+12*lvl,guard:lvl>=3,reward:Math.round((90+55*lvl)*(1+dist/5000)),
   title:`Treasure map: ${sp.isle} (Lv${lvl})`,text:`${free?'A map piece you found. ':''}Sail to the ❌ off ${sp.isle} and tap ⛏ Dig.${lvl>=3?' Pirates guard the spot!':''}`};}
-function genQuest(pi,avoid){const ri=rankIdx();let pool=QTYPES.filter(t=>ri>=t[1]&&!(avoid&&avoid.includes(t[0])));if(!pool.length)pool=QTYPES.filter(t=>ri>=t[1]);
+function genQuest(pi,avoid){if(PORTS[pi].outer&&Math.random()<0.5){let cq=null;try{cq=genClanQ(pi,avoid);}catch(e){console.warn(e);}if(cq)return cq;}const ri=rankIdx();let pool=QTYPES.filter(t=>ri>=t[1]&&!(avoid&&avoid.includes(t[0])));if(!pool.length)pool=QTYPES.filter(t=>ri>=t[1]);
  let tot=0;for(const t of pool)tot+=t[2];let r=Math.random()*tot,type=pool[0][0];for(const t of pool){r-=t[2];if(r<=0){type=t[0];break;}}
  let q=null;try{q=genQ(type,pi);}catch(e){console.warn(e);q=null;}
  if(!q){for(let i=0;i<20;i++){q=genQuestOld(pi);if(!avoid||!avoid.includes(q.type))break;}}return q;}
 function genQ(type,pi){const p=PORTS[pi],pp=p.port;const L=lvlAt(pp.x,pp.y);
  if(type==='bounty'||type==='hunt'||type==='deliver'){for(let i=0;i<30;i++){const q=genQuestOld(pi);if(q.type===type)return q;S.qid--;}return null;}
  const id=S.qid++;
- if(type==='smuggle'){const law=PORTS.map((x,i)=>i).filter(i=>!PORTS[i].haven&&i!==pi);if(!law.length)return null;const to=pick(law),tp=PORTS[to].port;
+ if(type==='smuggle'){const law=PORTS.map((x,i)=>i).filter(i=>!PORTS[i].haven&&i!==pi&&Math.hypot(PORTS[i].port.x-pp.x,PORTS[i].port.y-pp.y)<7000);if(!law.length)return null;const to=pick(law),tp=PORTS[to].port;
   const crates=2+((Math.random()*4)|0),dist=Math.hypot(tp.x-pp.x,tp.y-pp.y),Ld=lvlAt(tp.x,tp.y);
   return{id,from:pi,type,to,crates,reward:Math.round((60+dist/1000*60)*(1+crates/5)*(1+0.12*Ld)),title:`Smuggle ${crates} crates of contraband to ${PORTS[to].name}`,
    text:`⚖️ Lawful port: if you're Wanted ★ when you dock at any lawful port, customs may search your hold (more ★ = more searches). Takes ${crates} cargo space.`};}
@@ -1289,35 +1365,35 @@ function genQ(type,pi){const p=PORTS[pi],pp=p.port;const L=lvlAt(pp.x,pp.y);
  if(type==='rescue'){const pt=randomWater(pp.x,pp.y,900,2200);if(!pt)return null;const lvl=lvlAt(pt.x,pt.y),n=3+((Math.random()*3)|0),dist=Math.hypot(pt.x-pp.x,pt.y-pp.y);
   return{id,from:pi,type,x:pt.x,y:pt.y,lvl,need:n,got:0,stage:1,reward:Math.round((70+40*lvl)*(1+dist/2500)+n*12),title:`Rescue ${n} castaways from the wreck of the ${pick(FNAMES)}`,
    text:`Sail over the 🆘 survivors near the wreck, then bring them back here to ${p.name}. Some may join your crew. ${lvl>=3?'Sharks are circling!':''}`};}
- if(type==='convoy'){for(let t=0;t<20;t++){const a=PORTS[(Math.random()*PORTS.length)|0],b=PORTS[(Math.random()*PORTS.length)|0];if(a===b||b.haven)continue;
+ if(type==='convoy'){for(let t=0;t<20;t++){const a=PORTS[(Math.random()*PORTS.length)|0],b=PORTS[(Math.random()*PORTS.length)|0];if(a===b||b.haven||Math.hypot(a.port.x-pp.x,a.port.y-pp.y)>6500||Math.hypot(b.port.x-pp.x,b.port.y-pp.y)>7500)continue;
    const f=rand(0.25,0.45),x=a.port.x+(b.port.x-a.port.x)*f,y=a.port.y+(b.port.y-a.port.y)*f;if(inAnyIsland(x,y,120)||PORTS.some(o=>Math.hypot(o.port.x-x,o.port.y-y)<600))continue;
-   const lvl=clamp(lvlAt(x,y)+1,2,10),g=lvl>=5?2:1,dist=Math.hypot(x-pp.x,y-pp.y);
+   const lvl=clamp(lvlAt(x,y)+1,2,13),g=lvl>=5?2:1,dist=Math.hypot(x-pp.x,y-pp.y);
    return{id,from:pi,type,x,y,to:PORTS.indexOf(b),lvl,guards:g,need:2,have:0,reward:Math.round((180+90*lvl)*(1+dist/5000)),title:`Raid the convoy bound for ${b.name} (Lv${lvl})`,
     text:`3 merchant ships with ${g} Navy escort${g>1?'s':''}. Plunder, seize or sink 2 of them. Raiding raises your Wanted level!`};}return null;}
- if(type==='shark'){if(rankIdx()>=4&&Math.random()<0.45){const zi=(Math.random()*SHARKZ.length)|0,z=SHARKZ[zi];const dist=Math.hypot(z.x-pp.x,z.y-pp.y);
-   return{id,from:pi,type,mega:true,zi,need:1,have:0,reward:Math.round(800*(1+dist/8000)),title:`Slay the Megalodon of ${ZONE_NAMES[zi%5]}`,text:`A monster shark haunts the 🦈 ${ZONE_NAMES[zi%5]}. Sail there and kill it. Bring a strong hull!`};}
+ if(type==='shark'){if(rankIdx()>=4&&Math.random()<0.45){const zs=SHARKZ.map((z,i)=>i).filter(i=>Math.hypot(SHARKZ[i].x-pp.x,SHARKZ[i].y-pp.y)<7000),zi=zs.length?pick(zs):0,z=SHARKZ[zi];const dist=Math.hypot(z.x-pp.x,z.y-pp.y);
+   return{id,from:pi,type,mega:true,zi,need:1,have:0,reward:Math.round(800*(1+dist/8000)),title:`Slay the Megalodon of ${ZONE_NAMES[zi%ZONE_NAMES.length]}`,text:`A monster shark haunts the 🦈 ${ZONE_NAMES[zi%ZONE_NAMES.length]}. Sail there and kill it. Bring a strong hull!`};}
   const need=4+((Math.random()*3)|0);return{id,from:pi,type,need,have:0,reward:need*(45+8*L)+60,title:`Shark hunt: kill ${need} sharks`,text:`Sharks lurk in Lv3+ waters and the red 🦈 zones on your map (the arrow points to the nearest zone). Harmless pups near Port Royal don't count.`};}
  if(type==='race'){for(let t=0;t<25;t++){const n=4;const pts=[];let prev=pp,ok=true,len=0;
    for(let i=0;i<n;i++){const c=randomWater(prev.x,prev.y,i?420:520,i?650:800);if(!c||!segClear(prev,c)){ok=false;break;}len+=Math.hypot(c.x-prev.x,c.y-prev.y);pts.push({x:Math.round(c.x),y:Math.round(c.y)});prev=c;}
    if(!ok)continue;const tl=Math.ceil((len/((ST.maxSpeed||135)*0.78)+14)/5)*5;
    return{id,from:pi,type,pts,i:0,tl,t:tl,started:false,reward:Math.round((50+len/1000*45)*(1+0.1*L)),title:`Regatta: sail through ${n} buoys in ${tl}s`,text:`The clock starts when you set sail. Follow the 🚩 flags in order. 🚀 Boost helps!`};}return null;}
- if(type==='blockade'){const law=PORTS.map((x,i)=>i).filter(i=>!PORTS[i].haven&&i!==pi);if(!law.length)return null;law.sort((a,b)=>Math.hypot(PORTS[b].port.x-pp.x,PORTS[b].port.y-pp.y)-Math.hypot(PORTS[a].port.x-pp.x,PORTS[a].port.y-pp.y));
-  const to=Math.random()<0.6?law[law.length-1]:pick(law),tp=PORTS[to].port,dist=Math.hypot(tp.x-pp.x,tp.y-pp.y),lvl=clamp(lvlAt(tp.x,tp.y)+1,2,10),crates=3;
+ if(type==='blockade'){const law=PORTS.map((x,i)=>i).filter(i=>!PORTS[i].haven&&i!==pi&&Math.hypot(PORTS[i].port.x-pp.x,PORTS[i].port.y-pp.y)<7000);if(!law.length)return null;law.sort((a,b)=>Math.hypot(PORTS[b].port.x-pp.x,PORTS[b].port.y-pp.y)-Math.hypot(PORTS[a].port.x-pp.x,PORTS[a].port.y-pp.y));
+  const to=Math.random()<0.6?law[law.length-1]:pick(law),tp=PORTS[to].port,dist=Math.hypot(tp.x-pp.x,tp.y-pp.y),lvl=clamp(lvlAt(tp.x,tp.y)+1,2,13),crates=3;
   const tl=Math.ceil((dist/((ST.maxSpeed||135)*0.72)+45)/5)*5;
   return{id,from:pi,type,to,crates,lvl,guards:lvl>=5?3:2,tl,t:tl,started:false,reward:Math.round(180+dist/1000*110+lvl*35),title:`Run the blockade: powder to ${PORTS[to].name} in ${tl}s`,
    text:`${crates} crates of gunpowder for the rebels. Navy ships blockade ${PORTS[to].name} and will open fire on sight. Dock before the clock runs out.`};}
  return null;}
 function qProg(q){switch(q.type){case 'bounty':return`${q.have}/${q.need}`;case 'convoy':return`${q.have}/${q.need} ships`;case 'shark':return`${q.have}/${q.need}`;
  case 'rescue':return q.stage===1?`${q.got}/${q.need} rescued`:`return to ${PORTS[q.from].name}`;case 'race':return q.started?`🚩 ${q.i}/${q.pts.length} • ⏱ ${Math.max(0,Math.ceil(q.t))}s`:`⏱ ${q.tl}s once you sail`;
- case 'blockade':return q.started?`⏱ ${Math.max(0,Math.ceil(q.t))}s left`:`⏱ ${q.tl}s once you sail`;case 'treasure':return digQ===q?'digging…':'dig at the ❌';default:return'';}}
-const QICON={bounty:'⚔️',hunt:'☠️',deliver:'📦',smuggle:'🍾',treasure:'❌',rescue:'🆘',convoy:'💰',shark:'🦈',race:'🚩',blockade:'🧨'};
+ case 'blockade':return q.started?`⏱ ${Math.max(0,Math.ceil(q.t))}s left`:`⏱ ${q.tl}s once you sail`;case 'treasure':return digQ===q?'digging…':'dig at the ❌';case 'clanhunt':return`${q.have}/${q.need}`;case 'fortraid':return fortOwner(FORTS[q.fid])==='p'?'captured':'capture the fort';default:return'';}}
+const QICON={clanhunt:'🏴',fortraid:'🏰',bounty:'⚔️',hunt:'☠️',deliver:'📦',smuggle:'🍾',treasure:'❌',rescue:'🆘',convoy:'💰',shark:'🦈',race:'🚩',blockade:'🧨'};
 function nearestZone(){let b=SHARKZ[0],bd=1e18;for(const z of SHARKZ){const d=Math.hypot(z.x-P.x,z.y-P.y);if(d<bd){bd=d;b=z;}}return b;}
 function qTarget(q){const port=i=>PORTS[i].port;
  switch(q.type){case 'hunt':return{x:q.x,y:q.y,icon:'☠️',c:'#ff5050'};case 'deliver':return{...port(q.to),icon:'📦',c:'#ffd24a'};
   case 'smuggle':return{...port(q.to),icon:'🍾',c:'#c58cff'};case 'blockade':return{...port(q.to),icon:'🧨',c:'#ff8a3d'};
   case 'treasure':return{x:q.x,y:q.y,icon:'❌',c:'#ff3b3b'};case 'rescue':return q.stage===1?{x:q.x,y:q.y,icon:'🆘',c:'#ffffff'}:{...port(q.from),icon:'⚓',c:'#7fd3ff'};
   case 'convoy':return{x:q.x,y:q.y,icon:'💰',c:'#8fd0ff'};case 'race':{const p=q.pts[Math.min(q.i,q.pts.length-1)];return{x:p.x,y:p.y,icon:'🚩',c:'#ffd34d'};}
-  case 'shark':{const z=q.mega?SHARKZ[q.zi]||SHARKZ[0]:nearestZone();return{x:z.x,y:z.y,icon:'🦈',c:'#ff6b6b'};}}return null;}
+  case 'shark':{const z=q.mega?SHARKZ[q.zi]||SHARKZ[0]:nearestZone();return{x:z.x,y:z.y,icon:'🦈',c:'#ff6b6b'};}case 'clanhunt':case 'fortraid':return clanQTarget(q);}return null;}
 function failQuest(q,msg){if(!S.quests.includes(q))return;S.quests=S.quests.filter(x=>x!==q);questCleanup(q.id);if(digQ===q)digQ=null;toast(msg);save();}
 function questCleanup(id){for(const e of enemies){if(e.mq==id||e.cid==id||e.guard==id){e.keep=false;e.mq=0;}}for(const s of sharks)if(s.mq==id)s.mq=0;for(let i=cways.length-1;i>=0;i--)if(cways[i].q==id)cways.splice(i,1);}
 function statFor(q){const st=S.st;if(q.type==='smuggle')st.smug++;else if(q.type==='race')st.race++;else if(q.type==='convoy')st.convoy++;else if(q.type==='blockade')st.block++;}
@@ -1405,7 +1481,7 @@ function layoutTop(){const land=LANDQ.matches,hb=Math.round($('hud').getBounding
  tip.style.top=t0.y+'px';$('toast').style.top=tb!=null?(Math.round(tb)+6)+'px':land?'':(hb+8)+'px';}
 // keep world labels from hiding under the on-screen buttons
 let ctrlR=[],ctrlT=0;
-function updCtrlRects(){ctrlR=[];for(const id of ['fireL','fireR','autoBtn','boostBtn','boardBar','dockBtn','actBtn','turnL','turnR','sailUp','sailDn','menuBtn']){const el=$(id);if(!el||el.classList.contains('hidden'))continue;const r=el.getBoundingClientRect();if(r.width)ctrlR.push(r);}}
+function updCtrlRects(){ctrlR=[];for(const id of ['fireL','fireR','autoBtn','boostBtn','ammoBtn','boardBar','dockBtn','actBtn','turnL','turnR','sailUp','sailDn','menuBtn']){const el=$(id);if(!el||el.classList.contains('hidden'))continue;const r=el.getBoundingClientRect();if(r.width)ctrlR.push(r);}}
 function avoidY(X,Y){for(let k=0;k<2;k++){let moved=false;for(const r of ctrlR){if(X>r.left-50&&X<r.right+50&&Y>r.top-12&&Y<r.bottom+8){Y=r.top-16;moved=true;}}if(!moved)break;}return Y;}
 
 // ---------- ANONYMOUS PLAY COUNTER ----------
@@ -1424,7 +1500,7 @@ function fnv(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCode
 function b64e(bytes){let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function b64d(str){str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';const bin=atob(str);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
 function snapshot(){const o=JSON.parse(JSON.stringify(S));o.x=P.x;o.y=P.y;o.h=P.h;o.hp=P.hp;
- const fb=new Uint8Array(Math.ceil(fog.length/8));for(let i=0;i<fog.length;i++)if(fog[i])fb[i>>3]|=1<<(i&7);o.fog='';o.fogb=b64e(fb);return o;}
+ o.fog='';o.fogb=fogBits();return o;}
 function makeCode(){const json=JSON.stringify({v:1,t:Date.now(),s:snapshot()});const body=b64e(new TextEncoder().encode(json));return XPFX+'.'+body+'.'+fnv(body);}
 function parseCode(txt){const clean=String(txt||'').replace(/\s+/g,'');if(!clean)throw new Error('Paste a save code first.');
  const m=clean.match(/PSEAS(\d+)\.([A-Za-z0-9_-]+)\.([0-9a-fA-F]{8})/);
@@ -1433,8 +1509,7 @@ function parseCode(txt){const clean=String(txt||'').replace(/\s+/g,'');if(!clean
  if(fnv(m[2])!==m[3].toLowerCase())throw new Error('Checksum mismatch: the code is incomplete or was changed. Copy the whole code again.');
  let d;try{d=JSON.parse(new TextDecoder().decode(b64d(m[2])));}catch(e){throw new Error('The save code could not be read (corrupted data).');}
  const s=d&&d.s;if(!s||typeof s!=='object'||typeof s.gold!=='number'||typeof s.crew!=='number'||!s.up||typeof s.up!=='object')throw new Error('The save code does not contain valid game data.');
- if(typeof s.fogb==='string'){try{const fb=b64d(s.fogb);let f='';for(let i=0;i<FOGN*FOGN;i++)f+=(fb[i>>3]>>(i&7))&1?'1':'0';s.fog=f;}catch(e){s.fog='';}}
- delete s.fogb;return {s,t:d.t};}
+ return {s,t:d.t};}
 let xPending=null;
 function xMsg(id,txt,cls){const el=$(id);el.textContent=txt||'';el.className='xmsg'+(cls?' '+cls:'');}
 function xTab(t){[...$('xTabs').children].forEach(b=>b.classList.toggle('on',b.dataset.x===t));$('xExp').classList.toggle('hidden',t!=='export');$('xImp').classList.toggle('hidden',t!=='import');
@@ -1467,8 +1542,349 @@ $('xYes').addEventListener('click',()=>{if(!xPending)return;try{localStorage.set
  importing=true;try{sessionStorage.setItem('pirateSeas_imported','1');}catch(e){}xMsg('xImpMsg','✅ Save loaded! Restarting…','ok');setTimeout(()=>location.reload(),300);});
 $('xferTitleBtn').addEventListener('click',()=>{initAudio();openXfer();});
 
+// ---------- PIRATE REPUBLIC WARS (expansion) ----------
+const CLANS=[
+ {name:'Crimson Brotherhood',short:'Crimson',col:'#e0413a',lc:'#ffb3a8',sail:'#8e2420',icon:'🩸',leader:'Captain Scarlet Vane',ship:'Bloodmoon'},
+ {name:'Black Tide Syndicate',short:'Black Tide',col:'#9b59b6',lc:'#e2c2f0',sail:'#2e2238',icon:'🌑',leader:'Mordecai Black',ship:'Nightfall'},
+ {name:'Iron Gull Confederacy',short:'Iron Gull',col:'#1abc9c',lc:'#b5f5e6',sail:'#c9ddd8',icon:'⚙️',leader:'Admiral Gullet Hale',ship:'Ironclad Gull'},
+ {name:'Golden Serpent Armada',short:'Golden Serpent',col:'#f1c40f',lc:'#fff0a8',sail:'#e8cf6a',icon:'🐍',leader:'Queen Sabra Coil',ship:'Gilded Fang'}];
+const REP_ALLY=25,REP_HOST=-25,KING_FORTS=8;
+const rep=c=>(S.rep&&S.rep[c])|0;
+function repTxt(c){const v=rep(c);return S.king?'👑 United':v>=REP_ALLY?'🤝 Allied':v<=REP_HOST?'⚔️ At war':'😐 Neutral';}
+function clanHostile(c){return !S.king&&rep(c)<=REP_HOST;}
+function addRep(c,v,quiet){if(c==null||c<0||c>3||S.king)return;if(v>0)v*=(sk('war')>=4?1.5:1)*(S.off.sp?1.25:1);else v*=(sk('war')>=4?0.7:1);
+ const b=rep(c),a=clamp(Math.round(b+v),-100,100);S.rep[c]=a;if(quiet)return;const n=CLANS[c].name;
+ if(b>REP_HOST&&a<=REP_HOST)toast(`⚔️ The ${n} declare war on you! Their ships and forts attack on sight.`);
+ else if(b<REP_ALLY&&a>=REP_ALLY)toast(`🤝 The ${n} now count you as an ally! Discounts at their stronghold.`);
+ else if(b<=REP_HOST&&a>REP_HOST)toast(`🕊️ The ${n} have made peace with you.`);}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function nearPorts(x,y,R){const o=PORTS.filter(p=>Math.hypot(p.port.x-x,p.port.y-y)<R);if(o.length)return o;let b=PORTS[0],bd=1e18;for(const p of PORTS){const d=Math.hypot(p.port.x-x,p.port.y-y);if(d<bd){bd=d;b=p;}}return[b];}
+// ---- forts ----
+const FRT={};let fortAct=null,stormF=null,lastTerr=-2,skT=20,levT=0;
+const FORT_RANGE=560;
+function fortOwner(f){const s=S.forts[f.id];return s&&s.o!=null?s.o:f.clan;}
+const ownedForts=()=>FORTS.filter(f=>fortOwner(f)==='p').length;
+const leadersDown=()=>[0,1,2,3].filter(c=>S.leaders[c]).length;
+function fortRT(f){let rt=FRT[f.id];if(rt)return rt;const own=fortOwner(f),s=S.forts[f.id]||{},ug=s.ug|0,uw=s.uw|0,L=f.lvl,mine=own==='p';
+ const n=mine?2+ug+(sk('war')>=3?1:0):2+Math.floor(L/4);const gm=Math.round((60+12*L)*(mine?1+0.4*uw:1));rt=FRT[f.id]={guns:[],wall:0,wallMax:0,angry:false,own};
+ for(let i=0;i<n;i++){const a=f.a+(i-(n-1)/2)*0.62;rt.guns.push({x:f.x+Math.cos(a)*38,y:f.y+Math.sin(a)*38,hp:gm,max:gm,rl:rand(0.5,2.5),aim:a});}
+ rt.wallMax=rt.wall=Math.round((300+60*L)*(mine?(1+0.5*uw)*(sk('war')>=3?1.25:1):1));return rt;}
+const gunsUp=rt=>rt.guns.filter(g=>g.hp>0).length;
+function fortShot(f,g,t,own,host){const dx=t.x-g.x,dy=t.y-g.y,d=Math.hypot(dx,dy),tt=d/420;const ax=t.x+(t.vx||0)*tt,ay=t.y+(t.vy||0)*tt;const a=Math.atan2(ay-g.y,ax-g.x)+(Math.random()-0.5)*0.06;g.aim=a;
+ const mine=own==='p',s=S.forts[f.id]||{};const dmg=mine?(8+2*f.lvl)*(1+0.2*(s.ug|0)):(6+2*f.lvl);
+ balls.push({x:g.x+Math.cos(a)*12,y:g.y+Math.sin(a)*12,vx:Math.cos(a)*420,vy:Math.sin(a)*420,life:FORT_RANGE*1.12/420,dmg:dmg*(0.85+Math.random()*0.3),owner:mine?'f':'c',clan:mine?-9:own,pl:!!host,ig:0.45});
+ for(let k=0;k<3;k++)addPart('smoke',g.x+Math.cos(a)*14,g.y+Math.sin(a)*14,Math.cos(a)*rand(20,50),Math.sin(a)*rand(20,50),rand(0.6,1),rand(7,11),null);addPart('flash',g.x+Math.cos(a)*14,g.y+Math.sin(a)*14,0,0,0.12,10,null);
+ boom(clamp(0.45*(1-Math.hypot(g.x-P.x,g.y-P.y)/1300),0,0.4),420);}
+function fortTick(dt){fortAct=null;let bd=470;
+ for(const f of FORTS){const d=Math.hypot(f.x-P.x,f.y-P.y);if(d>3000){if(FRT[f.id]&&d>4200)delete FRT[f.id];continue;}
+  const rt=fortRT(f),own=fortOwner(f);if(rt.own!==own){delete FRT[f.id];continue;}
+  if(d<bd&&!P.dead){if(own==='p'){bd=d;fortAct={f,kind:'manage'};}else if(gunsUp(rt)===0&&rt.wall<=0){bd=d;fortAct={f,kind:'storm'};}}
+  if(d>2000)continue;const host=own!=='p'&&(rt.angry||clanHostile(own))&&!tutPeace&&!P.dead;
+  for(const g of rt.guns){if(g.hp<=0)continue;g.rl-=dt;if(g.rl>0)continue;let t=null,b2=FORT_RANGE;
+   if(own==='p'){for(const e of enemies){if(e.sinking||e.tut||e.surr)continue;if(!(e.kind==='pirate'||e.kind==='boss'||(e.kind==='clan'&&isHostile(e))||(e.kind==='navy'&&e.angry&&stars()>0)))continue;const dd=Math.hypot(e.x-g.x,e.y-g.y);if(dd<b2){b2=dd;t=e;}}}
+   else{if(host&&!nearSafePort(P.x,P.y)){const dd=Math.hypot(P.x-g.x,P.y-g.y);if(dd<b2){b2=dd;t=P;}for(const fl of fleet){if(fl.sinking)continue;const d2=Math.hypot(fl.x-g.x,fl.y-g.y);if(d2<b2*0.8){b2=d2;t=fl;}}}
+    for(const e of enemies){if(e.kind!=='clan'||e.sinking||e.clan===own)continue;const dd=Math.hypot(e.x-g.x,e.y-g.y);if(dd<b2*0.9){b2=dd;t=e;}}}
+   if(!t){g.rl=0.6;continue;}fortShot(f,g,t,own,host&&(t===P||t.kind==='fleet'));g.rl=(own==='p'?3:3.6)*rand(0.85,1.15);}}
+ if(stormF){const f=stormF.f;if(Math.hypot(f.x-P.x,f.y-P.y)>540||P.dead||fortOwner(f)==='p'){stormF=null;toast('🏴‍☠️ Assault called off — stay close to the fort.');}
+  else{stormF.t+=dt*(sk('war')>=2?2:1);if(stormF.t>=3)captureFort(f);}}}
+function fortBallHit(b,aoe){for(const id in FRT){const f=FORTS[id],rt=FRT[id];if(rt.own==='p')continue;const R=aoe?aoe+60:62;if(Math.abs(b.x-f.x)>R+40||Math.abs(b.y-f.y)>R+40)continue;
+  const mult=(b.mort?2:1)*(sk('war')>=1?1.5:1);let hit=false;
+  for(const g of rt.guns){if(g.hp<=0)continue;const dd=Math.hypot(b.x-g.x,b.y-g.y);if(dd<(aoe||22)){g.hp-=b.dmg*mult*(aoe?1-dd/(aoe*2):1);hit=true;addText(g.x,g.y-16,'-'+Math.round(b.dmg*mult),'#ffd27a');
+    if(g.hp<=0){for(let k=0;k<16;k++)addPart('fire',g.x+rand(-12,12),g.y+rand(-12,12),rand(-60,60),rand(-60,60),rand(0.5,1.1),rand(6,12),null);boom(0.5,350);const n=gunsUp(rt);toast(n?`💥 Fort cannon destroyed — ${n} left!`:`💥 All of ${f.name}'s cannons are silenced! Now batter the walls.`);}
+    if(!aoe)break;}}
+  if(!hit||aoe){const dd=Math.hypot(b.x-f.x,b.y-f.y);if(dd<R){hit=true;if(rt.wall>0){const before=rt.wall;rt.wall=Math.max(0,rt.wall-b.dmg*mult*(gunsUp(rt)?0.35:1));if(Math.random()<0.4)addPart('dust',b.x,b.y,0,0,0.6,12,null);
+     if(before>0&&rt.wall<=0&&!gunsUp(rt))toast(`🏰 ${f.name}'s walls are breached! Sail close and tap 🏴‍☠️ Storm.`);}}}
+  if(hit){if(!rt.angry){rt.angry=true;if(!clanHostile(rt.own)){addRep(rt.own,-10,true);toast(`🏰 You fired on ${f.name}! The ${CLANS[rt.own].name} won't forget that.`);}}return true;}}
+ return false;}
+function captureFort(f){stormF=null;const prev=fortOwner(f);if(prev==='p')return;if(rankIdx()<3){toast('🔒 Storming forts needs the rank of Captain (700 infamy).');return;}
+ const loss=Math.max(1,Math.round((2+f.lvl/3)*(sk('war')>=2?0.5:1)));if(S.crew-loss<4){toast(`👥 Not enough crew to storm the fort (need ${loss+4}).`);return;}
+ S.crew-=loss;recalc();S.forts[f.id]={o:'p',g:0,ug:0,uw:0,nx:S.playTime+rand(300,480)};delete FRT[f.id];S.cst.fort++;S.infamy+=100+20*f.lvl;grantXP(150+25*f.lvl,f.x,f.y);
+ addRep(prev,-15);for(let c=0;c<4;c++)if(c!==prev)addRep(c,3,true);
+ for(let k=0;k<30;k++)addPart('fire',f.x+rand(-30,30),f.y+rand(-30,30),rand(-80,80),rand(-80,80),rand(0.5,1.3),rand(6,14),null);chime();
+ for(const q of S.quests.slice())if(q.type==='fortraid'&&q.fid===f.id)completeQuest(q);
+ setTimeout(()=>toast(`🏴‍☠️ ${f.name} is yours! (−${loss} crew) It earns gold for you — tap 🏰 Manage to upgrade it.`),200);showTip('fort');checkKing();save();}
+function fortRate(s){return(25+12*((s.ug|0)+(s.uw|0)))*(sk('plun')>=5?1.3:1)*(S.off.qm?1.1:1);}
+function fortCap(s){return 500+250*((s.ug|0)+(s.uw|0));}
+let econT=0;
+function fortEconomy(dt){econT-=dt;if(econT>0)return;econT=1;
+ for(const f of FORTS){const s=S.forts[f.id];if(!s||s.o!=='p')continue;s.g=Math.min(fortCap(s),(s.g||0)+fortRate(s)/60);
+  if(Math.hypot(f.x-P.x,f.y-P.y)<520&&s.g>=1&&!P.dead){const g=Math.floor(s.g);s.g-=g;S.gold+=g;S.earned+=g;S.cst.trib+=g;if(g>=5){addText(P.x,P.y-60,`🏰 +${g} 💰 tribute`,'#ffe066',true);}}
+  // counter-attacks
+  if(S.king)continue;
+  if(!s.atk&&S.playTime>=(s.nx||0)){s.atk={t:150,c:f.clan,sp:0};toast(`🛡️ The ${CLANS[f.clan].name} are attacking ${f.name}! Defend it within 2:30 — 🛡️ on your map.`);}
+  if(s.atk){const a=s.atk;a.t-=1;
+   if(!a.sp&&Math.hypot(f.x-P.x,f.y-P.y)<2400){a.sp=1;const n=2+(f.lvl>=10?1:0);for(let i=0;i<n;i++){const w=waterNear(f.x+Math.cos(f.a)*500,f.y+Math.sin(f.a)*500,100,350);const e=makeEnemy('clan',w.x,w.y,f.lvl,{clan:a.c,atkF:f.id,angry:true,keep:true,home:{x:f.x,y:f.y}});enemies.push(e);}toast(`🛡️ ${n} ${CLANS[a.c].short} warships are assaulting ${f.name}!`);}
+   const alive=a.sp?enemies.filter(e=>e.atkF===f.id&&!e.sinking).length:-1;
+   if(a.sp&&alive===0){s.atk=null;s.nx=S.playTime+rand(360,600);S.cst.def++;const r=150+25*f.lvl;S.gold+=r;S.earned+=r;grantXP(120,P.x,P.y);chime();toast(`🛡️ ${f.name} holds! The attackers are beaten (+${r} 💰).`);}
+   else if(a.t<=0){const lose=Math.random()<(a.sp?0.6:Math.max(0.1,0.45-0.1*(s.uw|0)-0.05*(s.ug|0)-(sk('war')>=3?0.1:0)));
+    for(const e of enemies)if(e.atkF===f.id){e.atkF=null;e.keep=false;}
+    if(lose){S.forts[f.id]={o:a.c};delete FRT[f.id];toast(`🏳️ ${f.name} fell to the ${CLANS[a.c].name}! Retake it to win it back.`);}
+    else{s.atk=null;s.nx=S.playTime+rand(360,600);toast(`🛡️ ${f.name}'s garrison held off the ${CLANS[a.c].short} attack.`);}}}}}
+function defendTargets(out){for(const f of FORTS){const s=S.forts[f.id];if(s&&s.o==='p'&&s.atk)out.push({x:f.x,y:f.y,icon:'🛡️',c:'#7fd3ff'});}}
+function fortUpCost(f,k){const s=S.forts[f.id]||{};const l=k==='g'?s.ug|0:s.uw|0;return Math.round((k==='g'?600:500)*(l+1)*(1+f.lvl/10));}
+let curFort=null;
+function openFort(f){curFort=f;state='fort';joy.id=null;P.vx*=0.3;P.vy*=0.3;$('fortUI').classList.remove('hidden');renderFort();}
+function renderFort(){const f=curFort,s=S.forts[f.id];if(!s||s.o!=='p'){closeFort();return;}$('fName').textContent='🏰 '+f.name;
+ let h=`<div class="note">Your fort in ${CLANS[f.clan].short} waters (Lv${f.lvl}). Its cannons fire at hostile ships nearby. Tribute: <b>${Math.round(fortRate(s))} 💰/min</b>, stores up to <b>${fortCap(s)} 💰</b> — collected when you sail close, or by courier (−20%) whenever you dock at a 🏴‍☠️ haven.</div>`;
+ h+=`<div class="note">💰 Stored now: <b>${Math.floor(s.g||0)}</b> • ${s.atk?`🛡️ <b>Under attack!</b> ${Math.max(0,Math.ceil(s.atk.t))}s left`:`Next clan raid expected in ~${Math.max(0,Math.round(((s.nx||0)-S.playTime)/60))} min`}</div>`;
+ const cg=fortUpCost(f,'g'),cw=fortUpCost(f,'w');
+ h+=row(`💣 Cannons ${pips(s.ug|0,3)}`,`${2+(s.ug|0)+(sk('war')>=3?1:0)} guns, +${20*(s.ug|0)}% damage. +1 gun & +12 💰/min per level.`,btn('fug',(s.ug|0)>=3?'MAX':`${cg} 💰`,(s.ug|0)<3&&S.gold>=cg,f.id));
+ h+=row(`🧱 Walls ${pips(s.uw|0,3)}`,`Stronger walls & guns, and raids are less likely to take the fort. +12 💰/min per level.`,btn('fuw',(s.uw|0)>=3?'MAX':`${cw} 💰`,(s.uw|0)<3&&S.gold>=cw,f.id));
+ $('fBody').innerHTML=h;}
+function closeFort(){$('fortUI').classList.add('hidden');if(state==='fort')state='play';curFort=null;}
+// ---- clans at sea ----
+function clanAI(e,dt,d,safe){
+ e.scT=(e.scT||0)-dt;if(e.scT<=0){e.scT=0.5;e.rv=null;let bd=e.lead?1000:850;for(const o of enemies){if(o===e||o.kind!=='clan'||o.sinking||o.clan===e.clan)continue;const dd=Math.hypot(o.x-e.x,o.y-e.y);if(dd<bd){bd=dd;e.rv=o;}}}
+ if(e.rv&&(e.rv.sinking||e.rv.hp<=0))e.rv=null;
+ const hostP=!P.dead&&!tutPeace&&!safe&&(e.angry||clanHostile(e.clan)||e.atkF!=null);e._hostP=hostP;
+ if(e.angry&&d>e.aggro*2.2&&e.atkF==null&&!e.lead&&!clanHostile(e.clan))e.angry=false;
+ const wantP=hostP&&(d<e.aggro||(e.angry&&d<e.aggro*1.8)||(e.atkF!=null&&d<2600));
+ if(wantP&&(!e.rv||d<Math.hypot(e.rv.x-e.x,e.rv.y-e.y)*1.2)){let td=d,tto=Math.atan2(P.y-e.y,P.x-e.x);for(const f of fleet){if(f.sinking)continue;const fd=Math.hypot(f.x-e.x,f.y-e.y);if(fd<td*0.75){td=fd;tto=Math.atan2(f.y-e.y,f.x-e.x);}}e._td=td;e._tto=tto;e.fireOk=true;}
+ else if(e.rv){e._td=Math.hypot(e.rv.x-e.x,e.rv.y-e.y);e._tto=Math.atan2(e.rv.y-e.y,e.rv.x-e.x);e.fireOk=true;e._hostP=false;}
+ else{e.fireOk=false;e._td=d;e._tto=Math.atan2(P.y-e.y,P.x-e.x);}
+ if(e.fireOk){e._thr=1;e._des=e._td>330?e._tto+e.side*0.3:e._tto-e.side*Math.PI/2;}
+ else{e._thr=0.55;e.wpT-=dt;if(!e.wp||e.wpT<=0||Math.hypot(e.wp.x-e.x,e.wp.y-e.y)<200){const c=e.home||e;e.wp=randomWater(c.x,c.y,200,e.home?700:1200)||{x:START.x,y:START.y};e.wpT=25;}e._des=Math.atan2(e.wp.y-e.y,e.wp.x-e.x);}}
+function efire(e,side){const n0=balls.length;fireBroadside(e,side,e.cannons,e.dmg,e.kind==='clan'?'c':'e',e.range);if(e.kind==='clan')for(let i=n0;i<balls.length;i++){balls[i].clan=e.clan;balls[i].pl=!!e._hostP;}}
+function clanBallHit(b){for(const e of enemies){if(e.kind!=='clan'||e.sinking||e.clan===b.clan)continue;if(hitTest(e,b,5)){npcDamage(e,b.dmg);return true;}}return false;}
+function npcDamage(e,dmg){e.hp-=dmg;e.hitT=0.25;if(e.hp<=0&&!e.sinking){e.sinking=0.001;loot.push({x:e.x,y:e.y,gold:Math.round(e.gold*0.35),goods:{},t:0});chum(e.x,e.y,15);for(let k=0;k<10;k++)addPart('fire',e.x+rand(-15,15),e.y+rand(-10,10),rand(-40,40),rand(-40,40),rand(0.5,1.2),rand(6,14),null);boom(clamp(0.5*(1-Math.hypot(e.x-P.x,e.y-P.y)/1400),0,0.4),400);}}
+function clanDmg(e,was){if(e.kind!=='clan'||was)return;if(!clanHostile(e.clan)&&e.atkF==null)addRep(e.clan,-5);for(const o of enemies)if(o.kind==='clan'&&o.clan===e.clan&&Math.hypot(o.x-e.x,o.y-e.y)<1000)o.angry=true;}
+function clanSunk(e){if(e.kind!=='clan')return;S.cst.sk++;if(e.atkF!=null)addRep(e.clan,-2,true);else{addRep(e.clan,-7);for(let c=0;c<4;c++)if(c!==e.clan)addRep(c,2,true);}
+ for(const q of S.quests.slice())if(q.type==='clanhunt'&&q.tc===e.clan&&q.have<q.need){q.have++;if(q.have>=q.need)completeQuest(q);}
+ if(e.dread)grantXP(60+8*e.lvl);
+ if(e.lead){loot.push({x:e.x+20,y:e.y,gold:0,goods:{gems:4+e.lvl},t:0});
+  if(e.rev){S.cst.rev++;grantXP(900,e.x,e.y);S.infamy+=800;S.lrev[e.clan]=S.playTime+1800;toast(`👻 The Revenant ${CLANS[e.clan].ship} sinks back into the deep! (+900 XP)`);}
+  else{S.leaders[e.clan]=1;S.cst.lead++;S.lrev[e.clan]=S.playTime+1200;grantXP(600,e.x,e.y);S.infamy+=600;addRep(e.clan,-20,true);for(let c=0;c<4;c++)if(c!==e.clan)addRep(c,8,true);
+   setTimeout(()=>toast(`👑 You sank the ${CLANS[e.clan].ship}! ${CLANS[e.clan].leader} is defeated (${leadersDown()}/4 clan leaders).`),300);checkKing();}}}
+function clanLabel(e){const c=CLANS[e.clan];return(e.lead?(e.rev?'👻 ':'👑 ')+e.name:(e.dread?'💀 Dread ':c.icon+' ')+c.short)+` Lv${e.lvl}`+(e.lead?'':isHostile(e)?' ⚔️':rep(e.clan)>=REP_ALLY?' 🤝':'');}
+function makeClan(c,x,y,lvl,extra){const e=makeEnemy('clan',x,y,lvl,Object.assign({clan:c},extra||{}));
+ if(e.dread){e.maxHp=e.hp=Math.round(e.maxHp*1.7);e.dmg*=1.3;e.gold*=2;}return e;}
+function outerSpawn(pt,lvl){const r=Math.random(),cc=clanSector(pt.x,pt.y);let nc=0;for(const e of enemies)if(e.kind==='clan')nc++;
+ if(r<0.5&&nc<8){const c=Math.random()<0.8?cc:(Math.random()*4)|0;enemies.push(makeClan(c,pt.x,pt.y,lvl,{home:{x:pt.x,y:pt.y},dread:lvl>=11&&S.clvl>=30&&Math.random()<0.3}));return;}
+ if(r<0.84||!spawnMerchant(1000,2000))enemies.push(makeEnemy('pirate',pt.x,pt.y,lvl));}
+function spawnSkirmish(force){const a=clanAt(P.x,P.y);const c1=a>=0?a:(Math.random()*4)|0;let c2=(c1+1+((Math.random()*3)|0))%4;
+ const pt=randomWater(P.x,P.y,800,1200);if(!pt)return false;const L=clamp(lvlAt(pt.x,pt.y),6,12);
+ for(let i=0;i<2;i++){const w=waterNear(pt.x-120,pt.y,0,130);enemies.push(makeClan(c1,w.x,w.y,L,{home:{x:pt.x,y:pt.y},skir:1}));}
+ for(let i=0;i<2;i++){const w=waterNear(pt.x+220,pt.y,0,130);enemies.push(makeClan(c2,w.x,w.y,L,{home:{x:pt.x,y:pt.y},skir:1}));}
+ if(S.cst.sk<30||force)toast(`⚔️ Clan skirmish: ${CLANS[c1].short} vs ${CLANS[c2].short}! Pick a side — or loot the wrecks.`);return true;}
+function leaderHome(c){const p=PORTS.find(q=>q.clan===c);const a=Math.atan2(START.y-p.y,START.x-p.x);return waterNear(p.port.x+Math.cos(a)*700,p.port.y+Math.sin(a)*700,0,150);}
+function spawnLeader(c,rev){const h=leaderHome(c),L=clamp(lvlAt(h.x,h.y)+(rev?3:1),9,14);const C=CLANS[c];
+ const e=makeClan(c,h.x,h.y,L,{lead:true,rev:!!rev,keep:true,name:rev?`${C.leader} the Revenant`:C.leader,maxHp:Math.round((520+80*L)*(rev?1.6:1)),cannons:5+Math.floor(L/3)+(rev?1:0),dmg:(8+2.2*L)*(rev?1.25:1),maxSpeed:165,reload:2.6,aggro:900,gold:(900+100*L)*(rev?2:1),len:84,wid:28,range:430,home:{x:h.x,y:h.y}});enemies.push(e);
+ for(let i=0;i<2;i++){const w=waterNear(h.x,h.y,120,240);enemies.push(makeClan(c,w.x,w.y,L-1,{home:{x:h.x,y:h.y},dread:!!rev}));}
+ toast(rev?`👻 A ghostly ${C.ship} rises — ${e.name} has returned for revenge!`:`👑 Flagship sighted: the ${C.ship}, ${C.leader}'s ship (${C.name} leader). Sink it to break the clan!`);return e;}
+function clanTick(){const c=clanAt(P.x,P.y);
+ if(c!==lastTerr){if(lastTerr!==-2){if(c>=0)toast(`${CLANS[c].icon} Entering ${CLANS[c].name} waters — ${repTxt(c)}`);else toast('⚖️ Back in the Crown\'s core waters.');}if(c>=0)showTip('republic');lastTerr=c;}
+ if(c>=0&&!tutPeace){skT-=1;if(skT<=0){skT=rand(40,70);let nc=0;for(const e of enemies)if(e.kind==='clan')nc++;if(nc<7&&Math.random()<0.6)spawnSkirmish();}}
+ for(let k=0;k<4;k++){const ld=enemies.find(e=>e.lead&&e.clan===k&&!e.sinking);const p=PORTS.find(q=>q.clan===k);const d=Math.hypot(p.port.x-P.x,p.port.y-P.y);
+  if(ld){if(Math.hypot(ld.x-P.x,ld.y-P.y)>4200){enemies.splice(enemies.indexOf(ld),1);}continue;}
+  if(d<2600&&!S.king){if(!S.leaders[k])spawnLeader(k,false);else if(S.clvl>=30&&S.playTime>=(S.lrev[k]||0))spawnLeader(k,true);}}
+ // the Crown's last armada (endgame)
+ if((S.king||S.infamy>=20000)&&!inCore(P.x,P.y)&&!tutPeace){levT+=1;if(levT>=(S.cst.lev?1500:600)&&!enemies.some(e=>e.lev)){levT=0;const pt=randomWater(P.x,P.y,1500,1900);if(pt){const L=14;
+   enemies.push(makeEnemy('navy',pt.x,pt.y,L,{lev:1,name:'HMS Leviathan',gAng:true,keep:true,maxHp:2600,cannons:9,dmg:30,maxSpeed:150,reload:2.4,aggro:3000,gold:6000,len:96,wid:32,range:450}));
+   for(let i=0;i<3;i++){const w=waterNear(pt.x,pt.y,150,260);enemies.push(makeEnemy('navy',w.x,w.y,12,{gAng:true,keep:true,home:{x:pt.x,y:pt.y}}));}
+   toast('🐋 The Crown sends HMS Leviathan, its mightiest man-o\'-war, to crush the Republic! Sink it!');}}}}
+function levSunk(e){if(!e.lev)return;S.cst.lev++;grantXP(1500,e.x,e.y);S.infamy+=2000;loot.push({x:e.x+25,y:e.y,gold:0,goods:{gems:12},t:0});toast('🐋 HMS Leviathan is sunk! The Crown\'s armada is broken. (+1500 XP)');}
+function checkKing(){if(S.king||ownedForts()<KING_FORTS||leadersDown()<4)return;S.king=1;S.gold+=5000;S.earned+=5000;S.infamy+=3000;grantXP(2000);for(let c=0;c<4;c++)S.rep[c]=60;
+ for(const id in S.forts)if(S.forts[id].atk)S.forts[id].atk=null;
+ setTimeout(()=>toast('👑 The four clans kneel! You are PIRATE KING OF THE REPUBLIC! +5000 💰 — but the Crown will send its armada…'),600);chime();save();}
+// ---- clan contracts ----
+function genClanQ(pi,avoid){const p=PORTS[pi],pp=p.port;if(!p.haven)return null;const ic=p.clan!=null?p.clan:clanSector(pp.x,pp.y);if(clanHostile(ic))return null;const L=lvlAt(pp.x,pp.y),C=CLANS[ic];
+ const types=['clanhunt','fortraid','clansupply'].filter(t=>!(avoid&&avoid.includes(t==='clansupply'?'deliver':t)));if(!types.length)return null;const type=pick(types);const id=S.qid++;
+ if(type==='clanhunt'){let tc=(ic+1+((Math.random()*3)|0))%4;const need=3+((Math.random()*3)|0);
+  return{id,from:pi,type,clan:ic,tc,need,have:0,reward:need*(90+18*L),title:`${C.icon} ${C.short} contract: sink ${need} ${CLANS[tc].short} ships`,text:`The ${C.name} pay for every ${CLANS[tc].name} ship you sink (their waters lie ${['east','north','west','south'][tc]}). +rep with ${C.short}, −rep with ${CLANS[tc].short}.`};}
+ if(type==='fortraid'){if(rankIdx()<3){S.qid--;return null;}const fs=FORTS.filter(f=>{const o=fortOwner(f);return o!=='p'&&o!==ic&&Math.hypot(f.x-pp.x,f.y-pp.y)<9000;}).sort((a,b)=>Math.hypot(a.x-pp.x,a.y-pp.y)-Math.hypot(b.x-pp.x,b.y-pp.y));if(!fs.length){S.qid--;return null;}
+  const f=fs[Math.min(fs.length-1,(Math.random()*2)|0)];const o=fortOwner(f);return{id,from:pi,type,clan:ic,tc:o,fid:f.id,reward:700+120*f.lvl,title:`${C.icon} ${C.short} contract: take ${f.name} (Lv${f.lvl})`,text:`Silence the cannons, breach the walls and 🏴‍☠️ Storm the ${CLANS[o].short} fort. It stays yours.`};}
+ const cands=PORTS.map((x,i)=>i).filter(i=>i!==pi&&PORTS[i].outer&&(PORTS[i].clan==null||!clanHostile(PORTS[i].clan))&&Math.hypot(PORTS[i].port.x-pp.x,PORTS[i].port.y-pp.y)<9000);if(!cands.length){S.qid--;return null;}
+ const to=p.clan==null&&PORTS.findIndex(q=>q.clan===ic)!==pi&&!clanHostile(ic)?PORTS.findIndex(q=>q.clan===ic):pick(cands);const crates=3+((Math.random()*3)|0),dist=Math.hypot(PORTS[to].port.x-pp.x,PORTS[to].port.y-pp.y);
+ return{id,from:pi,type:'deliver',clan:ic,to,crates,reward:Math.round((60+dist/1000*55*(1+crates/5))*(1+0.12*L)),title:`${C.icon} ${C.short} supply run: ${crates} crates to ${PORTS[to].name}`,text:`War supplies for the ${C.name}. Takes ${crates} cargo space. +rep with ${C.short}.`};}
+function clanJobDone(q){if(q.clan==null)return;S.cst.cj++;addRep(q.clan,q.type==='deliver'?8:12);if(q.tc!=null&&q.tc!=='p')addRep(q.tc,-5,true);}
+function clanQTarget(q){if(q.type==='fortraid'){const f=FORTS[q.fid];return f?{x:f.x,y:f.y,icon:'🏰',c:CLANS[f.clan].col}:null;}
+ if(q.type==='clanhunt'){let b=null,bd=1e18;for(const e of enemies)if(e.kind==='clan'&&e.clan===q.tc&&!e.sinking){const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;b=e;}}if(b&&bd<2500)return{x:b.x,y:b.y,icon:'🏴',c:CLANS[q.tc].col};
+  for(const f of FORTS)if(f.clan===q.tc){const d=Math.hypot(f.x-P.x,f.y-P.y);if(d<bd){bd=d;b=f;}}return b?{x:b.x,y:b.y,icon:'🏴',c:CLANS[q.tc].col}:null;}return null;}
+// ---- fast travel / docking extras ----
+function ftCost(pi){const a=PORTS[curPort].port,b=PORTS[pi].port;return Math.round((30+Math.hypot(a.x-b.x,a.y-b.y)/60)*(S.off.ca?0.7:1));}
+function ftOk(){return!S.quests.some(q=>(q.type==='race'||q.type==='blockade')&&q.started);}
+function fastTravel(pi){const c=ftCost(pi);if(!PORTS[curPort]||!PORTS[curPort].haven||!PORTS[pi].haven||!S.vis.includes(pi)||S.gold<c||!ftOk())return;if(PORTS[pi].clan!=null&&clanHostile(PORTS[pi].clan))return;
+ S.gold-=c;$('port').classList.add('hidden');const p=PORTS[pi];P.x=p.port.x;P.y=p.port.y;P.vx=P.vy=0;cam.x=P.x;cam.y=P.y;
+ for(let i=enemies.length-1;i>=0;i--)if(!enemies[i].keep||enemies[i].lead)enemies.splice(i,1);sharks.length=0;balls.length=0;shells.length=0;loot.length=0;populate();placeFleet();
+ dock(pi);setTimeout(()=>toast(`⛵ Your crew sailed you to ${p.name} (−${c} 💰).`),80);}
+function exDock(pi){if(!S.vis.includes(pi))S.vis.push(pi);const p=PORTS[pi];if(!p.haven)return;let t=0;for(const id in S.forts){const s=S.forts[id];if(s.o==='p'&&s.g>=1){t+=Math.floor(s.g);s.g-=Math.floor(s.g);}}
+ if(t>0){const n=Math.round(t*0.8);S.gold+=n;S.earned+=n;S.cst.trib+=n;setTimeout(()=>toast(`🏰 Couriers brought ${n} 💰 of fort tribute (20% fee).`),2700);}}
+function dockExtraHTML(p){let h='';
+ if(p.clan!=null){const c=CLANS[p.clan];h+=`<div class="note">${c.icon} <b>Stronghold of the ${c.name}</b> — you are <b>${repTxt(p.clan)}</b> (${rep(p.clan)}).${rep(p.clan)>=REP_ALLY?' Allies pay 15% less here.':''} Their leader: ${S.leaders[p.clan]?'sunk ✅':c.leader+' (flagship the '+c.ship+')'}.</div>`;}
+ if(p.haven){const hv=S.vis.filter(i=>i!==curPort&&PORTS[i]&&PORTS[i].haven&&!(PORTS[i].clan!=null&&clanHostile(PORTS[i].clan)));
+  h+=`<h3>⛵ Fast travel</h3>`;if(!hv.length)h+=`<div class="note">Hire a crew to sail you to any 🏴‍☠️ haven you've already visited. Visit more havens to unlock routes.</div>`;
+  else{const ok=ftOk();if(!ok)h+=`<div class="note">Not during a timed job (regatta / blockade run).</div>`;
+   hv.sort((a,b)=>ftCost(a)-ftCost(b));for(const i of hv){const c=ftCost(i);h+=row(`${PORTS[i].clan!=null?CLANS[PORTS[i].clan].icon:'🏴‍☠️'} ${PORTS[i].name}`,`${Math.round(Math.hypot(PORTS[i].port.x-p.port.x,PORTS[i].port.y-p.port.y)/10)*10}m • Waters Lv${lvlAt(PORTS[i].port.x,PORTS[i].port.y)}`,btn('ft',`${c} 💰`,ok&&S.gold>=c,i));}}}
+ return h;}
+// ---- ammo ----
+const AMMO={ball:{name:'Round shot',icon:'⚫',lvl:1,cost:0,desc:'Standard iron balls.'},
+ chain:{name:'Chain shot',icon:'⛓️',lvl:8,cost:10,desc:'Shreds rigging: hit ships are slowed (−45% speed, −40% turning) for 4s. −25% damage.'},
+ fire:{name:'Fire shot',icon:'🔥',lvl:14,cost:16,desc:'Heated shot sets ships ablaze: extra burn damage over 4s. −15% hit damage.'},
+ mortar:{name:'Mortar',icon:'💣',lvl:20,cost:26,desc:'One heavy arcing shell per volley: 1.6× range, splash damage, ×2 vs forts. Slower reload.'}};
+const AMMO_CAP=40,AORD=['ball','chain','fire','mortar'];const shells=[];
+const ammoCost=k=>Math.round(AMMO[k].cost*(S.off.mg?0.8:1));
+function ammoUnl(){return AORD.filter(k=>S.clvl>=AMMO[k].lvl);}
+function updAmmoBtn(){const b=$('ammoBtn');const u=ammoUnl();const show=u.length>1&&(state==='play'||state==='map');if(hudCache.ammoS!==show){hudCache.ammoS=show;b.classList.toggle('hidden',!show);}if(!show)return;
+ const k=S.asel,v=k==='ball'?'∞':String(S.ammo[k]|0);const key=k+v;if(hudCache.ammo!==key){hudCache.ammo=key;$('ammoIc').textContent=AMMO[k].icon;$('ammoN').textContent=v;b.classList.toggle('on',k!=='ball');}}
+function cycleAmmo(){const u=ammoUnl();if(u.length<2)return;let i=u.indexOf(S.asel);for(let t=0;t<u.length;t++){i=(i+1)%u.length;const k=u[i];if(k==='ball'||S.ammo[k]>0){S.asel=k;break;}}
+ toast(`${AMMO[S.asel].icon} ${AMMO[S.asel].name}${S.asel==='ball'?'':` (${S.ammo[S.asel]} volleys)`}${u.some(k=>k!=='ball'&&!(S.ammo[k]>0))?' — buy more in port (🛠️ Ship tab)':''}`);updAmmoBtn();}
+function playerVolley(side,aim){let k=S.asel;if(k!=='ball'&&!(S.ammo[k]>0)){toast(`${AMMO[k].icon} Out of ${AMMO[k].name} — back to round shot.`);S.asel=k='ball';}
+ if(k==='mortar'){S.ammo.mortar--;fireMortar(side,aim);if(side<0)P.rl=ST.reload*1.7;else P.rr=ST.reload*1.7;updAmmoBtn();return;}
+ const n0=balls.length;fireBroadside(P,side,ST.cannons,ST.dmg*(k==='chain'?0.75:k==='fire'?0.85:1),'p',ST.range,aim);
+ if(k!=='ball'){S.ammo[k]--;updAmmoBtn();}for(let i=n0;i<balls.length;i++){if(k!=='ball')balls[i].am=k;if(S.cos.fx!=='def')balls[i].fx=S.cos.fx;}}
+function ammoHit(e,b){if(b.am==='chain'){e.slowT=4;}else if(b.am==='fire'&&e.kind!=='shark'){e.burn=4;e.burnD=Math.min((e.burnD||0)+b.dmg*0.0375,b.dmg*0.15);}}
+function burnTick(e,dt){if(e.slowT>0)e.slowT-=dt;if(!(e.burn>0))return;e.burn-=dt;e.burnT=(e.burnT||0)-dt;if(Math.random()<0.5)addPart('fire',e.x+rand(-e.len*0.3,e.len*0.3),e.y+rand(-8,8),rand(-10,10),rand(-30,-5),rand(0.3,0.7),rand(4,8),null);
+ if(e.burnT<=0){e.burnT=0.5;damageEnemy(e,e.burnD);}if(e.burn<=0)e.burnD=0;}
+function fireMortar(side,aim){const R=ST.range*1.6,dir=aim!=null?aim:P.h+side*Math.PI/2;let t=null,bd=1e9;
+ for(const e of enemies){if(!isHostile(e))continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d>R||d<120)continue;if(Math.abs(angDiff(dir,Math.atan2(e.y-P.y,e.x-P.x)))>1.0)continue;if(d<bd){bd=d;t=e;}}
+ if(!t)for(const id in FRT){const rt=FRT[id];if(rt.own==='p')continue;for(const g of rt.guns){if(g.hp<=0&&rt.wall<=0)continue;const d=Math.hypot(g.x-P.x,g.y-P.y);if(d>R)continue;if(Math.abs(angDiff(dir,Math.atan2(g.y-P.y,g.x-P.x)))>1.0)continue;if(d<bd){bd=d;t=g.hp>0?g:FORTS[id];}}}
+ let tx,ty;if(t){const T0=1+bd/700;tx=t.x+(t.vx||0)*T0;ty=t.y+(t.vy||0)*T0;}else{tx=P.x+Math.cos(dir)*R*0.85;ty=P.y+Math.sin(dir)*R*0.85;}
+ const d=Math.hypot(tx-P.x,ty-P.y);shells.push({x0:P.x,y0:P.y,tx,ty,x:P.x,y:P.y,t:0,T:1+d/700,dmg:ST.dmg*ST.cannons*0.55,fx:S.cos.fx});
+ const ox=Math.cos(dir),oy=Math.sin(dir);for(let k=0;k<6;k++)addPart('smoke',P.x+ox*P.wid*0.6,P.y+oy*P.wid*0.6,ox*rand(20,60),oy*rand(20,60),rand(0.8,1.3),rand(8,13),smokeC());addPart('flash',P.x+ox*P.wid*0.6,P.y+oy*P.wid*0.6,0,0,0.15,13,null);boom(0.7,300);cam.shake=Math.max(cam.shake,5);}
+function shellTick(dt){for(let i=shells.length-1;i>=0;i--){const s=shells[i];s.t+=dt;const k=Math.min(1,s.t/s.T);s.x=s.x0+(s.tx-s.x0)*k;s.y=s.y0+(s.ty-s.y0)*k;if(s.fx&&s.fx!=='def'&&Math.random()<0.5)addPart('fire',s.x,s.y-Math.sin(Math.PI*k)*120,0,0,0.3,4,null);
+  if(k<1)continue;shells.splice(i,1);const A=85;
+  for(const e of enemies){if(e.sinking||e.tut)continue;const d=Math.hypot(e.x-s.x,e.y-s.y);if(d<A+e.len*0.4){if(e.kind==='merchant'&&!e.angry&&!e.surr)continue;damageEnemy(e,s.dmg*(1-0.5*d/(A+e.len*0.4)));}}
+  for(const sh of sharks){if(!sh.sinking&&Math.hypot(sh.x-s.x,sh.y-s.y)<A)damageShark(sh,s.dmg*0.6);}
+  fortBallHit({x:s.x,y:s.y,dmg:s.dmg,mort:1},A);
+  const land=inAnyIsland(s.x,s.y,0);for(let k=0;k<22;k++)addPart(land?'dust':'fire',s.x+rand(-20,20),s.y+rand(-20,20),rand(-90,90),rand(-90,90),rand(0.4,1),rand(6,14),null);if(!land)for(let k=0;k<3;k++)addPart('splash',s.x+rand(-25,25),s.y+rand(-25,25),0,0,0.8,10,null);
+  boom(clamp(0.7*(1-Math.hypot(s.x-P.x,s.y-P.y)/1500),0.1,0.6),250);cam.shake=Math.max(cam.shake,3);}}
+function drawShells(){for(const s of shells){const k=Math.min(1,s.t/s.T),hgt=Math.sin(Math.PI*k)*120;ctx.fillStyle='rgba(0,0,0,0.25)';ctx.beginPath();ctx.arc(s.x,s.y,5,0,TAU);ctx.fill();
+  ctx.fillStyle='#111';ctx.beginPath();ctx.arc(s.x,s.y-hgt,6+hgt/60,0,TAU);ctx.fill();if(k>0.8){ctx.strokeStyle='rgba(255,80,40,0.6)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(s.tx,s.ty,85*(k-0.8)*5,0,TAU);ctx.stroke();}}}
+function armoryHTML(){const u=ammoUnl().filter(k=>k!=='ball');let h=`<h3>🧨 Armory — special ammo</h3>`;
+ if(!u.length)return h+`<div class="note">⛓️ Chain shot unlocks at captain level ${AMMO.chain.lvl}, 🔥 fire shot at ${AMMO.fire.lvl}, 💣 mortar shells at ${AMMO.mortar.lvl}.</div>`;
+ h+=`<div class="note">Pick ammo with the ammo button next to your fire buttons (key R). One volley = one broadside. Holds up to ${AMMO_CAP} of each.</div>`;
+ for(const k of AORD){if(k==='ball')continue;const a=AMMO[k],ok=S.clvl>=a.lvl,c=ammoCost(k),n=S.ammo[k]|0,m5=Math.min(5,AMMO_CAP-n),m20=Math.min(20,AMMO_CAP-n);
+  h+=row(`${a.icon} ${a.name} (${n}/${AMMO_CAP})`,ok?a.desc:`🔒 Unlocks at captain level ${a.lvl}`,ok?btn('ammo',`+${Math.max(m5,0)} • ${c*Math.max(m5,0)}💰`,m5>0&&S.gold>=c*m5,k+':5')+btn('ammo',`+${Math.max(m20,0)}`,m20>0&&S.gold>=c*m20,k+':20','sell'):'');}
+ return h;}
+// ---- officers ----
+const OFFICERS=[['fm','🧑‍✈️','First Mate',3,250,'+4% speed, +6% turning'],['sg','🩺',"Ship's Surgeon",6,400,'+0.6 HP/s repairs at sea; half as many crew lost to cannon fire'],
+ ['qm','💼','Quartermaster',10,700,'+8% cargo sell prices, +10% fort tribute'],['mg','🎯','Master Gunner',15,1100,'+8% cannon damage, special ammo 20% cheaper'],
+ ['bo','📯','Bosun',22,1600,'Boost recharges 12% faster'],['ca','🧭','Cartographer',28,2200,'Reveals 30% more map, fast travel 30% cheaper'],
+ ['sp','🕵️','Spymaster',40,3500,'Clan reputation gains +25%; clan ships always on your mini-map'],['ad','⚓','Flag Admiral',50,5000,'Fleet ships deal +20% damage']];
+function officersHTML(p){let h=`<h3>🎩 Ship's officers</h3><div class="note">Veteran officers sign on at 🏴‍☠️ havens once you're a famous enough captain. One-time fee, permanent bonus.</div>`;
+ for(const [k,ic,nm,l,c,d] of OFFICERS){const own=!!S.off[k],ok=S.clvl>=l;h+=row(`${own?'✅':ok?ic:'🔒'} ${nm}`,`${d}${ok?'':` • unlocks at captain level ${l}`}`,own?'':btn('off',p.haven?`${c} 💰`:'Havens only',ok&&p.haven&&S.gold>=c,k));}return h;}
+function exPortAction(act,arg){if(act==='ft'){fastTravel(+arg);return true;}
+ if(act==='ammo'){const [k,m]=String(arg).split(':');if(!AMMO[k]||S.clvl<AMMO[k].lvl)return true;const c=ammoCost(k),n=Math.min(+m,AMMO_CAP-(S.ammo[k]|0),Math.floor(S.gold/Math.max(1,c)));if(n>0){S.gold-=n*c;S.ammo[k]=(S.ammo[k]|0)+n;chime();toast(`${AMMO[k].icon} +${n} ${AMMO[k].name} volleys`);}return true;}
+ if(act==='off'){const o=OFFICERS.find(x=>x[0]===arg);if(o&&!S.off[arg]&&S.clvl>=o[3]&&PORTS[curPort].haven&&S.gold>=o[4]){S.gold-=o[4];S.off[arg]=1;recalc();chime();toast(`${o[1]} ${o[2]} signed on: ${o[5]}`);}return true;}
+ return false;}
+// ---- cosmetics ----
+const COS={sail:[['def','Canvas',0,'#fff8e7'],['crimson','Crimson',4,'#c0392b'],['midnight','Midnight',12,'#2c3e70'],['emerald','Emerald',18,'#2e8b57'],['royal','Royal Purple',26,'#7d3c98'],['gold','Gold Leaf',36,'#ffd54a'],['ghost','Ghost Silk',50,'rgba(225,245,255,0.55)']],
+ flag:[['def','Jolly Roger',0,'#111','#fff'],['cutlass','Red Cutlass',7,'#8e1b1b','#fff'],['burning','Burning Skull',16,'#d35400','#ffe08a'],['kraken','Kraken',30,'#4a235a','#9fe2bf'],['crown','Imperial Crown',45,'#b8860b','#fff']],
+ hull:[['def','Oak',0,'#7b4a23','#b07b45'],['ebony','Ebony',10,'#2a1a0e','#5a4030'],['navy','Navy Blue',22,'#24384f','#6a7f96'],['blood','Blood Red',34,'#6e1a14','#a0523d'],['gilded','Gilded',55,'#8a6a1c','#d8b55a']],
+ fx:[['def','Grey smoke',0],['black','Black Powder',9],['ember','Ember Trails',24],['spectral','Spectral Green',40],['royal','Royal Sparks',60]]};
+const COSN={sail:'⛵ Sails',flag:'🏴 Flags',hull:'🎨 Hull paint',fx:'💨 Cannon smoke & trails'};
+const FXC={black:'#4a4a4a',ember:'#ffb36b',spectral:'#8fffb0',royal:'#ffd86b'};
+const cosItem=(cat,id)=>COS[cat].find(x=>x[0]===id)||COS[cat][0];
+function smokeC(){return FXC[S.cos.fx]||null;}
+function playerSail(){const c=S.cos.sail;return c==='def'?(S.infamy>=6000?'#ffe08a':'#fff8e7'):cosItem('sail',c)[3];}
+function applyCos(){const h=cosItem('hull',S.cos.hull),f=cosItem('flag',S.cos.flag);P.paint=h[3];P.deck=h[4];P.flagC=f[3];P.flagS=f[4];}
+function equipCos(arg){const [cat,id]=String(arg).split(':');const it=COS[cat]&&COS[cat].find(x=>x[0]===id);if(!it||S.clvl<it[2])return;S.cos[cat]=id;applyCos();chime();save();}
+function styleHTML(){let h=`<div class="note">🎨 <b>Wardrobe</b> — new styles unlock as you level up (you're level ${S.clvl}). Tap to equip.</div>`;
+ for(const cat in COS){h+=`<h3>${COSN[cat]}</h3>`;for(const it of COS[cat]){const ok=S.clvl>=it[2],on=S.cos[cat]===it[0];const sw=it[3]?`<span style="display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid #0006;background:${it[3]}"></span>`:(FXC[it[0]]?`<span style="color:${FXC[it[0]]};text-shadow:0 0 2px #000">●</span> `:'');
+  h+=row(`${ok?sw:'🔒 '}${it[1]}`,ok?(on?'Equipped':'Unlocked'):`Unlocks at captain level ${it[2]}`,ok?btn('cos',on?'✓ On':'Equip',!on,cat+':'+it[0],on?'sell':''):'');}}
+ return h;}
+// ---- level unlocks ----
+const PERK_GATE=[0,0,0,0,25,35];const warGate=i=>20+5*i;
+const perkLvl=(k,i)=>k==='war'?warGate(i):PERK_GATE[i]||0;
+const LEG_MAX=30;
+function unlocksAt(l){const out=[];for(const k of AORD)if(AMMO[k].lvl===l&&k!=='ball')out.push(AMMO[k].icon+' '+AMMO[k].name);
+ for(const cat in COS)for(const it of COS[cat])if(it[2]===l&&it[2]>0)out.push(`🎨 ${it[1]} ${COSN[cat].split(' ').slice(1).join(' ').toLowerCase()}`);
+ for(const o of OFFICERS)if(o[3]===l)out.push(`${o[1]} ${o[2]} (hire at havens)`);
+ for(const k in SKILLS)SKILLS[k].p.forEach((pp,i)=>{if(perkLvl(k,i)===l)out.push(`${SKILLS[k].icon} perk ${pp[0]}`);});
+ if(l===30)out.push('⭐ Renown points');return out;}
+function unlockTable(){const t=[];for(let l=2;l<=MAXLVL;l++){const u=unlocksAt(l);if(u.length)t.push([l,u]);}return t;}
+function giftAmmo(from,to){for(const k of AORD)if(k!=='ball'&&AMMO[k].lvl>from&&AMMO[k].lvl<=to)S.ammo[k]=Math.min(AMMO_CAP,(S.ammo[k]|0)+10);}
+function lvlUpMsg(l){const u=unlocksAt(l);giftAmmo(l-1,l);S.unl=Math.max(S.unl|0,l);if(u.some(x=>x.includes('Chain shot')))showTip('ammo');return`🎖️ Level up! Lv${l} (+1 skill point)`+(u.length?` • Unlocked: ${u.join(', ')}`:'');}
+function retroUnlocks(){if(T.on||state!=='play'||(S.unl|0)>=S.clvl)return;const from=S.unl|0;let n=0;const cats=[];for(let l=Math.max(2,from+1);l<=S.clvl;l++){const u=unlocksAt(l);n+=u.length;}giftAmmo(from,S.clvl);S.unl=S.clvl;
+ if(n)toast(`🎁 New unlocks for a level ${S.clvl} captain: ${n} rewards — ammo (🛠️ Ship tab), officers (👥 Crew tab), styles (☰ ➜ 🎨 Style)${S.clvl>=20?' and new Warlord perks':''}!`);}
+function learnLeg(){if((S.sp|0)<1||S.clvl<30||(S.leg|0)>=LEG_MAX)return;S.sp--;S.leg=(S.leg|0)+1;const old=ST.maxHp;recalc();P.hp+=Math.max(0,ST.maxHp-old);chime();toast(`⭐ Renown ${S.leg}: +${(1.5*S.leg).toFixed(1)}% damage & hull`);save();}
+function expRecalc(){const g=sk('gun'),se=sk('sea'),L=S.leg|0,o=S.off||{};
+ if(g>=5)ST.dmg*=1.1;if(g>=6)ST.reload*=0.9;if(se>=5)ST.maxSpeed*=1.05;if(se>=6)ST.maxHp=Math.round(ST.maxHp*1.15);
+ ST.dmg*=1+0.015*L;ST.maxHp=Math.round(ST.maxHp*(1+0.015*L));
+ if(o.fm){ST.maxSpeed*=1.04;ST.turn*=1.06;}if(o.mg)ST.dmg*=1.08;if(o.sg)ST.regen+=0.6;if(o.bo)ST.boostCd*=0.88;if(o.ca)ST.reveal*=1.3;if(o.sp)ST.radar=Math.max(ST.radar,1400);applyCos();}
+// ---- republic tab ----
+function repHTML(){const of=ownedForts(),ld=leadersDown();
+ let h=`<div class="note">⚔️ <b>Pirate Republic Wars</b> — the outer waters beyond the Crown's core belong to four rival clans. Attack a clan and it goes to war with you; work its contracts (havens & strongholds out there) and it becomes an ally. 🏰 Forts: silence the cannons, breach the walls, then 🏴‍☠️ Storm (rank Captain).</div>`;
+ h+=`<h3>👑 Unite the Republic</h3>`+(S.king?`<div class="note">👑 <b>You are Pirate King of the Republic!</b> The clans serve you. Beware the Crown's armada…</div>`:`<div class="note">Hold <b>${KING_FORTS} forts</b> (${of}/${KING_FORTS}) and sink all <b>4 clan leaders</b> (${ld}/4) to become Pirate King of the Republic.<div class="xpb"><i style="width:${Math.round((Math.min(of,KING_FORTS)/KING_FORTS*0.5+ld/8)*100)}%"></i></div></div>`);
+ h+=`<h3>🏴 Clans</h3>`;
+ CLANS.forEach((c,i)=>{const v=rep(i),nf=FORTS.filter(f=>fortOwner(f)===i).length;h+=row(`<span style="color:${c.col};text-shadow:0 0 2px #000">■</span> ${c.icon} ${c.name}`,`${repTxt(i)} (${v>0?'+':''}${v}) • ${nf} forts • ${['East','North','West','South'][i]} waters • leader ${S.leaders[i]?'sunk ✅':c.leader}<div class="xpb"><i style="width:${Math.round((v+100)/2)}%;background:${v>=REP_ALLY?'#2c9c3a':v<=REP_HOST?'#b8281a':'#d99a1a'}"></i></div>`,'');});
+ h+=`<h3>🏰 Your forts (${of})</h3>`;if(!of)h+=`<div class="note">None yet.</div>`;
+ for(const f of FORTS){const s=S.forts[f.id];if(!s||s.o!=='p')continue;h+=row(`🏰 ${f.name}`,`Lv${f.lvl} • 💰 ${Math.floor(s.g||0)}/${fortCap(s)} stored • ${Math.round(fortRate(s))}/min${s.atk?' • 🛡️ UNDER ATTACK':''}`,'');}
+ h+=`<div class="note">🗺️ Explored: ${Math.round(explored()*100)}% • 🏴 ${S.cst.sk} clan ships sunk • 📜 ${S.cst.cj} clan contracts • 🛡️ ${S.cst.def} raids repelled • 💰 ${S.cst.trib} tribute</div>`;return h;}
+let expC=0,expT=-1e9;function explored(){if(performance.now()-expT<3000)return expC;expT=performance.now();let n=0;for(let i=0;i<fog.length;i++)n+=fog[i];return expC=n/fog.length;}
+// ---- world drawing: forts ----
+function drawForts(x0,x1,y0,y1,ts){for(const f of FORTS){if(f.x<x0-120||f.x>x1+120||f.y<y0-120||f.y>y1+120)continue;const rt=FRT[f.id],own=fortOwner(f),col=own==='p'?'#5be36a':CLANS[own].col;
+ const wallOk=!rt||rt.wall>0;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.a);
+ ctx.fillStyle=wallOk?'#8d8d8d':'#6a5a4a';ctx.strokeStyle='#4a4a4a';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU,r=i%2?40:52;i?ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r):ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle=wallOk?'#a9a9a9':'#7d6b58';ctx.fillRect(-20,-20,40,40);
+ if(!wallOk){ctx.fillStyle='#4a3a2a';for(let i=0;i<5;i++)ctx.fillRect(-26+i*11,-30+((i*37)%50),8,6);}ctx.restore();
+ ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(f.x,f.y);ctx.lineTo(f.x,f.y-46);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(f.x,f.y-46);ctx.lineTo(f.x+24,f.y-40+Math.sin(ts*3+f.id)*2);ctx.lineTo(f.x,f.y-32);ctx.closePath();ctx.fill();
+ const guns=rt?rt.guns:null;if(guns)for(const g of guns){ctx.save();ctx.translate(g.x,g.y);if(g.hp>0){ctx.rotate(g.aim);ctx.fillStyle='#333';ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.fill();ctx.fillStyle='#111';ctx.fillRect(0,-3.5,18,7);}else{ctx.fillStyle='rgba(40,30,20,0.8)';ctx.beginPath();ctx.arc(0,0,8,0,TAU);ctx.fill();if(Math.random()<0.05)addPart('smoke',g.x,g.y,0,-15,1,7,null);}ctx.restore();}
+ const s=S.forts[f.id];if(s&&s.atk){ctx.strokeStyle=`rgba(127,211,255,${0.4+0.4*Math.sin(ts*5)})`;ctx.lineWidth=4;ctx.beginPath();ctx.arc(f.x,f.y,80,0,TAU);ctx.stroke();}}}
+function drawFortLabels(){for(const f of FORTS){const X=sx(f.x),Y=sy(f.y-72);if(X<-120||X>vw+120||Y<-40||Y>vh+60)continue;const own=fortOwner(f),rt=FRT[f.id];
+ const nm=(own==='p'?'🏰 ':'🏯 ')+f.name+(own==='p'?' (yours)':` • ${CLANS[own].short}`);ctx.font='bold 12px sans-serif';const w=ctx.measureText(nm).width+12;ctx.fillStyle='rgba(20,12,4,0.55)';ctx.fillRect(X-w/2,Y-9,w,18);ctx.fillStyle=own==='p'?'#b8ffbf':CLANS[own].lc;ctx.fillText(nm,X,Y);
+ if(rt&&own!=='p'&&(rt.wall<rt.wallMax||rt.guns.some(g=>g.hp<g.max))){const n=gunsUp(rt);ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-30,Y+11,60,5);ctx.fillStyle='#c9b57a';ctx.fillRect(X-30,Y+11,60*clamp(rt.wall/rt.wallMax,0,1),5);ctx.font='bold 11px sans-serif';ctx.fillStyle='#fff';ctx.fillText(rt.wall<=0&&!n?'🏴‍☠️ Breached — storm it!':`💣 ${n}/${rt.guns.length}`,X,Y+24);}}}
+// ---- maps ----
+const MV={cx:WORLD/2,cy:WORLD/2,z:1};const mapPtr=new Map();let mapPinch=null,mapMoved=0,mapDownT=0,mapOpen=false;
+function bigMapRect(){const s=Math.max(160,Math.min(vw-16,vh-70));return{x:(vw-s)/2,y:(vh-s)/2+8,s};}
+function mapView(big){if(big){const sp=WORLD/MV.z;return{x0:clamp(MV.cx-sp/2,0,WORLD-sp),y0:clamp(MV.cy-sp/2,0,WORLD-sp),span:sp};}const sp=7000;return{x0:clamp(P.x-sp/2,0,WORLD-sp),y0:clamp(P.y-sp/2,0,WORLD-sp),span:sp};}
+function clampMV(){const sp=WORLD/MV.z;MV.cx=clamp(MV.cx,sp/2,WORLD-sp/2);MV.cy=clamp(MV.cy,sp/2,WORLD-sp/2);}
+function setZoom(z,fx,fy){const R=bigMapRect(),v=mapView(true);const u=clamp((fx-R.x)/R.s,0,1),w=clamp((fy-R.y)/R.s,0,1);const wx=v.x0+u*v.span,wy=v.y0+w*v.span;MV.z=clamp(z,1,8);const sp=WORLD/MV.z;MV.cx=wx-u*sp+sp/2;MV.cy=wy-w*sp+sp/2;clampMV();}
+function mapBtns(){const R=bigMapRect();const y=R.y+R.s-30;return[{x:R.x+R.s-30,y,t:'＋',f:()=>setZoom(MV.z*1.6,R.x+R.s/2,R.y+R.s/2)},{x:R.x+R.s-84,y,t:'－',f:()=>setZoom(MV.z/1.6,R.x+R.s/2,R.y+R.s/2)},{x:R.x+R.s-138,y,t:'⌖',f:()=>{MV.cx=P.x;MV.cy=P.y;if(MV.z<2.5)MV.z=2.5;clampMV();}}];}
+function mapDown(e){mapPtr.set(e.pointerId,{x:e.clientX,y:e.clientY});if(mapPtr.size===1){mapMoved=0;mapDownT=performance.now();}else mapMoved=99;try{cv.setPointerCapture(e.pointerId);}catch(_){}
+ if(mapPtr.size===2){const [a,b]=[...mapPtr.values()];mapPinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:MV.z};}e.preventDefault();}
+function mapMove(e){if(state!=='map'||!mapPtr.has(e.pointerId))return;const p=mapPtr.get(e.pointerId);const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;const R=bigMapRect();
+ if(mapPtr.size>=2&&mapPinch){const [a,b]=[...mapPtr.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);setZoom(mapPinch.z*d/Math.max(20,mapPinch.d),(a.x+b.x)/2,(a.y+b.y)/2);}
+ else{mapMoved+=Math.abs(dx)+Math.abs(dy);if(mapMoved>8){const sp=WORLD/MV.z;MV.cx-=dx/R.s*sp;MV.cy-=dy/R.s*sp;clampMV();}}}
+function mapUp(e){if(!mapPtr.has(e.pointerId))return;mapPtr.delete(e.pointerId);if(mapPtr.size<2)mapPinch=null;if(state!=='map')return;
+ if(mapPtr.size===0&&mapMoved<10&&performance.now()-mapDownT<600){for(const b of mapBtns())if(Math.hypot(e.clientX-b.x,e.clientY-b.y)<26){b.f();return;}state='play';}}
+function drawMap(X,Y,s,big){const v=mapView(big),k=s/v.span;const mx=x=>X+(x-v.x0)*k,my=y=>Y+(y-v.y0)*k;const z=big?MV.z:1;
+ ctx.save();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-2,Y-2,s+4,s+4);ctx.beginPath();ctx.rect(X,Y,s,s);ctx.clip();
+ const bk=MAPRES/WORLD;ctx.imageSmoothingEnabled=true;ctx.drawImage(mapBase,v.x0*bk,v.y0*bk,v.span*bk,v.span*bk,X,Y,s,s);
+ const fk=FOGN/WORLD;ctx.globalAlpha=0.92;ctx.drawImage(fogCv,v.x0*fk,v.y0*fk,v.span*fk,v.span*fk,X,Y,s,s);ctx.globalAlpha=1;
+ // territory overlay
+ for(const f of FORTS){const o=fortOwner(f);const X2=mx(f.x),Y2=my(f.y),r=1500*k;if(X2<X-r||X2>X+s+r||Y2<Y-r||Y2>Y+s+r)continue;ctx.fillStyle=o==='p'?'rgba(90,230,110,0.2)':hexA(CLANS[o].col,0.17);ctx.beginPath();ctx.arc(X2,Y2,r,0,TAU);ctx.fill();}
+ if(big){ctx.strokeStyle='rgba(255,230,150,0.45)';ctx.lineWidth=1.5;ctx.setLineDash([6,5]);ctx.strokeRect(mx(START.x-CORE_R),my(START.y-CORE_R),2*CORE_R*k,2*CORE_R*k);
+  ctx.beginPath();for(const [a,b] of [[[-1,-1],[0,0]],[[1,-1],[WORLD,0]],[[1,1],[WORLD,WORLD]],[[-1,1],[0,WORLD]]]){ctx.moveTo(mx(START.x+a[0]*CORE_R),my(START.y+a[1]*CORE_R));ctx.lineTo(mx(b[0]),my(b[1]));}ctx.stroke();ctx.setLineDash([]);}
+ ctx.textAlign='center';ctx.textBaseline='middle';
+ for(const zz of SHARKZ){ctx.fillStyle='rgba(200,40,50,0.22)';ctx.beginPath();ctx.arc(mx(zz.x),my(zz.y),zz.r*k,0,TAU);ctx.fill();if(big&&z>=1.5){ctx.font='14px serif';ctx.fillText('🦈',mx(zz.x),my(zz.y));}}
+ for(const f of FORTS){const o=fortOwner(f);const X2=mx(f.x),Y2=my(f.y);if(X2<X-10||X2>X+s+10||Y2<Y-10||Y2>Y+s+10)continue;const r=big?3+z:2;ctx.fillStyle=o==='p'?'#5be36a':CLANS[o].col;ctx.fillRect(X2-r,Y2-r,r*2,r*2);ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.strokeRect(X2-r,Y2-r,r*2,r*2);
+  if(big&&z>=2.5){ctx.font='bold 10px sans-serif';ctx.fillStyle='#fff';ctx.fillText(f.name,X2,Y2+12);}const st=S.forts[f.id];if(st&&st.atk){ctx.strokeStyle='#7fd3ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(X2,Y2,r+5+Math.sin(perfT*0.008)*2,0,TAU);ctx.stroke();}}
+ PORTS.forEach((p,i)=>{const X2=mx(p.port.x),Y2=my(p.port.y);if(X2<X-60||X2>X+s+60||Y2<Y-20||Y2>Y+s+20)return;ctx.fillStyle=p.clan!=null?CLANS[p.clan].col:p.haven?'#ff8a6a':'#ffd34d';ctx.beginPath();ctx.arc(X2,Y2,big?4+Math.min(z,3):2.5,0,TAU);ctx.fill();
+  if(big&&(z>=1.8||p.clan!=null||i===0)){ctx.font='bold '+(z>=1.8?12:11)+'px sans-serif';ctx.fillStyle='#fff';ctx.fillText((p.clan!=null?CLANS[p.clan].icon+' ':p.haven?'🏴‍☠️ ':'')+p.name+(S.vis.includes(i)&&p.haven?' ⚓':''),X2,Y2-12);}});
+ for(const f of fleet){if(f.sinking)continue;ctx.fillStyle='#5be36a';ctx.fillRect(mx(f.x)-2,my(f.y)-2,big?5:3.5,big?5:3.5);}
+ for(const e of enemies){if(e.sinking)continue;const lead=e.lead||e.lev;if(!lead&&!(ST.radar&&Math.hypot(e.x-P.x,e.y-P.y)<=ST.radar))continue;if(lead&&big){ctx.font='14px serif';ctx.fillText(e.lev?'🐋':'👑',mx(e.x),my(e.y));continue;}
+  ctx.fillStyle=e.kind==='clan'?CLANS[e.clan].col:e.kind==='merchant'?'#9fd8ff':e.kind==='navy'?'#ffffff':'#ff4a4a';ctx.fillRect(mx(e.x)-1.5,my(e.y)-1.5,big?4:3,big?4:3);}
+ for(const q of QT){ctx.font=(big?18:11)+'px serif';ctx.fillText(q.icon,mx(q.x),my(q.y));}
+ ctx.save();ctx.translate(mx(P.x),my(P.y));ctx.rotate(P.h);ctx.fillStyle='#fff';ctx.beginPath();const zz=big?8:5;ctx.moveTo(zz,0);ctx.lineTo(-zz*0.7,-zz*0.6);ctx.lineTo(-zz*0.7,zz*0.6);ctx.closePath();ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+ ctx.restore();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;ctx.strokeRect(X,Y,s,s);}
+function drawBigMap(){if(!mapOpen){mapOpen=true;MV.z=1;MV.cx=MV.cy=WORLD/2;mapPtr.clear();mapPinch=null;}ctx.fillStyle='rgba(5,10,20,0.78)';ctx.fillRect(0,0,vw,vh);const R=bigMapRect();drawMap(R.x,R.y,R.s,true);
+ ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🗺️ Sea chart — drag to pan • pinch / ＋－ to zoom • tap to close',vw/2,R.y-14,vw-12);
+ for(const b of mapBtns()){ctx.fillStyle='rgba(10,25,40,0.8)';ctx.beginPath();ctx.arc(b.x,b.y,22,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.fillText(b.t,b.x,b.y+1);}
+ // legend
+ const items=[['#5be36a','You']].concat(CLANS.map(c=>[c.col,c.short]));ctx.font='bold 11px sans-serif';let tw=0;for(const it of items)tw+=ctx.measureText(it[1]).width+22;let x=vw/2-tw/2;const y=Math.min(vh-8,R.y+R.s+14);
+ ctx.textAlign='left';for(const it of items){ctx.fillStyle=it[0];ctx.fillRect(x,y-5,10,10);ctx.fillStyle='#fff';ctx.fillText(it[1],x+13,y);x+=ctx.measureText(it[1]).width+22;}ctx.textAlign='center';
+ if(MV.z<1.8){ctx.font='11px sans-serif';ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fillText('Dashed box = Crown core waters • outside: the Pirate Republic (zoom in for names)',vw/2,R.y+12,R.s-10);}}
+// ---- island sprite cache ----
+const islCached=[];let islEvT=0;
+function ensureIsl(o){if(!o.canvas){renderIsland(o);islCached.push(o);}}
+function islCacheTick(){if(islCached.length<=22)return;islCached.sort((a,b)=>Math.hypot(b.x-cam.x,b.y-cam.y)-Math.hypot(a.x-cam.x,a.y-cam.y));while(islCached.length>22){const o=islCached[0];if(Math.hypot(o.x-cam.x,o.y-cam.y)<3800)break;o.canvas=null;islCached.shift();}}
+function drawIslands(x0,x1,y0,y1){let pre=1;const M=1100;for(const o of ISL){const h=o.half;if(o.x+h<x0||o.x-h>x1||o.y+h<y0||o.y-h>y1){if(!o.canvas&&pre>0&&o.x+h>x0-M&&o.x-h<x1+M&&o.y+h>y0-M&&o.y-h<y1+M){pre--;ensureIsl(o);}continue;}ensureIsl(o);ctx.drawImage(o.canvas,o.x-o.half,o.y-o.half);}}
+function drawBallsX(){for(const b of balls){if(b.fx&&FXC[b.fx]&&b.fx!=='black'){ctx.strokeStyle=FXC[b.fx];ctx.lineWidth=3;ctx.globalAlpha=0.7;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-b.vx*0.05,b.y-b.vy*0.05);ctx.stroke();ctx.globalAlpha=1;}
+  ctx.fillStyle=b.am==='fire'?'#ff7a2a':'#111';if(b.am==='chain'){ctx.strokeStyle='#222';ctx.lineWidth=1.5;const a=perfT*0.03;ctx.beginPath();ctx.moveTo(b.x-Math.cos(a)*5,b.y-Math.sin(a)*5);ctx.lineTo(b.x+Math.cos(a)*5,b.y+Math.sin(a)*5);ctx.stroke();ctx.beginPath();ctx.arc(b.x-Math.cos(a)*5,b.y-Math.sin(a)*5,2.6,0,TAU);ctx.arc(b.x+Math.cos(a)*5,b.y+Math.sin(a)*5,2.6,0,TAU);ctx.fill();continue;}
+  ctx.beginPath();ctx.arc(b.x,b.y,3.6,0,TAU);ctx.fill();}}
+// actions
+function actLabel(){if(actQ)return digQ?`⛏ Digging… ${Math.min(99,Math.round(digT/2.2*100))}%`:'⛏ Dig for treasure';if(stormF)return`🏴‍☠️ Storming… ${Math.min(99,Math.round(stormF.t/3*100))}%`;
+ if(fortAct)return fortAct.kind==='storm'?`🏴‍☠️ Storm ${fortAct.f.name}`:`🏰 Manage ${fortAct.f.name}`;return null;}
+function actTap(){if(state!=='play')return;if(actQ){startDig();return;}if(!fortAct||stormF)return;const f=fortAct.f;
+ if(fortAct.kind==='manage'){openFort(f);return;}if(rankIdx()<3){toast('🔒 Storming forts needs the rank of Captain (700 infamy).');return;}if(S.crew<8){toast('👥 You need at least 8 crew to storm a fort.');return;}stormF={f,t:0};toast('🏴‍☠️ Boarding parties ashore! Hold position…');}
+function expTick(dt){fortTick(dt);fortEconomy(dt);shellTick(dt);}
+function expSlowTick(){clanTick();islCacheTick();retroUnlocks();}
+const EXP={get FORTS(){return FORTS},CLANS,FRT,fortOwner,fortRT,captureFort,ownedForts,leadersDown,spawnSkirmish,spawnLeader,clanAt,inCore,ISL,OFF,WORLD,MV,setZoom,mapView,fastTravel,shells,cycleAmmo,
+ unlockTable,unlocksAt,equipCos,openFort,closeFort,get fortAct(){return fortAct},actTap,addRep,clanHostile,genClanQ,explored,checkKing,OFFICERS,AMMO,COS,islCached,SHARKZ,fogBits:()=>fogBits(),get stormF(){return stormF},xpNeed,MAXLVL,learnLeg};
+
 // ---------- BOOT ----------
-readSafe();const hadSave=load();if(!(S.bal>=2)){S.bal=2;if(hadSave){S.crew=Math.max(S.crew,10);recalc();S.hp=ST.maxHp;}}recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=clamp(S.hp||ST.maxHp,1,ST.maxHp);cam.x=P.x;cam.y=P.y;lastCam.x=cam.x;lastCam.y=cam.y;rebuildFog();populate();placeFleet();
+readSafe();const hadSave=load();if(!(S.bal>=2)){S.bal=2;if(hadSave){S.crew=Math.max(S.crew,10);recalc();S.hp=ST.maxHp;}}recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=clamp(S.hp||ST.maxHp,1,ST.maxHp);cam.x=P.x;cam.y=P.y;lastCam.x=cam.x;lastCam.y=cam.y;rebuildFog();applyCos();populate();placeFleet();
 if(hadSave)$('startBtn').textContent='⛵ Continue voyage';
 updateAutoBtn();
 try{if(sessionStorage.getItem('pirateSeas_imported')){sessionStorage.removeItem('pirateSeas_imported');$('titleMsg').textContent='✅ Save imported — welcome back, Captain!';$('titleMsg').classList.remove('hidden');}}catch(e){}
@@ -1480,7 +1896,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});w
 requestAnimationFrame(frame);
 setTimeout(()=>{(window.requestIdleCallback||(f=>f()))(countLoad);},2500);
 // test hook
-window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load};
+window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
 })();
 </script>
 </body>
