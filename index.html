@@ -29,6 +29,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .fire{width:74px;height:74px;font-size:13px;bottom:calc(18px + env(safe-area-inset-bottom))}
 #fireL{right:calc(100px + env(safe-area-inset-right))}
 #fireR{right:calc(16px + env(safe-area-inset-right))}
+#autoBtn{width:58px;height:58px;right:calc(184px + env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));font-size:11px;touch-action:none;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#autoBtn span{font-size:22px}
+#autoBtn.on{background:rgba(30,120,60,.8);box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 0 0 2px rgba(150,255,170,.8)}
 .fire .lbl{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;line-height:1.1}
 .fire .lbl span{font-size:24px}
 .fire .rl{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(255,80,40,.55);z-index:1}
@@ -88,6 +91,7 @@ button.big.red{background:#a12a1d}
 <button id="menuBtn" class="btnr">☰</button>
 <button id="fireL" class="btnr fire"><div class="rl"></div><div class="lbl"><span>💥</span>◀ LEFT</div></button>
 <button id="fireR" class="btnr fire"><div class="rl"></div><div class="lbl"><span>💥</span>RIGHT ▶</div></button>
+<button id="autoBtn" class="btnr on" aria-label="Toggle auto-fire"><span>🎯</span><b id="autoLbl">AUTO</b></button>
 <button id="dockBtn" class="hidden">⚓ Dock</button>
 <div id="toast"></div>
 
@@ -138,7 +142,8 @@ button.big.red{background:#a12a1d}
   💥 <b>Fire:</b> LEFT / RIGHT buttons shoot broadsides out the sides of your ship.<br>
   ⚓ <b>Ports:</b> sail close to a pier and tap <b>Dock</b> to repair, upgrade, hire crew, trade and take jobs.<br>
   🗺️ Tap the minimap for the big map. Waters get more dangerous far from Port Royal.<br>
-  ⌨️ Keyboard: WASD/arrows, Q/E fire, Space both, F dock, M map.
+  🎯 <b>AUTO:</b> the 🎯 button (or T) toggles auto-fire — your broadsides shoot hostile ships in range on their own.<br>
+  ⌨️ Keyboard: WASD/arrows, Q/E fire, Space both, F dock, M map, T auto-fire.
   </div>
   <button class="big" id="startBtn">⛵ Set Sail</button>
   <p id="titleMsg" class="hidden" style="font-weight:700;color:#2f7d3b"></p>
@@ -243,7 +248,7 @@ function rebuildFog(){fogCtx.clearRect(0,0,FOGN,FOGN);fogCtx.fillStyle='#0a1626'
 // ---------- SAVE STATE ----------
 const SAVEKEY='pirateSeas_save_v1';
 function defaultState(){return{gold:150,up:{hull:0,sails:0,cannons:0,cargo:0},crew:8,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0},
- quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:100,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false};}
+ quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:100,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true};}
 let S=defaultState();
 function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false;const d=JSON.parse(raw);const def=defaultState();
  S=Object.assign(def,d);S.up=Object.assign(def.up,d.up||{});S.roles=Object.assign(defaultState().roles,d.roles||{});S.cargo=Object.assign(defaultState().cargo,d.cargo||{});
@@ -334,11 +339,12 @@ document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('dblclick',e=>{if(!isTyping(e.target))e.preventDefault();});
 document.addEventListener('contextmenu',e=>{if(!isTyping(e.target))e.preventDefault();});
 window.addEventListener('keydown',e=>{if(isTyping(e.target)||!$('xfer').classList.contains('hidden'))return;const k=(e.key||'').toLowerCase();keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
- if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&nearPort>=0)dock(nearPort);if(k==='m')state='map';if(k==='escape')openMenu();}
+ if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&nearPort>=0)dock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='escape')openMenu();}
  else if(state==='map'&&(k==='m'||k==='escape'))state='play';});
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 function bindBtn(id,fn){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();fn();});}
-bindBtn('fireL',()=>{if(state==='play')fire(-1);});bindBtn('fireR',()=>{if(state==='play')fire(1);});
+bindBtn('fireL',()=>{if(state==='play')fire(-1);});
+bindBtn('autoBtn',()=>{if(state==='play'||state==='map')toggleAuto();});bindBtn('fireR',()=>{if(state==='play')fire(1);});
 $('dockBtn').addEventListener('click',()=>{if(state==='play'&&nearPort>=0)dock(nearPort);});
 $('menuBtn').addEventListener('click',()=>{initAudio();if(state==='play'||state==='map')openMenu();});
 
@@ -352,6 +358,31 @@ function fireBroadside(s,side,n,dmg,owner,range){
  const d=Math.hypot(s.x-P.x,s.y-P.y);boom(owner==='p'?0.55:clamp(0.5*(1-d/1200),0,0.4),owner==='p'?650:500);}
 function fire(side){if(P.dead)return;if(side<0){if(P.rl>0)return;P.rl=ST.reload;}else{if(P.rr>0)return;P.rr=ST.reload;}
  fireBroadside(P,side,ST.cannons,ST.dmg,'p',ST.range);cam.shake=Math.max(cam.shake,3);}
+// ---------- AUTO-TARGETING ----------
+let autoTgt=null;const autoSide={'-1':null,'1':null};
+function isHostile(e){return !e.sinking&&e.hp>0&&(e.kind!=='merchant'||e.angry);}
+function toggleAuto(){S.autoFire=!S.autoFire;autoTgt=null;autoSide['-1']=autoSide['1']=null;updateAutoBtn();save();toast(S.autoFire?'🎯 Auto-fire ON':'🎯 Auto-fire OFF — fire manually');}
+function updateAutoBtn(){const on=S.autoFire!==false;$('autoBtn').classList.toggle('on',on);$('autoLbl').textContent=on?'AUTO':'OFF';}
+// predicted aim point: target motion relative to a ball that inherits 70% of our velocity
+function aimPoint(e){const d=Math.hypot(e.x-P.x,e.y-P.y);const t=d/455;return{x:e.x+(e.vx-P.vx*0.7)*t,y:e.y+(e.vy-P.vy*0.7)*t,d};}
+function autoFire(){autoTgt=null;autoSide['-1']=autoSide['1']=null;
+ if(S.autoFire===false||P.dead||nearSafePort(P.x,P.y))return;
+ const R=ST.range;let best=null,bs=1e9;const bestSide={'-1':null,'1':null},bss={'-1':1e9,'1':1e9};
+ for(const e of enemies){if(!isHostile(e))continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d>R*1.3)continue;
+  const pri=d*(e.kind==='boss'?0.7:1)*(e.angry?0.85:1)*(e.qid?0.9:1);if(pri<bs){bs=pri;best=e;}
+  const a=aimPoint(e);if(a.d>R*0.95)continue;const rel=angDiff(P.h,Math.atan2(a.y-P.y,a.x-P.x));
+  const tol=0.16+Math.atan2(e.len*0.35,Math.max(a.d,1));
+  for(const sd of [-1,1])if(Math.abs(angDiff(sd*Math.PI/2,rel))<tol&&pri<bss[sd]){bss[sd]=pri;bestSide[sd]=e;}}
+ autoTgt=bestSide['-1']||bestSide['1']?(bss['-1']<bss['1']?bestSide['-1']:bestSide['1']):best;autoSide['-1']=bestSide['-1'];autoSide['1']=bestSide['1'];
+ if(bestSide['-1']&&P.rl<=0)fire(-1);if(bestSide['1']&&P.rr<=0)fire(1);}
+function drawAutoHud(ts){if(S.autoFire===false||P.dead||state==='title')return;const R=ST.range;
+ // firing arcs (subtle) – brighter on the side that has a target lined up
+ for(const sd of [-1,1]){const a=P.h+sd*Math.PI/2,on=!!autoSide[sd];ctx.fillStyle=on?'rgba(255,90,60,0.16)':'rgba(255,255,255,0.045)';
+  ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.arc(P.x,P.y,R*0.95,a-0.2,a+0.2);ctx.closePath();ctx.fill();}
+ const e=autoTgt;if(!e||e.sinking)return;const inArc=e===autoSide['-1']||e===autoSide['1'];
+ const r=e.len*0.75+6+Math.sin(ts*6)*2;ctx.save();ctx.translate(e.x,e.y);ctx.rotate(ts*1.2);ctx.strokeStyle=inArc?'rgba(255,70,50,0.95)':'rgba(255,210,90,0.85)';ctx.lineWidth=2.5;
+ for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(0,0,r,i*Math.PI/2+0.25,i*Math.PI/2+Math.PI/2-0.25);ctx.stroke();ctx.beginPath();ctx.moveTo(r-6,0);ctx.lineTo(r+6,0);ctx.stroke();ctx.rotate(Math.PI/2);}
+ ctx.restore();const ap=aimPoint(e);ctx.fillStyle=inArc?'rgba(255,70,50,0.8)':'rgba(255,210,90,0.6)';ctx.beginPath();ctx.arc(ap.x,ap.y,3.5,0,TAU);ctx.fill();}
 function hitTest(s,b,pad){const dx=b.x-s.x,dy=b.y-s.y;if(dx*dx+dy*dy>(s.len*s.len))return false;const c=Math.cos(s.h),sn=Math.sin(s.h);const lx=dx*c+dy*sn,ly=-dx*sn+dy*c;return Math.abs(lx)<s.len/2+pad&&Math.abs(ly)<s.wid/2+pad;}
 function damageEnemy(e,dmg){e.hp-=dmg;e.hitT=0.25;e.angry=true;addText(e.x,e.y-20,'-'+Math.round(dmg),'#ffd27a');
  if(e.hp<=0&&!e.sinking){e.sinking=0.001;sinkRewards(e);}}
@@ -457,13 +488,15 @@ function renderMenu(){const used=cargoUsed();let cg=GOODS.filter(g=>S.cargo[g.id
  h+=row('📦 Cargo',`${used}/${ST.cargoCap}: ${cg}`,'');
  h+=row('📜 Jobs',S.quests.length?S.quests.map(q=>q.title+(q.type==='bounty'?` (${q.have}/${q.need})`:'')).join('<br>'):'none','');
  h+=row('🔊 Sound',S.muted?'Muted':'On',btn('mute',S.muted?'Unmute':'Mute',true));
+ h+=row('🎯 Auto-fire',S.autoFire!==false?'On — broadsides fire at hostile ships in range (key T)':'Off — fire manually (key T)',btn('auto',S.autoFire!==false?'Turn off':'Turn on',true));
  h+=row('🗺️ Map','See the whole sea',btn('map','Open',true));
- h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow).<br>💥 LEFT/RIGHT fire broadsides.<br>⚓ Get close to a pier and tap Dock.<br>⌨️ WASD/arrows • Q/E fire • Space both • F dock • M map</div>`;
+ h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow).<br>💥 LEFT/RIGHT fire broadsides. 🎯 AUTO fires them for you at hostile ships.<br>⚓ Get close to a pier and tap Dock.<br>⌨️ WASD/arrows • Q/E fire • Space both • F dock • M map</div>`;
  h+=row('💾 Save Transfer','Move progress to another device (export / import a save code).',btn('xfer','💾 Save Transfer',true));
  h+=row('⚠️ Reset progress','Delete your save and start over.',btn('reset',resetArm?'Tap again!':'Reset',true,'','red'));
  h+=`<div class="note">Progress saves automatically on this device. Use 💾 Save Transfer to move it to another one.</div>`;$('mBody').innerHTML=h;}
 $('mBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b)return;const a=b.dataset.act;
  if(a==='xfer'){openXfer();}
+ else if(a==='auto'){toggleAuto();renderMenu();}
  else if(a==='mute'){S.muted=!S.muted;save();renderMenu();}
  else if(a==='map'){$('menu').classList.add('hidden');state='map';}
  else if(a==='reset'){if(!resetArm){resetArm=true;renderMenu();return;}resetAll();$('menu').classList.add('hidden');state='play';toast('New game! Fair winds, Captain.');}});
@@ -520,6 +553,7 @@ function update(dt){
   if(keys['arrowup']||keys['w'])P.throttle=clamp(P.throttle+dt*1.2,0,1);if(keys['arrowdown']||keys['s'])P.throttle=clamp(P.throttle-dt*1.2,0,1);
   P.len=ST.len;P.wid=ST.wid;moveShip(P,desired,P.throttle,ST.maxSpeed,ST.turn,dt);
   P.rl=Math.max(0,P.rl-dt);P.rr=Math.max(0,P.rr-dt);
+  autoFire();
   if(ST.regen>0&&P.hp<ST.maxHp)P.hp=Math.min(ST.maxHp,P.hp+ST.regen*dt);
  }
  nearPort=-1;if(!P.dead)PORTS.forEach((p,i)=>{if(Math.hypot(p.port.x-P.x,p.port.y-P.y)<160)nearPort=i;});
@@ -597,6 +631,7 @@ function render(t){perfT=t;
  for(const e of enemies){if(e.x<x0-80||e.x>x1+80||e.y<y0-80||e.y>y1+80)continue;
   if(e.kind==='merchant')drawShip(e,'#f4ead2','#2b5fb5',0.6);else if(e.kind==='boss')drawShip(e,'#8c1c26','#111',1);else drawShip(e,'#3b3b42','#111',0.9);}
  if(state!=='title'||true)drawShip(P,'#fff8e7','#111',P.throttle);
+ drawAutoHud(ts);
  // balls
  ctx.fillStyle='#111';for(const b of balls){ctx.beginPath();ctx.arc(b.x,b.y,3.6,0,TAU);ctx.fill();}
  // particles
@@ -718,12 +753,13 @@ $('xferTitleBtn').addEventListener('click',()=>{initAudio();openXfer();});
 // ---------- BOOT ----------
 readSafe();const hadSave=load();recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=clamp(S.hp||ST.maxHp,1,ST.maxHp);cam.x=P.x;cam.y=P.y;lastCam.x=cam.x;lastCam.y=cam.y;rebuildFog();populate();
 if(hadSave)$('startBtn').textContent='⛵ Continue voyage';
+updateAutoBtn();
 try{if(sessionStorage.getItem('pirateSeas_imported')){sessionStorage.removeItem('pirateSeas_imported');$('titleMsg').textContent='✅ Save imported — welcome back, Captain!';$('titleMsg').classList.remove('hidden');}}catch(e){}
 $('startBtn').addEventListener('click',()=>{initAudio();$('title').classList.add('hidden');state='play';S.seen=true;save();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});window.addEventListener('pagehide',save);
 requestAnimationFrame(frame);
 // test hook
-window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),makeCode,parseCode,openXfer,setState:s=>state=s};
+window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s};
 })();
 </script>
 </body>
