@@ -41,7 +41,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #menuBtn{position:fixed;width:50px;height:50px;font-size:22px;right:calc(10px + env(safe-area-inset-right));top:calc(126px + env(safe-area-inset-top));border-radius:10px}
 #toast{position:fixed;left:50%;top:calc(194px + env(safe-area-inset-top));z-index:6;transform:translateX(-50%);background:rgba(10,20,35,.85);padding:7px 12px;border-radius:12px;font-weight:700;font-size:14px;max-width:92vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid rgba(255,215,120,.5)}
 #toast.show{opacity:1}
-.overlay{position:fixed;inset:0;background:rgba(5,15,30,.72);display:flex;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));z-index:10}
+.overlay{position:fixed;inset:0;height:100%;height:100dvh;overscroll-behavior:contain;background:rgba(5,15,30,.72);display:flex;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));z-index:10}
 .panel{background:linear-gradient(#f4e4c1,#e3cc9b);color:#3b2306;border-radius:16px;width:min(560px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.6);border:3px solid #7a4e1d;overflow:hidden}
 .phead{display:flex;justify-content:space-between;align-items:center;padding:10px 12px 6px;gap:8px}
 .phead h2{margin:0;font-size:20px}
@@ -49,7 +49,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .tabs button{flex:1;min-width:52px;min-height:48px;padding:8px 2px;border:none;border-radius:10px;background:#c9a96b;color:#3b2306;font-weight:800;font-size:12.5px;white-space:nowrap}
 .tabs button.on{background:#7a4e1d;color:#fff}
 .gold{padding:2px 12px 6px;font-weight:800;font-size:14px;display:flex;justify-content:space-between}
-.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:0 10px 12px;flex:1;min-height:0}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:0 10px 12px;flex:1;min-height:0}
 .item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(255,255,255,.45);border-radius:10px;padding:8px 9px;margin:6px 0}
 .item .it{flex:1;min-width:0}
 .item .it b{display:block;font-size:15px}
@@ -64,9 +64,20 @@ button.big{border:none;border-radius:12px;padding:12px 18px;min-height:48px;font
 .pips{letter-spacing:1px;font-size:11px}
 .note{font-size:12.5px;padding:6px 4px;opacity:.9;line-height:1.4}
 h3{margin:12px 2px 2px;font-size:15px}
-#title .panel{padding:18px;text-align:center;align-items:center;gap:8px}
-#title h1{margin:0;font-size:32px}
+#title .panel{text-align:center}
+#title .thead{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 10px 6px 16px;border-bottom:1px solid rgba(122,78,29,.25)}
+#title h1{margin:0;font-size:30px;text-align:left}
+#titleX{flex:none;width:48px;height:48px;border-radius:12px;border:none;background:#7a4e1d;color:#fff;font-size:22px;font-weight:800;touch-action:manipulation}
+#titleBody{padding:8px 14px 10px}
 #title p{margin:4px 0;font-size:14px;line-height:1.45}
+#howTo{text-align:left;margin:6px 0}
+#howTo summary{cursor:pointer;list-style:none;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;background:rgba(122,78,29,.15);font-weight:800;font-size:15px;touch-action:manipulation}
+#howTo summary::-webkit-details-marker{display:none}
+#howTo summary::after{content:'▼';font-size:11px}#howTo[open] summary::after{content:'▲'}
+#title .tfoot{flex:none;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 12px 12px;border-top:1px solid rgba(122,78,29,.25);background:rgba(227,204,155,.95)}
+#title .tfoot #startBtn{flex:1 1 100%}
+#title .tfoot #tutBtn,#title .tfoot #xferTitleBtn{flex:1 1 40%}
+@media (max-height:520px) and (orientation:landscape){#title h1{font-size:24px}#title .thead{padding:6px 8px 4px 14px}#title .tfoot{padding:6px 10px 8px;flex-wrap:nowrap}#title .tfoot #startBtn{flex:2 1 0}#title .tfoot #tutBtn,#title .tfoot #xferTitleBtn{flex:1 1 0}}
 .help{text-align:left;font-size:13.5px;line-height:1.5;background:rgba(255,255,255,.4);border-radius:10px;padding:8px 12px;margin:4px 0}
 #xfer{z-index:20}
 #xfer .panel{touch-action:auto}
@@ -204,8 +215,11 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 </div></div>
 
 <div id="title" class="overlay"><div class="panel">
-  <h1>🏴‍☠️ Pirate Seas</h1>
+  <div class="thead"><h1>🏴‍☠️ Pirate Seas</h1><button id="titleX" aria-label="Close and play">✕</button></div>
+  <div class="scroll" id="titleBody">
+  <p id="titleMsg" class="hidden" style="font-weight:700;color:#2f7d3b"></p>
   <p>You are a <b>pirate captain</b>. Plunder fat merchant ships, outgun rival pirates, outrun the Navy when your Wanted level climbs, and lie low in pirate havens.</p>
+  <details id="howTo"><summary>📖 How to play</summary>
   <div class="help">
   🎓 New here? The guided <b>Tutorial</b> starts automatically on a new game (replay it any time).<br>
   🕹️ <b>Steer:</b> drag anywhere on the sea (a short drag slows down). Sails stay set when you let go. Prefer buttons? Turn on ◀ ▶ steering buttons in ☰ Captain's Log.<br>
@@ -223,11 +237,14 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
   🚀 <b>BOOST:</b> +25% speed for a few seconds, but the ship turns sluggishly. Then it recharges.<br>
   ⌨️ Keyboard: WASD/arrows, Q/E fire, Space both, B or Shift boost, F dock, M map, T auto-fire.
   </div>
+  </details>
+  <p style="font-size:12px;opacity:.75">Tip: Share ➜ "Add to Home Screen" to play full screen.</p>
+  </div>
+  <div class="tfoot">
   <button class="big" id="startBtn">⛵ Set Sail</button>
-  <p id="titleMsg" class="hidden" style="font-weight:700;color:#2f7d3b"></p>
   <button class="big" id="tutBtn">🎓 Tutorial</button>
   <button class="big" id="xferTitleBtn">💾 Save Transfer</button>
-  <p style="font-size:12px;opacity:.75">Tip: Share ➜ "Add to Home Screen" to play full screen.</p>
+  </div>
 </div></div>
 
 <script>
@@ -436,7 +453,7 @@ const endJoy=e=>{if(e.pointerId===joy.id)joy.id=null;};
 cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);cv.addEventListener('lostpointercapture',endJoy);
 window.addEventListener('blur',releaseInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseInput();});
 const isTyping=t=>!!(t&&t.closest&&t.closest('textarea,input,select,[contenteditable]'));
-document.addEventListener('touchmove',e=>{if(!e.target.closest||!e.target.closest('.scroll,textarea'))e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest||!e.target.closest('.scroll,textarea,.overlay:not(.hidden)'))e.preventDefault();},{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('dblclick',e=>{if(!isTyping(e.target))e.preventDefault();});
 document.addEventListener('contextmenu',e=>{if(!isTyping(e.target))e.preventDefault();});
@@ -1443,6 +1460,7 @@ if(hadSave)$('startBtn').textContent='⛵ Continue voyage';
 updateAutoBtn();
 try{if(sessionStorage.getItem('pirateSeas_imported')){sessionStorage.removeItem('pirateSeas_imported');$('titleMsg').textContent='✅ Save imported — welcome back, Captain!';$('titleMsg').classList.remove('hidden');}}catch(e){}
 $('startBtn').addEventListener('click',()=>{initAudio();$('title').classList.add('hidden');state='play';S.seen=true;if(!S.tutDone)tutStart(hadSave?tutResumeIdx(S.tutStep|0):0);save();});
+$('titleX').addEventListener('click',()=>$('startBtn').click());
 $('tutBtn').addEventListener('click',()=>{initAudio();$('title').classList.add('hidden');state='play';S.seen=true;tutStart(0);save();});
 applySteerMode();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});window.addEventListener('pagehide',save);
