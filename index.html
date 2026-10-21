@@ -721,7 +721,7 @@ $('mBody').addEventListener('click',e=>{const b=e.target.closest('button[data-ac
  else if(a==='savenow'){save();toast('💾 Game saved');tutEv('save');}
  else if(a==='steer'){S.steer=S.steer==='buttons'?'drag':'buttons';applySteerMode();save();renderMenu();}
  else if(a==='tut'){$('menu').classList.add('hidden');state='play';tutStart(0);}
- else if(a==='reset'){if(!resetArm){resetArm=true;renderMenu();return;}resetAll();$('menu').classList.add('hidden');state='play';toast('New game! Fair winds, Captain.');tutStart(0);}});
+ else if(a==='reset'){if(!resetArm){resetArm=true;renderMenu();return;}resetAll();countHit('newgames');$('menu').classList.add('hidden');state='play';toast('New game! Fair winds, Captain.');tutStart(0);}});
 $('menu').addEventListener('pointerdown',()=>{menuPD=true;},true);
 $('mTabs').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(!b||ghost())return;mView=b.dataset.m;renderMenu();$('mBody').scrollTop=0;});
 $('mClose').addEventListener('click',()=>{$('menu').classList.add('hidden');state='play';});
@@ -1038,7 +1038,7 @@ function tutResumeIdx(i){const id=(TSTEPS[i]||TSTEPS[0]).id;
  if(id==='loot')return T.loot?i:TIDX.enemy;if(id==='mapClose')return TIDX.map;if(id==='shipTab'||id==='buy'||id==='leave')return TIDX.dock;if(id==='save'||id==='finish')return TIDX.log;return clamp(i,0,TSTEPS.length-1);}
 function tutStart(i){T.on=true;T.skipArm=0;$('tutSkip').textContent='Skip tutorial';$('tut').classList.remove('hidden');tutGo(i||0);}
 function tutGo(i){T.i=i;T.c={};T.wait=0;T.html='';T.txtT=0;T.lay={};S.tutStep=i;const st=TSTEPS[i];if(st.enter)st.enter(T.c);T.scrolled=false;tutText();save();}
-function tutEnd(finished){if(finished)S.boostTip=true;const d=T.dummy;if(d&&!d.sinking){const k=enemies.indexOf(d);if(k>=0)enemies.splice(k,1);}
+function tutEnd(finished){if(finished){S.boostTip=true;countHit('tutorial','pirateSeas_tutCounted_v1');}const d=T.dummy;if(d&&!d.sinking){const k=enemies.indexOf(d);if(k>=0)enemies.splice(k,1);}
  T.on=false;T.dummy=null;T.loot=null;tutPeace=false;S.tutDone=true;S.tutStep=0;$('tut').classList.add('hidden');save();
  toast(finished?'🎓 Tutorial complete — fair winds, Captain!':'Tutorial skipped. Replay it any time from ☰ Captain\'s Log.');}
 function tutText(){const st=TSTEPS[T.i];const h=st.text(T.c);if(h!==T.html){T.html=h;$('tutTxt').innerHTML=h;}
@@ -1405,6 +1405,16 @@ let ctrlR=[],ctrlT=0;
 function updCtrlRects(){ctrlR=[];for(const id of ['fireL','fireR','autoBtn','boostBtn','boardBar','dockBtn','actBtn','turnL','turnR','sailUp','sailDn','menuBtn']){const el=$(id);if(!el||el.classList.contains('hidden'))continue;const r=el.getBoundingClientRect();if(r.width)ctrlR.push(r);}}
 function avoidY(X,Y){for(let k=0;k<2;k++){let moved=false;for(const r of ctrlR){if(X>r.left-50&&X<r.right+50&&Y>r.top-12&&Y<r.bottom+8){Y=r.top-16;moved=true;}}if(!moved)break;}return Y;}
 
+// ---------- ANONYMOUS PLAY COUNTER ----------
+// Privacy-friendly: no IDs, no personal data, just +1 on a few public counters. Only on the live site,
+// fire-and-forget (never blocks, fails silently offline / with ad blockers). Counts are not shown in the game.
+const CNT_URL='https://abacus.jasoncameron.dev/hit/jonnah1738-pirate-seas/';
+const CNT_ON=location.hostname==='jonnah1738.github.io'&&(!navigator.webdriver||/[?&]ct=1\b/.test(location.search));
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return'x';}}function lsSet(k){try{localStorage.setItem(k,'1');}catch(e){}}
+function countHit(key,flag){if(!CNT_ON||!window.fetch||(flag&&lsGet(flag)))return;
+ try{fetch(CNT_URL+key,{method:'GET',mode:'cors',cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer',keepalive:true}).then(r=>{if(r.ok&&flag)lsSet(flag);},()=>{});}catch(e){}}
+function countLoad(){countHit('players','pirateSeas_counted_v1');countHit('plays');}
+
 // ---------- SAVE TRANSFER ----------
 const XPFX='PSEAS1';
 function fnv(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193);}return (h>>>0).toString(16).padStart(8,'0');}
@@ -1459,12 +1469,13 @@ readSafe();const hadSave=load();if(!(S.bal>=2)){S.bal=2;if(hadSave){S.crew=Math.
 if(hadSave)$('startBtn').textContent='⛵ Continue voyage';
 updateAutoBtn();
 try{if(sessionStorage.getItem('pirateSeas_imported')){sessionStorage.removeItem('pirateSeas_imported');$('titleMsg').textContent='✅ Save imported — welcome back, Captain!';$('titleMsg').classList.remove('hidden');}}catch(e){}
-$('startBtn').addEventListener('click',()=>{initAudio();$('title').classList.add('hidden');state='play';S.seen=true;if(!S.tutDone)tutStart(hadSave?tutResumeIdx(S.tutStep|0):0);save();});
+$('startBtn').addEventListener('click',()=>{initAudio();if(!hadSave&&!S.seen)countHit('newgames');$('title').classList.add('hidden');state='play';S.seen=true;if(!S.tutDone)tutStart(hadSave?tutResumeIdx(S.tutStep|0):0);save();});
 $('titleX').addEventListener('click',()=>$('startBtn').click());
-$('tutBtn').addEventListener('click',()=>{initAudio();$('title').classList.add('hidden');state='play';S.seen=true;tutStart(0);save();});
+$('tutBtn').addEventListener('click',()=>{initAudio();if(!hadSave&&!S.seen)countHit('newgames');$('title').classList.add('hidden');state='play';S.seen=true;tutStart(0);save();});
 applySteerMode();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});window.addEventListener('pagehide',save);
 requestAnimationFrame(frame);
+setTimeout(()=>{(window.requestIdleCallback||(f=>f()))(countLoad);},2500);
 // test hook
 window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load};
 })();
