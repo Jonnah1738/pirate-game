@@ -36,7 +36,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .fire .lbl span{font-size:24px}
 .fire .rl{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(255,80,40,.55);z-index:1}
 .fire.ready{background:rgba(160,40,20,.75)}
-#dockBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(110px + env(safe-area-inset-bottom));padding:12px 20px;min-height:52px;touch-action:none;border-radius:24px;border:none;font-size:17px;font-weight:800;background:#f2c14e;color:#3b2306;box-shadow:0 3px 10px rgba(0,0,0,.5);animation:pulse 1.2s infinite}
+#dockBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(176px + env(safe-area-inset-bottom));padding:12px 20px;min-height:52px;touch-action:none;border-radius:24px;border:none;font-size:17px;font-weight:800;background:#f2c14e;color:#3b2306;box-shadow:0 3px 10px rgba(0,0,0,.5);animation:pulse 1.2s infinite}
 @keyframes pulse{50%{transform:translateX(-50%) scale(1.07)}}
 #menuBtn{position:fixed;width:50px;height:50px;font-size:22px;right:calc(10px + env(safe-area-inset-right));top:calc(126px + env(safe-area-inset-top));border-radius:10px}
 #toast{position:fixed;left:50%;top:calc(110px + env(safe-area-inset-top));transform:translateX(-50%);background:rgba(10,20,35,.85);padding:8px 14px;border-radius:12px;font-weight:700;font-size:15px;max-width:88vw;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid rgba(255,215,120,.5)}
@@ -89,6 +89,14 @@ button.big.red{background:#a12a1d}
 .btnr.held{background:rgba(60,120,180,.85)}
 body:not(.steer-btns) .steerctl{display:none!important}
 body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:calc(104px + env(safe-area-inset-bottom))}
+#boostBtn{width:60px;height:60px;right:calc(23px + env(safe-area-inset-right));bottom:calc(104px + env(safe-area-inset-bottom));font-size:10.5px;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#boostBtn .bi{font-size:22px;position:relative;z-index:2}#boostBtn b{position:relative;z-index:2}
+#boostBtn .cd{position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(0,0,0,.62) var(--p,0%),transparent 0);z-index:1;pointer-events:none}
+#boostBtn.ready{background:rgba(200,110,20,.8);box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,220,140,.9)}
+#boostBtn.on{background:rgba(255,150,30,.95);box-shadow:0 0 14px 4px rgba(255,190,60,.9),inset 0 0 0 2px #fff;animation:bpulse .5s infinite alternate}
+#boostBtn.tip{animation:btip .8s infinite alternate}
+@keyframes bpulse{to{box-shadow:0 0 22px 8px rgba(255,210,80,.95),inset 0 0 0 2px #fff}}
+@keyframes btip{to{box-shadow:0 0 0 6px rgba(255,211,77,.9),0 0 18px 6px rgba(255,211,77,.8)}}
 #tut{position:fixed;inset:0;z-index:30;pointer-events:none}
 #tutRing{position:absolute;left:0;top:0;border-radius:16px;border:3px solid #ffd34d;box-shadow:0 0 16px 4px rgba(255,211,77,.85);animation:tutPulse 1s infinite;pointer-events:none}
 #tutRing.dim{box-shadow:0 0 0 200vmax rgba(0,0,0,.38),0 0 16px 4px rgba(255,211,77,.85)}
@@ -121,6 +129,7 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
 <button id="fireR" class="btnr fire"><div class="rl"></div><div class="lbl"><span>💥</span>RIGHT ▶</div></button>
 <button id="autoBtn" class="btnr on" aria-label="Toggle auto-fire"><span>🎯</span><b id="autoLbl">AUTO</b></button>
 <button id="dockBtn" class="hidden">⚓ Dock</button>
+<button id="boostBtn" class="btnr ready" aria-label="Speed boost"><div class="cd"></div><span class="bi">🚀</span><b id="boostLbl">BOOST</b></button>
 <button id="turnL" class="btnr steerb steerctl" aria-label="Turn left">⟲</button>
 <button id="turnR" class="btnr steerb steerctl" aria-label="Turn right">⟳</button>
 <button id="sailDn" class="btnr sailb steerctl" aria-label="Lower sails">⛵−</button>
@@ -180,7 +189,8 @@ body.steer-btns #autoBtn{right:calc(108px + env(safe-area-inset-right));bottom:c
   🗺️ Tap the minimap for the big map. Waters get more dangerous far from Port Royal.<br>
   🎯 <b>AUTO:</b> the 🎯 button (or T) toggles auto-fire — your gunners aim and shoot hostile ships in range on their own. Broadsides hit hardest, so turn your side toward the enemy.<br>
   🔧 Your hull slowly repairs itself when no enemies are near.<br>
-  ⌨️ Keyboard: WASD/arrows, Q/E fire, Space both, F dock, M map, T auto-fire.
+  🚀 <b>BOOST:</b> +25% speed for a few seconds, but the ship turns sluggishly. Then it recharges.<br>
+  ⌨️ Keyboard: WASD/arrows, Q/E fire, Space both, B or Shift boost, F dock, M map, T auto-fire.
   </div>
   <button class="big" id="startBtn">⛵ Set Sail</button>
   <p id="titleMsg" class="hidden" style="font-weight:700;color:#2f7d3b"></p>
@@ -285,11 +295,11 @@ function rebuildFog(){fogCtx.clearRect(0,0,FOGN,FOGN);fogCtx.fillStyle='#0a1626'
 
 // ---------- SAVE STATE ----------
 const SAVEKEY='pirateSeas_save_v1';
-function defaultState(){return{gold:150,up:{hull:0,sails:0,cannons:0,cargo:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0},
- quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,tutDone:false,tutStep:0,steer:'drag'};}
+function defaultState(){return{gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0},
+ quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,tutDone:false,tutStep:0,steer:'drag'};}
 let S=defaultState();
 function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false;const d=JSON.parse(raw);const def=defaultState();
- S=Object.assign(def,d);if(!(d.bal>=2))S.bal=0;if(d.tutDone===undefined){S.tutDone=true;S.tutStep=0;}if(S.steer!=='buttons')S.steer='drag';S.up=Object.assign(def.up,d.up||{});S.roles=Object.assign(defaultState().roles,d.roles||{});S.cargo=Object.assign(defaultState().cargo,d.cargo||{});
+ S=Object.assign(def,d);if(!(d.bal>=2))S.bal=0;if(d.tutDone===undefined){S.tutDone=true;S.tutStep=0;}if(S.steer!=='buttons')S.steer='drag';S.up=Object.assign(defaultState().up,d.up||{});S.roles=Object.assign(defaultState().roles,d.roles||{});S.cargo=Object.assign(defaultState().cargo,d.cargo||{});
  S.quests=(S.quests||[]).map(q=>{q.spawned=false;return q;});
  if(typeof S.fog==='string'&&S.fog.length===FOGN*FOGN){for(let i=0;i<fog.length;i++)fog[i]=S.fog.charCodeAt(i)===49?1:0;}
  return true;}catch(e){console.warn('save load failed',e);return false;}}
@@ -304,7 +314,8 @@ const UPG={
  hull:{name:'Hull',icon:'🛡️',base:120,g:1.7,max:8,desc:l=>`Max HP ${150+45*l} • crew space ${12+6*l}`},
  sails:{name:'Sails',icon:'⛵',base:100,g:1.65,max:8,desc:l=>`Top speed ${135+18*l} • better turning`},
  cannons:{name:'Cannons',icon:'💣',base:150,g:1.75,max:8,desc:l=>`${2+l} guns per side • dmg ${(10+1.5*l).toFixed(1)}`},
- cargo:{name:'Cargo Hold',icon:'📦',base:90,g:1.6,max:8,desc:l=>`Holds ${20+12*l} crates`}};
+ cargo:{name:'Cargo Hold',icon:'📦',base:90,g:1.6,max:8,desc:l=>`Holds ${20+12*l} crates`},
+ rigging:{name:'Racing Rigging',icon:'🚀',base:160,g:1.8,max:4,desc:l=>`Boost lasts ${(7+0.5*l).toFixed(1)}s • recharge ${22-1.5*l}s`}};
 const ROLES={
  gunner:{name:'Gunners',icon:'🎯',base:80,g:1.9,max:5,desc:l=>`+${15*l}% damage, ${9*l}% faster reload`},
  sailor:{name:'Sailors',icon:'🧭',base:80,g:1.9,max:5,desc:l=>`+${6*l}% speed & turning`},
@@ -313,7 +324,7 @@ const ROLES={
 const upCost=(def,l)=>Math.round(def.base*Math.pow(def.g,l));
 function recalc(){const u=S.up,r=S.roles;const cannons=2+u.cannons;const need=4+cannons*2;const eff=clamp(0.25+0.75*S.crew/need,0.5,1);
  ST={maxHp:150+45*u.hull,maxSpeed:(135+18*u.sails)*(1+0.06*r.sailor)*(0.7+0.3*eff),turn:(1.45+0.07*u.sails)*(1+0.06*r.sailor),cannons,dmg:(10+1.5*u.cannons)*(1+0.15*r.gunner),
- reload:2.5*(1-0.09*r.gunner)/eff,cargoCap:20+12*u.cargo,maxCrew:12+6*u.hull,crewNeed:need,eff,regen:0.8*r.carpenter,reveal:450+220*r.navigator,radar:r.navigator>=1?1400+500*r.navigator:0,len:52+3*u.hull,wid:18+1.2*u.hull,range:420};
+ reload:2.5*(1-0.09*r.gunner)/eff,cargoCap:20+12*u.cargo,boostDur:7+0.5*(u.rigging||0),boostCd:22-1.5*(u.rigging||0),maxCrew:12+6*u.hull,crewNeed:need,eff,regen:0.8*r.carpenter,reveal:450+220*r.navigator,radar:r.navigator>=1?1400+500*r.navigator:0,len:52+3*u.hull,wid:18+1.2*u.hull,range:420};
  if(S.crew>ST.maxCrew)S.crew=ST.maxCrew;}
 function cargoUsed(){let n=0;for(const g of GOODS)n+=S.cargo[g.id]||0;for(const q of S.quests)if(q.type==='deliver')n+=q.crates;return n;}
 const RANKS=[[0,'Deckhand'],[100,'Swabbie'],[300,'Buccaneer'],[700,'Captain'],[1500,'Sea Wolf'],[3000,'Commodore'],[6000,'Pirate Lord'],[12000,'Pirate King']];
@@ -322,7 +333,7 @@ function price(pi,gi){const p=PORTS[pi];return Math.max(1,Math.round(GOODS[gi].b
 const sellPrice=(pi,gi)=>Math.max(1,Math.round(price(pi,gi)*0.82));
 
 // ---------- ENTITIES ----------
-const P={x:0,y:0,vx:0,vy:0,h:0,speed:0,throttle:0,hp:100,len:52,wid:18,rl:0,rr:0,rb:0,calm:0,dead:0,kind:'player'};
+const P={x:0,y:0,vx:0,vy:0,h:0,speed:0,throttle:0,boost:0,boostCd:0,hp:100,len:52,wid:18,rl:0,rr:0,rb:0,calm:0,dead:0,kind:'player'};
 const enemies=[],balls=[],loot=[],parts=[],texts=[],wakes=[];
 const PNAMES=['Black Jack','Mad Meg','One-Eyed Willy','Calico Kate','Barnacle Bill','Red Rackham','Iron Anne','Salty Pete','Captain Blight','The Grey Ghost','Bloody Mary','Gentleman Ned','Scurvy Sam','Long Tom'];
 function makeEnemy(kind,x,y,lvl,extra){
@@ -385,11 +396,11 @@ document.addEventListener('contextmenu',e=>{if(!isTyping(e.target))e.preventDefa
 const NOSCROLL_KEYS={arrowup:1,arrowdown:1,arrowleft:1,arrowright:1,' ':1};
 window.addEventListener('keydown',e=>{if(isTyping(e.target)||!$('xfer').classList.contains('hidden'))return;const k=(e.key||'').toLowerCase();keys[k]=true;if(NOSCROLL_KEYS[k])e.preventDefault();
  if(k==='enter'&&T.on&&!$('tutNext').classList.contains('hidden')){$('tutNext').click();return;}
- if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&nearPort>=0)dock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='escape')openMenu();}
+ if(state==='play'){if(k==='q'||k==='j')fire(-1);if(k==='e'||k==='k')fire(1);if(k===' '){fire(-1);fire(1);}if((k==='f'||k==='enter')&&nearPort>=0)dock(nearPort);if(k==='m')state='map';if(k==='t')toggleAuto();if(k==='b'||k==='shift')boost();if(k==='escape')openMenu();}
  else if(state==='map'&&(k==='m'||k==='escape'))state='play';});
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 function bindBtn(id,fn){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();fn();});}
-bindBtn('fireL',()=>{if(state==='play')fire(-1);});
+bindBtn('fireL',()=>{if(state==='play')fire(-1);});bindBtn('boostBtn',boost);
 bindBtn('autoBtn',()=>{if(state==='play'||state==='map')toggleAuto();});bindBtn('fireR',()=>{if(state==='play')fire(1);});
 // tap = pointerdown+pointerup on the same element (works with a second finger while steering; no click delay)
 function tapBtn(id,fn){const b=$(id);let pid=null;b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();pid=e.pointerId;initAudio();});
@@ -473,7 +484,7 @@ function playerDied(){const early=S.infamy<300;const lostG=Math.round(S.gold*(ea
  S.crew=Math.max(early?Math.min(10,S.crew):4,Math.ceil(S.crew*0.7));recalc();
  $('deadTxt').innerHTML=`You lost ${lostG} 💰${lostC?`, ${lostC} crates of cargo`:''}${failed.length?` and ${failed.length} delivery job(s)`:''}.<br>Some of your crew swam to ${PORTS[S.lastPort].name}.`;
  $('dead').classList.remove('hidden');state='dead';}
-$('deadBtn').addEventListener('click',()=>{$('dead').classList.add('hidden');const p=PORTS[S.lastPort];P.x=p.port.x;P.y=p.port.y;P.h=p.pa;P.vx=P.vy=P.speed=0;P.throttle=0;P.hp=ST.maxHp;P.dead=0;
+$('deadBtn').addEventListener('click',()=>{$('dead').classList.add('hidden');const p=PORTS[S.lastPort];P.x=p.port.x;P.y=p.port.y;P.h=p.pa;P.vx=P.vy=P.speed=0;P.throttle=0;P.hp=ST.maxHp;P.dead=0;P.boost=0;
  balls.length=0;for(const e of enemies)e.angry=false;state='play';dock(S.lastPort);});
 
 // ---------- QUESTS ----------
@@ -491,7 +502,7 @@ function questTargets(){const out=[];for(const q of S.quests){if(q.type==='hunt'
 
 // ---------- PORT UI ----------
 let curPort=-1,tab='dock';let nearPort=-1;
-function dock(pi){curPort=pi;state='port';P.vx=P.vy=P.speed=0;P.throttle=0;joy.id=null;S.lastPort=pi;
+function dock(pi){curPort=pi;state='port';P.vx=P.vy=P.speed=0;P.throttle=0;P.boost=0;joy.id=null;S.lastPort=pi;
  if(pi===0&&S.infamy<300&&P.hp<ST.maxHp){P.hp=ST.maxHp;setTimeout(()=>toast('🔧 Port Royal shipwrights patched your hull for free (until you reach Buccaneer).'),50);}
  for(const q of S.quests.slice()){if(q.type==='deliver'&&q.to===pi)completeQuest(q);}
  offersFor(pi);tab='dock';$('port').classList.remove('hidden');renderPort();save();}
@@ -563,7 +574,7 @@ function renderMenu(){const used=cargoUsed();let cg=GOODS.filter(g=>S.cargo[g.id
  h+=row('💾 Save game','Progress also saves automatically every few seconds.',btn('savenow','💾 Save now',true));
  h+=row('🕹️ Steering',S.steer==='buttons'?'Drag on the sea <b>and</b> on-screen ⟲ ⟳ turn / ⛵± sail buttons':'Drag anywhere on the sea (floating joystick)',btn('steer',S.steer==='buttons'?'Drag only':'Add buttons',true));
  h+=row('🎓 Tutorial',S.tutDone?'Replay the guided tutorial.':'Tutorial in progress.',btn('tut',T.on?'Restart':'Replay',true));
- h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow). Steer and fire at the same time with two thumbs.<br>💥 LEFT/RIGHT fire broadsides. 🎯 AUTO fires them for you at hostile ships.<br>⚓ Get close to a pier and tap Dock.<br>⌨️ WASD/arrows • Q/E fire • Space both • F dock • M map</div>`;
+ h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow). Steer and fire at the same time with two thumbs.<br>💥 LEFT/RIGHT fire broadsides. 🎯 AUTO fires them for you at hostile ships.<br>⚓ Get close to a pier and tap Dock.<br>🚀 BOOST = +25% speed, but harder turning, then recharge.<br>⌨️ WASD/arrows • Q/E fire • Space both • B/Shift boost • F dock • M map • T auto</div>`;
  h+=row('💾 Save Transfer','Move progress to another device (export / import a save code).',btn('xfer','💾 Save Transfer',true));
  h+=row('⚠️ Reset progress','Delete your save and start over.',btn('reset',resetArm?'Tap again!':'Reset',true,'','red'));
  h+=`<div class="note">Progress saves automatically on this device. Use 💾 Save Transfer to move it to another one.</div>`;$('mBody').innerHTML=h;}
@@ -582,16 +593,21 @@ let toastT=0;function toast(m){const t=$('toast');t.textContent=m;t.classList.ad
 
 // ---------- UPDATE ----------
 function windFactor(h){return 0.8+0.3*(0.5+0.5*Math.cos(h-wind.dir));}
-function moveShip(s,desired,thr,maxSpeed,turn,dt){
+function moveShip(s,desired,thr,maxSpeed,turn,dt,acc){
  const ad=angDiff(s.h,desired);const tr=turn*(0.5+0.5*clamp(s.speed/maxSpeed,0,1))*dt;s.h+=clamp(ad,-tr,tr);
- const target=thr*maxSpeed*windFactor(s.h);s.speed+=clamp(target-s.speed,-70*dt,50*dt);
+ const target=thr*maxSpeed*windFactor(s.h);s.speed+=clamp(target-s.speed,-70*dt,50*(acc||1)*dt);
  const k=Math.min(1,dt*2.2);s.vx+=(Math.cos(s.h)*s.speed-s.vx)*k;s.vy+=(Math.sin(s.h)*s.speed-s.vy)*k;
  s.x+=s.vx*dt;s.y+=s.vy*dt;
  for(const o of ISL){const m=s.wid*0.7;if(insideIsland(o,s.x,s.y,m)){const a=Math.atan2(s.y-o.y,s.x-o.x);const rr=radiusAt(o,a)+m+0.5;s.x=o.x+Math.cos(a)*rr;s.y=o.y+Math.sin(a)*rr;
   const nx=Math.cos(a),ny=Math.sin(a);const vn=s.vx*nx+s.vy*ny;if(vn<0){s.vx-=nx*vn*1.6;s.vy-=ny*vn*1.6;}s.speed*=0.6;}}
  if(s.x<60){s.x=60;s.vx=Math.abs(s.vx)*0.3;}if(s.y<60){s.y=60;s.vy=Math.abs(s.vy)*0.3;}if(s.x>WORLD-60){s.x=WORLD-60;s.vx=-Math.abs(s.vx)*0.3;}if(s.y>WORLD-60){s.y=WORLD-60;s.vy=-Math.abs(s.vy)*0.3;}
- s.wakeT-=dt;if(s.wakeT<=0&&Math.abs(s.speed)>25){s.wakeT=0.07;if(wakes.length>260)wakes.shift();wakes.push({x:s.x-Math.cos(s.h)*s.len*0.45,y:s.y-Math.sin(s.h)*s.len*0.45,life:1.6,w:s.wid});}}
+ s.wakeT-=dt;if(s.wakeT<=0&&Math.abs(s.speed)>25){s.wakeT=s.boost>0?0.035:0.07;if(s.boost>0)for(let k=-1;k<=1;k+=2)addPart('foam',s.x-Math.cos(s.h)*s.len*0.4-Math.sin(s.h)*k*s.wid*0.5,s.y-Math.sin(s.h)*s.len*0.4+Math.cos(s.h)*k*s.wid*0.5,-Math.sin(s.h)*k*30-s.vx*0.15,Math.cos(s.h)*k*30-s.vy*0.15,0.9,rand(3,6),null);if(wakes.length>260)wakes.shift();wakes.push({x:s.x-Math.cos(s.h)*s.len*0.45,y:s.y-Math.sin(s.h)*s.len*0.45,life:1.6,w:s.wid});}}
 const LOOKS=[90,190];
+// ---------- SPEED BOOST ----------
+const BOOST_SPEED=1.25,BOOST_TURN=0.6;
+function boost(){if(state!=='play'||P.dead||P.boost>0||P.boostCd>0)return;P.boost=ST.boostDur;P.boostCd=ST.boostCd;P.speed+=25;cam.shake=Math.max(cam.shake,2);
+ tutEv('boost');if(!S.boostTip){S.boostTip=true;$('boostBtn').classList.remove('tip');}
+ if(actx&&!S.muted)boom(0.25,1400);toast(`🚀 Boost! +25% speed for ${ST.boostDur}s — turning is harder`);}
 function nearSafePort(x,y){for(const p of PORTS)if(Math.hypot(p.port.x-x,p.port.y-y)<420)return true;return false;}
 function updateEnemy(e,dt){
  if(e.sinking){e.sinking+=dt;e.speed*=0.97;e.x+=e.vx*dt*0.3;e.y+=e.vy*dt*0.3;if(Math.random()<0.3)addPart('smoke',e.x+rand(-10,10),e.y+rand(-10,10),rand(-10,10),rand(-20,0),1,rand(6,12),null);return;}
@@ -630,7 +646,10 @@ function update(dt){
   const turn=(keys['arrowright']||keys['d']||hold.R?1:0)-(keys['arrowleft']||keys['a']||hold.L?1:0);if(turn)desired=P.h+turn*0.8;
   if(keys['arrowup']||keys['w'])P.throttle=clamp(P.throttle+dt*1.2,0,1);if(keys['arrowdown']||keys['s'])P.throttle=clamp(P.throttle-dt*1.2,0,1);
   if(hold.U){hold.tU+=dt;if(hold.tU>0.4)P.throttle=clamp(P.throttle+dt*0.9,0,1);}if(hold.D){hold.tD+=dt;if(hold.tD>0.4)P.throttle=clamp(P.throttle-dt*0.9,0,1);}
-  P.len=ST.len;P.wid=ST.wid;moveShip(P,desired,P.throttle,ST.maxSpeed,ST.turn,dt);
+  if(P.boostCd>0&&P.boost<=0)P.boostCd=Math.max(0,P.boostCd-dt);
+  if(P.boost>0){P.boost=Math.max(0,P.boost-dt);if(P.boost===0)toast('🚀 Boost over — recharging');}
+  const bo=P.boost>0;
+  P.len=ST.len;P.wid=ST.wid;moveShip(P,desired,bo?1:P.throttle,ST.maxSpeed*(bo?BOOST_SPEED:1),ST.turn*(bo?BOOST_TURN:1),dt,bo?2:1);
   P.rl=Math.max(0,P.rl-dt);P.rr=Math.max(0,P.rr-dt);P.rb=Math.max(0,P.rb-dt);
   autoFire();calmRepair(dt);
   if(ST.regen>0&&P.hp<ST.maxHp)P.hp=Math.min(ST.maxHp,P.hp+ST.regen*dt);
@@ -709,7 +728,8 @@ function render(t){perfT=t;
  // ships
  for(const e of enemies){if(e.x<x0-80||e.x>x1+80||e.y<y0-80||e.y>y1+80)continue;
   if(e.tut)drawShip(e,'#f3e2b0','#ffd34d',0.3);else if(e.kind==='merchant')drawShip(e,'#f4ead2','#2b5fb5',0.6);else if(e.kind==='boss')drawShip(e,'#8c1c26','#111',1);else drawShip(e,'#3b3b42','#111',0.9);}
- if(state!=='title'||true)drawShip(P,'#fff8e7','#111',P.throttle);
+ if(P.boost>0&&!P.dead){const g=0.35+0.2*Math.sin(ts*14);ctx.fillStyle=`rgba(255,190,60,${g})`;ctx.beginPath();ctx.ellipse(P.x,P.y,P.len*0.8,P.len*0.8,0,0,TAU);ctx.fill();drawShip(P,'#ffd27a','#111',1.4);}
+ else drawShip(P,'#fff8e7','#111',P.throttle);
  drawAutoHud(ts);
  // balls
  ctx.fillStyle='#111';for(const b of balls){ctx.beginPath();ctx.arc(b.x,b.y,3.6,0,TAU);ctx.fill();}
@@ -719,6 +739,7 @@ function render(t){perfT=t;
   else if(p.type==='fire'){ctx.globalAlpha=a;ctx.fillStyle=a>0.5?'#ffd25a':'#ff6a2a';ctx.beginPath();ctx.arc(p.x,p.y,p.size*a,0,TAU);ctx.fill();}
   else if(p.type==='flash'){ctx.globalAlpha=a;ctx.fillStyle='#fff3a0';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,TAU);ctx.fill();}
   else if(p.type==='splash'){ctx.globalAlpha=a*0.8;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,p.size+(1-a)*16,0,TAU);ctx.stroke();}
+  else if(p.type==='foam'){ctx.globalAlpha=a*0.85;ctx.fillStyle='#f4fbff';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.6-a),0,TAU);ctx.fill();}
   else if(p.type==='drop'){ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.fillRect(p.x-1.5,p.y-1.5,3,3);}
   else if(p.type==='dust'){ctx.globalAlpha=a*0.6;ctx.fillStyle='#c9a86a';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.5-a),0,TAU);ctx.fill();}}
  ctx.globalAlpha=1;
@@ -753,7 +774,7 @@ function render(t){perfT=t;
  const m=miniRect();drawMap(m.x,m.y,m.s,false);
  // wind & sail gauge
  const wx=m.x+m.s/2,wy=m.y+m.s+16;ctx.fillStyle='rgba(10,25,40,0.55)';ctx.fillRect(m.x,m.y+m.s+4,m.s,24);ctx.save();ctx.translate(m.x+14,wy);ctx.rotate(wind.dir);ctx.fillStyle='#bfe8ff';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-7,-6);ctx.lineTo(-3,0);ctx.lineTo(-7,6);ctx.closePath();ctx.fill();ctx.restore();
- ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(`${Math.round(Math.hypot(P.vx,P.vy))}kn  ⛵${Math.round(P.throttle*100)}%`,m.x+26,wy);ctx.textAlign='center';
+ ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(P.boost>0?`${Math.round(Math.hypot(P.vx,P.vy))}kn  🚀${P.boost.toFixed(1)}s`:`${Math.round(Math.hypot(P.vx,P.vy))}kn  ⛵${Math.round(P.throttle*100)}%`,m.x+26,wy);ctx.textAlign='center';
  if(state==='map'){drawBigMap();}
 }
 function drawMap(X,Y,s,big){const k=s/WORLD;ctx.save();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-2,Y-2,s+4,s+4);ctx.imageSmoothingEnabled=true;ctx.drawImage(mapBase,X,Y,s,s);ctx.globalAlpha=0.92;ctx.drawImage(fogCv,X,Y,s,s);ctx.globalAlpha=1;
@@ -769,11 +790,15 @@ function drawBigMap(){ctx.fillStyle='rgba(5,10,20,0.75)';ctx.fillRect(0,0,vw,vh)
  ctx.font='12px sans-serif';ctx.fillText(ST.radar?'Red = pirates, blue = merchants (navigator radar)':'Hire a Navigator to see ships and reveal more map',vw/2,Y+s+14);}
 
 // ---------- HUD ----------
-const hudCache={};function setTxt(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v;}}
+const hudCache={};let boostTipShown=false;function setTxt(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v;}}
 function updateHUD(){QT=questTargets();setTxt('hGold','💰 '+S.gold);setTxt('hCrew','👥 '+S.crew+'/'+ST.maxCrew);setTxt('hCargo','📦 '+cargoUsed()+'/'+ST.cargoCap);
  const hp=clamp(P.hp/ST.maxHp,0,1);const w=Math.round(hp*100)+'%';if(hudCache.hpw!==w){hudCache.hpw=w;$('hHp').style.width=w;$('hHp').style.background=hp>0.5?'linear-gradient(#5be36a,#2c9c3a)':hp>0.25?'linear-gradient(#ffd34d,#d99a1a)':'linear-gradient(#ff6b5b,#b8281a)';}
  setTxt('hHpT',`❤️ ${Math.ceil(P.hp)}/${ST.maxHp}`);setTxt('hRank','⭐ '+rankOf(S.infamy));const L=lvlAt(P.x,P.y);setTxt('hDanger',(L<=2?'🟢':L<=4?'🟡':L<=6?'🟠':'🔴')+' Waters Lv'+L);
  const showDock=state==='play'&&nearPort>=0;$('dockBtn').classList.toggle('hidden',!showDock);if(showDock)setTxt('dockBtn','⚓ Dock at '+PORTS[nearPort].name);
+ {const b=$('boostBtn');const on=P.boost>0,rdy=!on&&P.boostCd<=0;const p=on?0:Math.round(clamp(P.boostCd/ST.boostCd,0,1)*100);
+  const lbl=on?P.boost.toFixed(1)+'s':rdy?'BOOST':Math.ceil(P.boostCd)+'s';const k=(on?'a':rdy?'r':'c')+p+lbl;
+  if(hudCache.boost!==k){hudCache.boost=k;b.style.setProperty('--p',p+'%');b.classList.toggle('on',on);b.classList.toggle('ready',rdy);$('boostLbl').textContent=lbl;}}
+ if(!S.boostTip&&state==='play'&&!T.on&&!boostTipShown){boostTipShown=true;$('boostBtn').classList.add('tip');setTimeout(()=>{$('boostBtn').classList.remove('tip');S.boostTip=true;save();},15000);toast(IS_TOUCH?'🚀 New: tap BOOST for a burst of speed (turning gets harder)!':'🚀 New: press B / Shift (or BOOST) for a burst of speed — turning gets harder!');}
  for(const [id,r] of [['fireL',P.rl],['fireR',P.rr]]){const f=Math.round(clamp(r/ST.reload,0,1)*20)/20;if(hudCache[id]!==f){hudCache[id]=f;const b=$(id);b.firstChild.style.height=(f*100)+'%';b.classList.toggle('ready',f===0);}}}
 
 // ---------- LOOP ----------
@@ -832,6 +857,8 @@ const TSTEPS=[
   target:()=>tab!=='ship'?{q:'#pTabs button[data-tab="ship"]'}:(firstEnabled('#pBody button[data-act="up"]')?{node:firstEnabled('#pBody button[data-act="up"]'),scroll:1}:null),
   nextIf:()=>tab==='ship'&&!firstEnabled('#pBody button[data-act="up"]'),done:c=>(c.buy||0)>=1},
  {id:'leave',text:()=>`Nice refit, Captain! Tap <b>⛵ Set Sail</b> to head back out to sea.`,target:()=>({el:'pLeave'}),done:()=>state!=='port'},
+ {id:'boost',text:()=>`One more trick: tap <b>🚀 BOOST</b> for <b>+25% speed</b> for a few seconds. Careful — the ship <b>turns slower</b> while boosting, then it needs to recharge.`+kb('B / Shift'),
+  target:()=>({el:'boostBtn'}),done:c=>(c.boost||0)>=1,nextIf:()=>P.boostCd>0&&!T.c.boost},
  {id:'log',text:()=>`Tap <b>☰</b> to open the <b>Captain's Log</b> — sound, steering options, map and saves live here.`+kb('Esc'),target:()=>({el:'menuBtn'}),done:()=>state==='menu'},
  {id:'save',menu:1,text:()=>`Your progress <b>saves automatically</b> on this device. Tap <b>💾 Save now</b> to save by hand. (💾 Save Transfer moves it to another phone.)`,
   target:()=>({q:'#mBody button[data-act="savenow"]',scroll:1}),done:c=>(c.save||0)>=1},
@@ -842,14 +869,14 @@ function tutResumeIdx(i){const id=(TSTEPS[i]||TSTEPS[0]).id;
  if(id==='loot')return T.loot?i:TIDX.enemy;if(id==='mapClose')return TIDX.map;if(id==='shipTab'||id==='buy'||id==='leave')return TIDX.dock;if(id==='save'||id==='finish')return TIDX.log;return clamp(i,0,TSTEPS.length-1);}
 function tutStart(i){T.on=true;T.skipArm=0;$('tutSkip').textContent='Skip tutorial';$('tut').classList.remove('hidden');tutGo(i||0);}
 function tutGo(i){T.i=i;T.c={};T.wait=0;T.html='';T.txtT=0;T.lay={};S.tutStep=i;const st=TSTEPS[i];if(st.enter)st.enter(T.c);T.scrolled=false;tutText();save();}
-function tutEnd(finished){const d=T.dummy;if(d&&!d.sinking){const k=enemies.indexOf(d);if(k>=0)enemies.splice(k,1);}
+function tutEnd(finished){if(finished)S.boostTip=true;const d=T.dummy;if(d&&!d.sinking){const k=enemies.indexOf(d);if(k>=0)enemies.splice(k,1);}
  T.on=false;T.dummy=null;T.loot=null;tutPeace=false;S.tutDone=true;S.tutStep=0;$('tut').classList.add('hidden');save();
  toast(finished?'🎓 Tutorial complete — fair winds, Captain!':'Tutorial skipped. Replay it any time from ☰ Captain\'s Log.');}
 function tutText(){const st=TSTEPS[T.i];const h=st.text(T.c);if(h!==T.html){T.html=h;$('tutTxt').innerHTML=h;}
  $('tutCount').textContent=`Step ${T.i+1}/${TSTEPS.length}`;
  const showNext=!!st.next||!!(st.nextIf&&st.nextIf());$('tutNext').classList.toggle('hidden',!showNext);if(showNext)$('tutNext').textContent=st.next||'Next ▶';
  const pr=st.prog?st.prog(T.c):null;$('tutProg').classList.toggle('hidden',pr==null);if(pr!=null)$('tutBar').style.width=Math.round(clamp(pr,0,1)*100)+'%';}
-$('tutNext').addEventListener('click',()=>{if(!T.on)return;const st=TSTEPS[T.i];
+$('tutNext').addEventListener('click',()=>{if(!T.on)return;const st=TSTEPS[T.i];if(st.id==='boost')S.boostTip=true;
  if(st.id==='finish'){tutEnd(true);if(state==='menu'){$('menu').classList.add('hidden');state='play';}return;}
  chime();tutGo(T.i+1);});
 $('tutSkip').addEventListener('click',()=>{if(!T.on)return;if(!T.skipArm){T.skipArm=1;$('tutSkip').textContent='Tap again to skip';setTimeout(()=>{T.skipArm=0;if(T.on)$('tutSkip').textContent='Skip tutorial';},3000);return;}tutEnd(false);});
@@ -970,7 +997,7 @@ applySteerMode();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});window.addEventListener('pagehide',save);
 requestAnimationFrame(frame);
 // test hook
-window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort}};
+window.__game={get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort}};
 })();
 </script>
 </body>
