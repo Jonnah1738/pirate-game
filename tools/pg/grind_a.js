@@ -69,7 +69,7 @@ function grindLootK(){return 1+0.02*crewEff('quartermaster')+0.05*(S.roster||[])
 function ramTick(dt){if(!(ST.ramDmg>0)||P.dead)return;const sp=Math.hypot(P.vx,P.vy);if(sp<80)return;
  for(const e of enemies){if(e.sinking||e.surr||e.tut||e.kraken)continue;e.prc=(e.prc||0)-dt;if(e.prc>0)continue;const d=Math.hypot(e.x-P.x,e.y-P.y);if(d>(ST.len+e.len)*0.42)continue;
   const dm=Math.round(ST.ramDmg*Math.min(1.3,sp/Math.max(60,ST.maxSpeed))*(1+0.8*threat()));e.prc=1.4;damageEnemy(e,dm);e.angry=true;const a=Math.atan2(e.y-P.y,e.x-P.x);e.vx+=Math.cos(a)*160;e.vy+=Math.sin(a)*160;
-  P.hp-=dm*0.08;P.vx*=0.55;P.vy*=0.55;cam.shake=Math.max(cam.shake,10);addText(e.x,e.y-50,`🔱 RAM -${dm}`,'#ffb35a',true);boom(0.5,120);grindEv('ram',{});}}
+  if(!hullLocked())P.hp-=dm*0.08;P.vx*=0.55;P.vy*=0.55;cam.shake=Math.max(cam.shake,10);addText(e.x,e.y-50,`🔱 RAM -${dm}`,'#ffb35a',true);boom(0.5,120);grindEv('ram',{});}}
 // ---- UI ----
 function craftHTML(p){let h=`<h3>🔨 Shipwright — refit tiers</h3><div class="note">Each component of <b>this ship</b> can be refitted Common → Fine → Masterwork → Legendary. Higher tiers can <b>fail and ruin the materials</b> (failures raise the odds next time). Stock: ${Object.keys(RES).map(k=>`${RES[k][0]} ${resN(k)}`).join(' • ')}</div>`;
  for(const c in COMP){const t=cTier(c),nx=t+1,k=craftCost(c,nx);const col=CT[t][1];const eff=c==='ram'?(t?`${CBON.ram[t]} ram damage`:'no ram'):`+${Math.round((CBON[c][t]-1)*100)}% ${COMP[c][2]}`;

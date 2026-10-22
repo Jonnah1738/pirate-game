@@ -41,7 +41,8 @@ with sync_playwright() as p:
     E(pg,f"(()=>{{const g=__game;g.P.x={z['x']};g.P.y={z['y']};g.enemies.length=0;g.syncFleet();for(const f of g.fleet){{f.x=g.P.x-100;f.y=g.P.y;}}}})()");sim(pg,12)
     print('in shark zone lvl',E(pg,"__game.lvlAt(__game.P.x,__game.P.y)"),'sharks',E(pg,"__game.sharks.length"),'shark tip',E(pg,"__game.S.tips.shark"))
     E(pg,"(()=>{const g=__game;g.P.hp=g.ST().maxHp*0.3;for(const s of g.sharks.slice(0,3)){s.x=g.P.x+rand(150);s.y=g.P.y+120;}function rand(a){return Math.random()*a;}})()")
-    hp0=E(pg,'__game.P.hp');crew0=E(pg,'__game.S.crew');sim(pg,8)
+    hp0=E(pg,'__game.P.hp');crew0=E(pg,'__game.S.crew')
+    for _k in range(8): sim(pg,1);E(pg,"(()=>{const g=__game;if(g.P.hp<g.ST().maxHp*0.12)g.P.hp=g.ST().maxHp*0.12;})()")
     print(f'low hull: hp {round(hp0)} -> {round(E(pg,"__game.P.hp"))}, crew {crew0} -> {E(pg,"__game.S.crew")}, chasing',E(pg,"__game.sharks.filter(s=>s.chase).length"))
     pg.wait_for_timeout(300);pg.screenshot(path=OUT+'03-sharks-low-hull.png')
     # shoot a shark
@@ -52,7 +53,8 @@ with sync_playwright() as p:
     sim(pg,1);lt=E(pg,"__game.loot.map(l=>JSON.stringify(l.goods))");print('shark killed, loot:',lt,'kills',E(pg,'__game.S.sharks'))
     E(pg,"(()=>{const g=__game,l=g.loot[g.loot.length-1];if(l){g.P.x=l.x;g.P.y=l.y;}})()");sim(pg,0.3);print('teeth in hold',E(pg,'__game.S.cargo.teeth'))
     # megalodon
-    E(pg,"(()=>{const g=__game;const m=g.makeShark(g.P.x+500,g.P.y,9,true);g.sharks.push(m);})()");sim(pg,4);pg.wait_for_timeout(300)
+    E(pg,"(()=>{const g=__game;const m=g.makeShark(g.P.x+500,g.P.y,9,true);g.sharks.push(m);})()")
+    for _k in range(4): sim(pg,1);E(pg,"__game.P.hp=__game.ST().maxHp");pg.wait_for_timeout(300)
     print('megalodon: hp',E(pg,"__game.sharks.find(s=>s.mega).maxHp"),'chasing',E(pg,"__game.sharks.find(s=>s.mega).chase"),'auto-target is mega',E(pg,"!!(__game.autoTgt&&__game.autoTgt.mega)"))
     pg.screenshot(path=OUT+'04-megalodon.png')
     E(pg,"(()=>{const g=__game;g.sharks.length=0;g.P.hp=g.ST().maxHp;})()")
