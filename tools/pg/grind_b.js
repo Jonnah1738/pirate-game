@@ -17,7 +17,7 @@ function wxTick(dt){if(!wxOn()){return;}WX.t-=dt;
  // stealth: night and fog shrink how far hostile ships notice you
  const vk=clamp(1-0.3*dk-(WX.k==='fog'?0.35*wxI():0)-(WX.k==='storm'?0.1*wxI():0),0.45,1);
  for(const e of enemies){if(e.kind==='navy'||e.kind==='merchant'||e.tut)continue;if(e.ag0==null)e.ag0=e.aggro||0;e.aggro=e.ag0*vk;}
- if(WX.k==='storm'&&state==='play'){const i=wxI();const g=28*i*dt;P.vx+=Math.cos(wind.dir)*g;P.vy+=Math.sin(wind.dir)*g;
+ if(WX.k==='storm'&&state==='play'){const i=wxI();const g=28*i*dt*(typeof thrEff==='function'&&thrEff()<0.05&&P.boost<=0?0.12:1);P.vx+=Math.cos(wind.dir)*g;P.vy+=Math.sin(wind.dir)*g;
   WX.ltT-=dt;if(WX.ltT<=0){WX.ltT=rand(6,14);WX.lt=1;setTimeout(()=>boom(0.18*i,40),400+Math.random()*900);}
   if(!WX.wave&&i>0.6){WX.wt-=dt;if(WX.wt<=0){WX.wt=rand(16,28);const a=wind.dir+rand(-0.4,0.4);WX.wave={a,x:P.x-Math.cos(a)*1050,y:P.y-Math.sin(a)*1050,v:300,life:9,hit:{}};
    toast(`🌊 Rogue wave from the ${cmpOf(a+Math.PI)}! Turn your bow into it!`);boom(0.25,30);}}}

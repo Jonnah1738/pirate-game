@@ -459,7 +459,7 @@ function fogLoadBits(fb,n,off){for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=
 
 // ---------- SAVE STATE ----------
 const SAVEKEY='pirateSeas_save_v1';
-function defaultState(){return{codex:{ships:{},fish:{},art:{},crew:{}},dive:{},fishN:{d:0,n:0},res:{wood:0,iron:0,canvas:0,parts:0},craft:{},cpity:{},mast:{sloop:0,brig:0,frigate:0,galleon:0},roster:[],rid:0,hired:[],charm:0,story:stDef(),mat:{iw:0,ink:0,bp:0,rel:0},matTot:0,upk:{crew:0,wear:0,t:0,last:null,paidTot:0},morale:80,vault:0,war:{next:0,n:0,lost:0},lb:{cur:'',st:0,have:0,done:{},hp:1},tr:{frag:0,dug:0},eb:{admiral:{hp:1,done:0,tries:0},kraken:{hp:1,done:0,tries:0}},cosU:{},eco:ecoDef(),ftT:0,xpv:2,gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0,command:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0,teeth:0},
+function defaultState(){return{sail:1,codex:{ships:{},fish:{},art:{},crew:{}},dive:{},fishN:{d:0,n:0},res:{wood:0,iron:0,canvas:0,parts:0},craft:{},cpity:{},mast:{sloop:0,brig:0,frigate:0,galleon:0},roster:[],rid:0,hired:[],charm:0,story:stDef(),mat:{iw:0,ink:0,bp:0,rel:0},matTot:0,upk:{crew:0,wear:0,t:0,last:null,paidTot:0},morale:80,vault:0,war:{next:0,n:0,lost:0},lb:{cur:'',st:0,have:0,done:{},hp:1},tr:{frag:0,dug:0},eb:{admiral:{hp:1,done:0,tries:0},kraken:{hp:1,done:0,tries:0}},cosU:{},eco:ecoDef(),ftT:0,xpv:2,gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0,command:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0,teeth:0},
  quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,heat:0,heatT:0,tips:{},tutDone:false,tutStep:0,steer:'drag',fleet:[],fid:1,upkT:0,sharks:0,xp:0,clvl:1,sp:0,sk:{gun:0,sea:0,plun:0,cmd:0,war:0},ship:'sloop',ach:{},st:{dig:0,resc:0,smug:0,race:0,convoy:0,block:0,jobs:0},megas:0,track:0,lastRank:'',wv:2,rep:[0,0,0,0],forts:{},leaders:{},lrev:{},vis:[0],king:0,cst:{fort:0,lead:0,cj:0,def:0,sk:0,trib:0,rev:0,lev:0},leg:0,cos:{sail:'def',flag:'def',hull:'def',fx:'def'},ammo:{chain:0,fire:0,mortar:0},asel:'ball',off:{},unl:1,cap:{sw:0,pi:0,ar:0,sty:'',cw:0,ca:0,tr:0},bst:{win:0,loss:0,duel:0,repel:0,raid:0,parry:0,ko:0,ret:0,feed:0}};}
 let S=defaultState();
 function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false;const d=JSON.parse(raw);const def=defaultState();
@@ -650,8 +650,8 @@ function bindHold(id,k,onDown){const b=$(id);const ids=new Set();
  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up);
  holdBtns.push(()=>{ids.clear();b.classList.remove('held');});}
 bindHold('turnL','L');bindHold('turnR','R');
-bindHold('sailUp','U',()=>{P.throttle=clamp(Math.floor(P.throttle*4+1e-6)/4+0.25,0,1);hold.tU=0;});
-bindHold('sailDn','D',()=>{P.throttle=clamp(Math.ceil(P.throttle*4-1e-6)/4-0.25,0,1);hold.tD=0;});
+bindHold('sailUp','U',()=>{thrStep(1);hold.tU=0;});
+bindHold('sailDn','D',()=>{thrStep(-1);hold.tD=0;});
 function applySteerMode(){document.body.classList.toggle('steer-btns',S.steer==='buttons');}
 
 // ---------- COMBAT ----------
@@ -889,7 +889,7 @@ function renderMenu(){[...$('mTabs').children].forEach(b=>b.classList.toggle('on
  h+=row('🎯 Auto-fire',S.autoFire!==false?'On — broadsides fire at hostile ships in range (key T)':'Off — fire manually (key T)',btn('auto',S.autoFire!==false?'Turn off':'Turn on',true));
  h+=row('🗺️ Map','See the whole sea',btn('map','Open',true));
  h+=row('💾 Save game','Progress also saves automatically every few seconds.',btn('savenow','💾 Save now',true));
- h+=row('🕹️ Steering',S.steer==='buttons'?'Drag on the sea <b>and</b> on-screen ⟲ ⟳ turn / ⛵± sail buttons':'Drag anywhere on the sea (floating joystick)',btn('steer',S.steer==='buttons'?'Drag only':'Add buttons',true));
+ h+=row('🕹️ Steering',S.steer==='buttons'?'Drag on the sea <b>and</b> on-screen ⟲ ⟳ turn / ⛵± sail buttons':'Drag anywhere on the sea (floating joystick). ⛵ Sail lever on the left sets speed 0–100% (⚓ stop / ⛵ full; keys W/S, +/−, X)',btn('steer',S.steer==='buttons'?'Drag only':'Add buttons',true));
  h+=row('🎓 Tutorial',S.tutDone?'Replay the guided tutorial.':'Tutorial in progress.',btn('tut',T.on?'Restart':'Replay',true));
  h+=`<div class="help">🕹️ Drag on the sea to steer (short drag = slow). Steer and fire at the same time with two thumbs.<br>💥 LEFT/RIGHT fire broadsides. 🎯 AUTO fires them for you at hostile ships.<br>⚓ Get close to a pier and tap Dock.<br>💰 Raid merchants by firing on them; tap Board when they surrender.<br>🚨 Wanted ★: the Navy hunts you. Pay it off at 🏴‍☠️ havens, bribe at ⚖️ lawful ports.<br>🦈 Sharks bite when your hull is low; shoot them for teeth. ⛵ Seize prizes / hire escorts for your fleet.<br>📜 Jobs: track one under the HUD (tap to switch); ⛏ Dig at ❌ treasure spots. 🎖️ XP ➜ skill points (Skills tab).<br>🚀 BOOST = +25% speed, but harder turning, then recharge.<br>⌨️ WASD/arrows • Q/E fire • Space both • B/Shift boost • F dock • M map • T auto</div>`;
  h+=row('💾 Save Transfer','Move progress to another device (export / import a save code).',btn('xfer','💾 Save Transfer',true));
@@ -975,12 +975,12 @@ function update(dt){
   let desired=P.h;
   if(joy.id!==null){const dx=joy.x-joy.bx,dy=joy.y-joy.by,l=Math.hypot(dx,dy);if(l>10){desired=Math.atan2(dy,dx);P.throttle=clamp((l-12)/48,0,1);}}
   const turn=(keys['arrowright']||keys['d']||hold.R?1:0)-(keys['arrowleft']||keys['a']||hold.L?1:0);if(turn)desired=P.h+turn*0.8;
-  if(keys['arrowup']||keys['w'])P.throttle=clamp(P.throttle+dt*1.2,0,1);if(keys['arrowdown']||keys['s'])P.throttle=clamp(P.throttle-dt*1.2,0,1);
-  if(hold.U){hold.tU+=dt;if(hold.tU>0.4)P.throttle=clamp(P.throttle+dt*0.9,0,1);}if(hold.D){hold.tD+=dt;if(hold.tD>0.4)P.throttle=clamp(P.throttle-dt*0.9,0,1);}
+  if(keys['arrowup']||keys['w'])thrNudge(dt*0.8);if(keys['arrowdown']||keys['s'])thrNudge(-dt*0.8);
+  if(hold.U){hold.tU+=dt;if(hold.tU>0.4)thrNudge(dt*0.7);}if(hold.D){hold.tD+=dt;if(hold.tD>0.4)thrNudge(-dt*0.7);}
   if(P.boostCd>0&&P.boost<=0)P.boostCd=Math.max(0,P.boostCd-dt);
   if(P.boost>0){P.boost=Math.max(0,P.boost-dt);if(P.boost===0)toast('🚀 Boost over — recharging');}
   const bo=P.boost>0;
-  P.len=ST.len;P.wid=ST.wid;moveShip(P,desired,bo?1:P.throttle,ST.maxSpeed*(bo?BOOST_SPEED:1),ST.turn*(bo?BOOST_TURN:1),dt,bo?2:1);
+  P.len=ST.len;P.wid=ST.wid;moveShip(P,desired,bo?1:thrEff(),ST.maxSpeed*(bo?BOOST_SPEED:1),ST.turn*(bo?BOOST_TURN:1),dt,bo?2:1);
   P.rl=Math.max(0,P.rl-dt);P.rr=Math.max(0,P.rr-dt);P.rb=Math.max(0,P.rb-dt);
   autoFire();calmRepair(dt);
   if(ST.regen>0&&P.hp<ST.maxHp)P.hp=Math.min(ST.maxHp,P.hp+ST.regen*dt);
@@ -1078,7 +1078,7 @@ function render(t){perfT=t;
  for(const e of enemies){if(e.x<x0-80||e.x>x1+80||e.y<y0-80||e.y>y1+80)continue;
   if(e.tut)drawShip(e,'#f3e2b0','#ffd34d',0.3);else if(e.kind==='navy')drawShip(e,e.hunter?'#6b2a2a':'#eef3fb',e.hunter?'#c0392b':'#1d4fa8',1);else if(e.kind==='merchant')drawShip(e,'#f4ead2',e.surr?'#ffffff':'#2b5fb5',e.surr?0:0.6);else if(e.kind==='clan')drawShip(e,e.rev?'rgba(200,255,230,0.55)':CLANS[e.clan].sail,CLANS[e.clan].col,1);else if(e.kind==='boss'){if(e.kraken)drawKraken(e,ts);else drawShip(e,e.ghost?'rgba(190,230,220,0.5)':e.legC||'#8c1c26','#111',1);}else drawShip(e,e.evg?'rgba(170,255,210,0.5)':'#3b3b42',e.evg?'#0d1a14':'#111',0.9);clsOverlay(e,ts);}
  if(P.boost>0&&!P.dead){const g=0.35+0.2*Math.sin(ts*14);ctx.fillStyle=`rgba(255,190,60,${g})`;ctx.beginPath();ctx.ellipse(P.x,P.y,P.len*0.8,P.len*0.8,0,0,TAU);ctx.fill();drawShip(P,'#ffd27a','#111',1.4);}
- else drawShip(P,playerSail(),'#111',P.throttle);
+ else drawShip(P,playerSail(),'#111',P.boost>0?1:thrEff());
  drawAutoHud(ts);
  // balls
  drawBallsX();drawShells();drawGrapple();
@@ -1123,14 +1123,14 @@ function render(t){perfT=t;
  // joystick (floating): ring = full sails, inner arc shows sail %
  if(joy.id!==null){ctx.globalAlpha=0.55;ctx.fillStyle='rgba(10,25,40,0.35)';ctx.beginPath();ctx.arc(joy.bx,joy.by,JR,0,TAU);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();
   let dx=joy.x-joy.bx,dy=joy.y-joy.by;const l=Math.hypot(dx,dy);if(l>JR){dx*=JR/l;dy*=JR/l;}
-  if(P.throttle>0.01){ctx.strokeStyle='#ffd34d';ctx.lineWidth=5;ctx.beginPath();ctx.arc(joy.bx,joy.by,JR+5,-Math.PI/2,-Math.PI/2+TAU*P.throttle);ctx.stroke();}
+  if(thrEff()>0.01){ctx.strokeStyle='#ffd34d';ctx.lineWidth=5;ctx.beginPath();ctx.arc(joy.bx,joy.by,JR+5,-Math.PI/2,-Math.PI/2+TAU*thrEff());ctx.stroke();}
   ctx.globalAlpha=0.85;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(joy.bx+dx,joy.by+dy,24,0,TAU);ctx.fill();ctx.globalAlpha=1;}
  else if(state==='play'&&S.playTime<25&&!T.on&&S.steer!=='buttons'){ctx.globalAlpha=0.6+0.3*Math.sin(ts*3);ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.fillText('👆 Drag on the sea to steer',vw/2,vh*0.66);ctx.globalAlpha=1;}
  // minimap
  const m=miniRect();drawMap(m.x,m.y,m.s,false);
  // wind & sail gauge
  const wx=m.x+m.s/2,wy=m.y+m.s+16;ctx.fillStyle='rgba(10,25,40,0.55)';ctx.fillRect(m.x,m.y+m.s+4,m.s,24);ctx.save();ctx.translate(m.x+14,wy);ctx.rotate(wind.dir);ctx.fillStyle='#bfe8ff';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-7,-6);ctx.lineTo(-3,0);ctx.lineTo(-7,6);ctx.closePath();ctx.fill();ctx.restore();
- ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(P.boost>0?`${Math.round(Math.hypot(P.vx,P.vy))}kn  🚀${P.boost.toFixed(1)}s`:`${Math.round(Math.hypot(P.vx,P.vy))}kn  ⛵${Math.round(P.throttle*100)}%`,m.x+26,wy);ctx.textAlign='center';
+ ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(P.boost>0?`${Math.round(Math.hypot(P.vx,P.vy))}kn  🚀${P.boost.toFixed(1)}s`:`${Math.round(Math.hypot(P.vx,P.vy))}kn  ⛵${Math.round(thrEff()*100)}%`,m.x+26,wy);ctx.textAlign='center';
  if(state==='map'){drawBigMap();}else mapOpen=false;
 }
 // ---------- HUD ----------
@@ -1221,7 +1221,7 @@ const TSTEPS=[
 const TIDX={};TSTEPS.forEach((s,i)=>TIDX[s.id]=i);
 function tutResumeIdx(i){const id=(TSTEPS[i]||TSTEPS[0]).id;
  if(id==='loot')return T.loot?i:TIDX.enemy;if(id==='mapClose')return TIDX.map;if(id==='shipTab'||id==='buy'||id==='leave')return TIDX.dock;if(id==='save'||id==='finish')return TIDX.log;return clamp(i,0,TSTEPS.length-1);}
-function tutStart(i){T.on=true;T.skipArm=0;$('tutSkip').textContent='Skip';$('tut').classList.remove('hidden');tutGo(i||0);}
+function tutStart(i){T.on=true;if(S.sail<0.5)S.sail=1;T.skipArm=0;$('tutSkip').textContent='Skip';$('tut').classList.remove('hidden');tutGo(i||0);}
 function tutGo(i){T.i=i;T.c={};T.wait=0;T.html='';T.txtT=0;T.lay={};S.tutStep=i;const st=TSTEPS[i];if(st.enter)st.enter(T.c);T.scrolled=false;tutText();save();}
 function tutEnd(finished){if(finished){S.boostTip=true;countHit('tutorial','pirateSeas_tutCounted_v1');}const d=T.dummy;if(d&&!d.sinking){const k=enemies.indexOf(d);if(k>=0)enemies.splice(k,1);}
  T.on=false;T.dummy=null;T.loot=null;tutPeace=false;S.tutDone=true;S.tutStep=0;$('tut').classList.add('hidden');save();
@@ -1243,7 +1243,7 @@ function setBox(el,k,v){const L=T.lay;if(L[k]===v)return;L[k]=v;el.style.transfo
 function tutTick(dt){
  if(!T.on){return;}
  const st=TSTEPS[T.i];tutPeace=T.i<=TIDX.loot;
- if(state==='play'){const c=T.c;c.dist=(c.dist||0)+Math.hypot(P.vx,P.vy)*dt;c.maxThr=Math.max(c.maxThr||0,P.throttle);
+ if(state==='play'){const c=T.c;c.dist=(c.dist||0)+Math.hypot(P.vx,P.vy)*dt;c.maxThr=Math.max(c.maxThr||0,thrEff());
   const dh=angDiff(T.lastH,P.h);T.lastH=P.h;if(dh>0)c.R=(c.R||0)+dh;else c.L=(c.L||0)-dh;}
  else T.lastH=P.h;
  // guards: steps that need the port / log open fall back if the player closed it
@@ -1366,7 +1366,7 @@ function updateFleet(dt){const safe=nearSafePort(P.x,P.y);
     else if(Math.abs(rel+Math.PI/2)<0.5&&f.rl<=0){f.rl=fRel(f.d);fireBroadside(f,-1,f.d.cannons,f.d.dmg*(sk('cmd')>=1?1.15:1)*(sk('cmd')>=5?1.15:1)*(S.off.ad?1.2:1),'f',370);}}}
   else{const p=slotPos(i),dx=p.x-f.x,dy=p.y-f.y,dist=Math.hypot(dx,dy);
    if(dist>1600){f.x=p.x;f.y=p.y;f.h=P.h;f.vx=P.vx;f.vy=P.vy;f.speed=P.speed;}
-   if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(Math.hypot(P.vx,P.vy)/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(Math.hypot(P.vx,P.vy)/(ms*0.95),0,1);}}
+   const pv=Math.hypot(P.vx,P.vy);if(pv<22&&dist<300){if(dist<45)f.hold=1;else if(dist>110)f.hold=0;if(f.hold){desired=P.h;thr=0;}else{desired=Math.atan2(dy,dx);thr=clamp(dist/520,0.08,0.45);}}else{f.hold=0;if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(pv/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(pv/(ms*0.95),0,1);}}}
   const ca=Math.cos(f.h),sa=Math.sin(f.h);for(const look of LOOKS){const o=inAnyIsland(f.x+ca*look,f.y+sa*look,30);if(o){const ai=Math.atan2(o.y-f.y,o.x-f.x);desired=f.h+(angDiff(ai,f.h)>=0?1:-1)*1.4;break;}}
   moveShip(f,desired,thr,ms,ST.turn*1.1,dt);
   // keep a little distance from the flagship and each other
@@ -3210,7 +3210,7 @@ function wxTick(dt){if(!wxOn()){return;}WX.t-=dt;
  // stealth: night and fog shrink how far hostile ships notice you
  const vk=clamp(1-0.3*dk-(WX.k==='fog'?0.35*wxI():0)-(WX.k==='storm'?0.1*wxI():0),0.45,1);
  for(const e of enemies){if(e.kind==='navy'||e.kind==='merchant'||e.tut)continue;if(e.ag0==null)e.ag0=e.aggro||0;e.aggro=e.ag0*vk;}
- if(WX.k==='storm'&&state==='play'){const i=wxI();const g=28*i*dt;P.vx+=Math.cos(wind.dir)*g;P.vy+=Math.sin(wind.dir)*g;
+ if(WX.k==='storm'&&state==='play'){const i=wxI();const g=28*i*dt*(typeof thrEff==='function'&&thrEff()<0.05&&P.boost<=0?0.12:1);P.vx+=Math.cos(wind.dir)*g;P.vy+=Math.sin(wind.dir)*g;
   WX.ltT-=dt;if(WX.ltT<=0){WX.ltT=rand(6,14);WX.lt=1;setTimeout(()=>boom(0.18*i,40),400+Math.random()*900);}
   if(!WX.wave&&i>0.6){WX.wt-=dt;if(WX.wt<=0){WX.wt=rand(16,28);const a=wind.dir+rand(-0.4,0.4);WX.wave={a,x:P.x-Math.cos(a)*1050,y:P.y-Math.sin(a)*1050,v:300,life:9,hit:{}};
    toast(`🌊 Rogue wave from the ${cmpOf(a+Math.PI)}! Turn your bow into it!`);boom(0.25,30);}}}
@@ -3510,6 +3510,65 @@ Object.assign(TIPS,{layup:"⚓ <b>Ships aren't lost.</b> A fleet ship that sinks
 ACH.push(['fleetElite','🎖️','Old Salts','Raise a fleet ship to Elite veterancy',()=>(S.fleet||[]).some(d=>fvl(d)>=4)],['fleetLeg','🏅','Flagship\'s Pride','Give a fleet ship a Legendary refit',()=>(S.fleet||[]).some(d=>d.ft&&Object.values(d.ft).some(t=>t>=3))]);
 GH.sunk.push(fleetSunkD);GH.mig.push(fleetMigrateD);
 
+// ================= E: SAIL THROTTLE (lever 0-100%) =================
+// S.sail = lever setting (cap, 0..1, default 1). P.throttle = joystick trim (0..1). Effective sail = trim x cap.
+const THR_N=[0,0.25,0.5,0.75,1];let thrJoyT=0,thrWarnT=0,thrLastTap=0,thrDrag=null,thrKey='';
+function thrCap(){return (S&&typeof S.sail==='number')?clamp(S.sail,0,1):1;}
+function thrEff(){return clamp(P.throttle,0,1)*thrCap();}
+function thrSet(v,snap){v=clamp(+v||0,0,1);if(snap)for(const n of THR_N)if(Math.abs(v-n)<0.045)v=n;S.sail=Math.round(v*100)/100;P.throttle=1;thrUI(true);}
+function thrStep(d){const c=thrCap();thrSet(d>0?Math.floor(c*4+1e-6)/4+0.25:Math.ceil(c*4-1e-6)/4-0.25);}
+function thrNudge(x){S.sail=clamp(thrCap()+x,0,1);P.throttle=1;}
+function thrStop(){thrSet(0);toast('⚓ All stop — sails furled, she holds position');}
+function thrFull(){thrSet(1);}
+(function(){const st=document.createElement('style');st.textContent=`
+#thr{position:fixed;left:calc(8px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));width:60px;height:250px;z-index:12;display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 0;box-sizing:border-box;border-radius:14px;touch-action:none;user-select:none;-webkit-user-select:none;
+ background:linear-gradient(90deg,#1d1915,#38312a 45%,#1a1612);border:2px solid rgba(178,142,82,.85);box-shadow:0 4px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,235,200,.12);font-family:Georgia,'Times New Roman',serif}
+body.steer-btns #thr{bottom:calc(160px + env(safe-area-inset-bottom))}
+@media (max-height:520px) and (orientation:landscape){body.steer-btns #thr{left:calc(162px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom))}}
+#thr.hidden,body.brawl #thr{display:none!important}
+#thr .thrb{width:48px;height:40px;flex:none;border-radius:10px;border:1px solid rgba(178,142,82,.8);background:radial-gradient(circle at 40% 30%,#4a423b,#1a1613 75%);color:#eadcbd;font-size:17px;line-height:1;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;box-shadow:inset 0 0 0 1px rgba(0,0,0,.6)}
+#thr .thrb b{font-size:8.5px;letter-spacing:.8px;color:#d8c69c;margin-top:2px}
+#thr .thrb:active,#thr .thrb.on{filter:brightness(1.45)}
+#thrRead{flex:none;min-width:48px;text-align:center;font-size:13px;font-weight:700;color:#f3dfa8;background:#0d0b09;border:1px solid rgba(178,142,82,.6);border-radius:5px;padding:1px 0;text-shadow:0 0 4px rgba(255,190,80,.35)}
+#thrRead.stop{color:#ff9b7a}
+#thrTrack{position:relative;flex:1 1 auto;width:56px;min-height:60px;touch-action:none;cursor:ns-resize}
+#thrSlot{position:absolute;left:15px;top:9px;bottom:9px;width:10px;border-radius:5px;background:linear-gradient(90deg,#050403,#2b2520 50%,#050403);box-shadow:inset 0 0 3px #000,0 0 0 1px rgba(178,142,82,.45)}
+#thrFill{position:absolute;left:1px;right:1px;bottom:1px;border-radius:4px;background:linear-gradient(#e9c77a,#9a6c26);opacity:.85;height:0}
+#thrTrack i{position:absolute;left:8px;width:24px;height:2px;margin-top:-1px;background:rgba(200,165,100,.75)}
+#thrTrack u{position:absolute;left:37px;font-size:8.5px;text-decoration:none;color:#cdb98d;margin-top:-6px;line-height:12px}
+#thrKnob{position:absolute;left:5px;width:30px;height:20px;margin-top:-10px;border-radius:5px;pointer-events:none;background:linear-gradient(#f6dc98,#b8873a 55%,#7a531c);border:1px solid #3a2608;box-shadow:0 2px 4px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.5)}
+#thrKnob::after{content:'';position:absolute;left:6px;right:6px;top:6px;height:6px;background:repeating-linear-gradient(#5a3c12 0 1px,transparent 1px 3px)}
+#thr.short #thrTrack u{display:none}`;document.head.appendChild(st);
+ const d=document.createElement('div');d.id='thr';d.className='hidden';d.setAttribute('aria-label','Sail throttle');
+ let tk='';for(const n of THR_N){const y=(1-n)*100;tk+=`<i style="top:calc(9px + (100% - 18px)*${(1-n).toFixed(2)})"></i><u style="top:calc(9px + (100% - 18px)*${(1-n).toFixed(2)})">${Math.round(n*100)}</u>`;}
+ d.innerHTML=`<button class="thrb" id="thrFull" aria-label="Full sail">⛵<b>FULL</b></button><div id="thrRead">100%</div><div id="thrTrack">${tk}<div id="thrSlot"><div id="thrFill"></div></div><div id="thrKnob"></div></div><button class="thrb" id="thrStop" aria-label="All stop">⚓<b>STOP</b></button>`;
+ document.body.appendChild(d);
+ const stopE=e=>{e.stopPropagation();};for(const ev of ['pointerdown','pointermove','pointerup','touchstart'])d.addEventListener(ev,stopE);
+ $('thrFull').addEventListener('click',e=>{e.preventDefault();thrFull();});$('thrStop').addEventListener('click',e=>{e.preventDefault();thrStop();});
+ const tr=$('thrTrack');const vAt=y=>{const r=tr.getBoundingClientRect();return 1-(y-r.top-9)/Math.max(1,r.height-18);};
+ tr.addEventListener('pointerdown',e=>{e.preventDefault();const now=performance.now();
+  if(now-thrLastTap<320){thrLastTap=0;thrDrag=null;if(thrCap()>0.01)thrStop();else thrFull();return;}thrLastTap=now;
+  thrDrag=e.pointerId;try{tr.setPointerCapture(e.pointerId);}catch(_){}thrSet(vAt(e.clientY),true);});
+ tr.addEventListener('pointermove',e=>{if(e.pointerId!==thrDrag)return;e.preventDefault();thrSet(vAt(e.clientY),true);});
+ const up=e=>{if(e.pointerId===thrDrag)thrDrag=null;};tr.addEventListener('pointerup',up);tr.addEventListener('pointercancel',up);tr.addEventListener('lostpointercapture',up);
+ window.addEventListener('keydown',e=>{if(state!=='play'||isTyping(e.target))return;const k=(e.key||'').toLowerCase();
+  if(k==='x'){thrStop();}else if(k==='+'||k==='='||k==='add'){thrStep(1);}else if(k==='-'||k==='_'||k==='subtract'){thrStep(-1);}});
+ setInterval(()=>thrUI(false),120);})();
+function thrLayout(el){const hb=Math.round($('hud').getBoundingClientRect().bottom)||110;const bot=parseFloat(getComputedStyle(el).bottom)||22;
+ const H=Math.round(clamp(vh-bot-hb-14,150,260));const k=H+':'+vh;if(el.dataset.k!==k){el.dataset.k=k;el.style.height=H+'px';el.classList.toggle('short',H<175);}}
+function thrUI(force){const el=$('thr');if(!el)return;const on=state==='play'&&!P.dead;el.classList.toggle('hidden',!on);if(!on)return;
+ thrLayout(el);const c=thrCap(),eff=thrEff(),bo=P.boost>0;
+ const key=[c,Math.round(eff*100),bo?1:0].join(':');if(!force&&key===thrKey)return;thrKey=key;
+ $('thrKnob').style.top=`calc(9px + (100% - 18px)*${(1-c).toFixed(3)})`;$('thrFill').style.height=Math.round(eff*100)+'%';
+ const r=$('thrRead');r.textContent=bo?'🚀 BOOST':c<0.005?'STOP':Math.round(eff*100)+'%';r.classList.toggle('stop',!bo&&c<0.005);
+ $('thrStop').classList.toggle('on',c<0.005);$('thrFull').classList.toggle('on',c>0.995&&P.throttle>0.995);}
+function thrTick(dt){
+ if(joy.id!==null&&thrCap()<0.01&&Math.hypot(joy.x-joy.bx,joy.y-joy.by)>30){thrJoyT+=dt;if(thrJoyT>1.4&&performance.now()-thrWarnT>15000){thrWarnT=performance.now();toast('⚓ Sails furled — she turns in place. Raise the sail lever (left) to get under way.');}}else thrJoyT=0;
+ if(S.tutDone&&!T.on&&S.playTime>45)showTip('sail');}
+GH.tick.push(thrTick);
+GH.mig.push(d=>{S.sail=(typeof d.sail==='number'&&isFinite(d.sail))?clamp(d.sail,0,1):1;});
+Object.assign(TIPS,{sail:"⛵ <b>Sail lever</b> (left edge): slide to set speed. <b>⚓ STOP</b> = all stop — she holds position and turns in place to line up broadsides. Keys: W/S, +/−, X."});
+
 readSafe();const hadSave=load();if(!(S.bal>=2)){S.bal=2;if(hadSave){S.crew=Math.max(S.crew,10);recalc();S.hp=ST.maxHp;}}recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=clamp(S.hp||ST.maxHp,1,ST.maxHp);cam.x=P.x;cam.y=P.y;lastCam.x=cam.x;lastCam.y=cam.y;rebuildFog();applyCos();populate();placeFleet();
 if(hadSave)$('startBtn').textContent='⛵ Continue voyage';
 updateAutoBtn();
@@ -3522,7 +3581,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});w
 requestAnimationFrame(frame);
 setTimeout(()=>{(window.requestIdleCallback||(f=>f()))(countLoad);},2500);
 // test hook
-window.__game={GRIND:{RES,resN,resGain,CT,COMP,CTIER,CBON,cTier,craftCost,craftChance,craftTry,MXP,MPERK,mastLvl,mastGain,CREWR,TRAITS,RARECREW,crewCap,crewEff,recruitsAt,crewHire,crewXP,crewHurt,crewWage,grindRecalc,ramTick,grindPortAct,grindSunk,grindTick,grindEv,grindMigrate,GH,WX,wxSet,wxDark,wxNight,wxFog,wxStorm,wxTick,dayPhase,DAYLEN,grindLootK,FISH,ART,SHIPCX,CXCAT,codexAdd,codexSet,codexHTML,cxHave,fishStart,fishCatch,fishPool,wrecks,diveStart,diveFresh,wreckNear,grindActLabel,grindActTap,get MG(){return MG},mgEnd,setDate:d=>{DOV=d;},ctrRoll,ctrEv,ctrClaim,CTPL,marks,markGain,BMI,bmBuy,EVENTS,evActive,evNext,evS,evTick,evSunk,evClaim,evSummon,boardHTML,boardAct,FUP,VT,VN,fvl,fRep,fBase,fRecalc,fSpd,fRel,fRepMin,fUpCost,fRefitCost,fRefitCh,fRushCost,fleetLayUp,fUpgrade,fRefit,fRush,fDone,fleetTickD,fleetSunkD,fleetCards,get fleetEnts(){return fleet},damageFleet:(f,x)=>damageFleet(f,x),syncFleet:()=>syncFleet()},STORY:{CH,SQ,SQI,ACTS,chBegin,storyPortAct,storyMenuAct,actives,storyTick,sLoc,journalHTML,storyEv,chAvail,sNext,bossTick,stepTxt,sDockCheck,get SQUE(){return SQUE},storyMigrate},HARD:{FORTS,vetTag,waterNear:(x,y,a,b)=>waterNear(x,y,a,b),applyCls,pickCls,havenDist,ironK,ironTick,squadTick,CLS,foeCrewK,hardSunk,megaSunk,hardTargets,get FRT(){return FRT},fortRT,ledgerHTML,threat,scaleFoe,matGain,matN,upkRates,upkSettle,upkOwed,LEGENDS,legAccept,legTick,ebTick,EBOSS,ebPt,fragGain,grandSpot,SREG:SREGP,regionAt,warCan,KT,krakenTick,perkCost,gearMat,upMat,HULLMAT,deathRepair,portOpen,playerDied:()=>playerDied(),captureFort,fortEconomy:dt=>fortEconomy(dt),get curFort(){return curFort}},ECON:{ECO,ecoTick,hotOk,mk:()=>mk(),dayLeft,price,sellPrice,basePrice,pres,capLeft,capOf,hotAt,ftCost,ftWait,cargoVal,xpNeed,xpNeedV1,xpTot,sellTotal,get curPort(){return curPort},portAction:(a,b)=>portAction(a,b),fastTravel,renderPort},B:BRAPI,get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
+window.__game={GRIND:{RES,resN,resGain,CT,COMP,CTIER,CBON,cTier,craftCost,craftChance,craftTry,MXP,MPERK,mastLvl,mastGain,CREWR,TRAITS,RARECREW,crewCap,crewEff,recruitsAt,crewHire,crewXP,crewHurt,crewWage,grindRecalc,ramTick,grindPortAct,grindSunk,grindTick,grindEv,grindMigrate,GH,WX,wxSet,wxDark,wxNight,wxFog,wxStorm,wxTick,dayPhase,DAYLEN,grindLootK,FISH,ART,SHIPCX,CXCAT,codexAdd,codexSet,codexHTML,cxHave,fishStart,fishCatch,fishPool,wrecks,diveStart,diveFresh,wreckNear,grindActLabel,grindActTap,get MG(){return MG},mgEnd,setDate:d=>{DOV=d;},ctrRoll,ctrEv,ctrClaim,CTPL,marks,markGain,BMI,bmBuy,EVENTS,evActive,evNext,evS,evTick,evSunk,evClaim,evSummon,boardHTML,boardAct,FUP,VT,VN,fvl,fRep,fBase,fRecalc,fSpd,fRel,fRepMin,fUpCost,fRefitCost,fRefitCh,fRushCost,fleetLayUp,fUpgrade,fRefit,fRush,fDone,fleetTickD,fleetSunkD,fleetCards,get fleetEnts(){return fleet},damageFleet:(f,x)=>damageFleet(f,x),syncFleet:()=>syncFleet(),thrCap,thrEff,thrSet,thrStep,thrStop,thrFull,thrUI},STORY:{CH,SQ,SQI,ACTS,chBegin,storyPortAct,storyMenuAct,actives,storyTick,sLoc,journalHTML,storyEv,chAvail,sNext,bossTick,stepTxt,sDockCheck,get SQUE(){return SQUE},storyMigrate},HARD:{FORTS,vetTag,waterNear:(x,y,a,b)=>waterNear(x,y,a,b),applyCls,pickCls,havenDist,ironK,ironTick,squadTick,CLS,foeCrewK,hardSunk,megaSunk,hardTargets,get FRT(){return FRT},fortRT,ledgerHTML,threat,scaleFoe,matGain,matN,upkRates,upkSettle,upkOwed,LEGENDS,legAccept,legTick,ebTick,EBOSS,ebPt,fragGain,grandSpot,SREG:SREGP,regionAt,warCan,KT,krakenTick,perkCost,gearMat,upMat,HULLMAT,deathRepair,portOpen,playerDied:()=>playerDied(),captureFort,fortEconomy:dt=>fortEconomy(dt),get curFort(){return curFort}},ECON:{ECO,ecoTick,hotOk,mk:()=>mk(),dayLeft,price,sellPrice,basePrice,pres,capLeft,capOf,hotAt,ftCost,ftWait,cargoVal,xpNeed,xpNeedV1,xpTot,sellTotal,get curPort(){return curPort},portAction:(a,b)=>portAction(a,b),fastTravel,renderPort},B:BRAPI,get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
 })();
 </script>
 </body>
