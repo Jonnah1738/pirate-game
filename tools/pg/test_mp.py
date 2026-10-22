@@ -1,7 +1,7 @@
 # Multiplayer test against the REAL Firebase project (pirate-seas-jonnah). 6 headless clients by default; --stress = 16 (+1 overflow).
 import sys,json,time,random
 from playwright.sync_api import sync_playwright
-URL='http://127.0.0.1:8765/index.html';OUT='/workspace/pirate-game/screenshots-mp/'
+import os;URL=os.environ.get('MPURL','http://127.0.0.1:8765/index.html');OUT='/workspace/pirate-game/screenshots-mp/'
 STRESS='--stress' in sys.argv;N=16 if STRESS else 6
 fails=[];errs=[]
 def chk(c,m):
