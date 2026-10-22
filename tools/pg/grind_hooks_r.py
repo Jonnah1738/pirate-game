@@ -5,3 +5,4 @@ rep("ctx.globalAlpha=a*0.35;ctx.fillStyle='#e8f6ff';","ctx.globalAlpha=a*0.3;ctx
 rep(" ctx.setTransform(dpr,0,0,dpr,0,0);\n grindDraw(ts);"," ctx.setTransform(dpr,0,0,dpr,0,0);\n rsLight();grindDraw(ts);")
 rep("else if(p.type==='foam'){ctx.globalAlpha=a*0.85;ctx.fillStyle='#f4fbff';","else if(p.type==='foam'){ctx.globalAlpha=a*0.6;ctx.fillStyle='#d3e0e2';")
 exec(open(T+'rs_hooks2.py').read())
+exec(open(T+'rs_hooks3.py').read())

@@ -1,0 +1,59 @@
+/* ===== restyle: weathered iron / brass / parchment UI (matches the boarding art) ===== */
+html,body{background:#0d1c22}
+.ic{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;overflow:hidden;text-indent:3em;white-space:nowrap;font-style:normal;background:var(--c,currentColor);-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;filter:drop-shadow(0 1px 0 rgba(0,0,0,.45))}
+.panel .ic,#tipBox .ic,#tutBub .ic{filter:none;background:color-mix(in srgb,var(--c,currentColor) 55%,#2a1a08)}
+/* overlays + panels: parchment sheet in a dark iron frame with brass edge */
+.overlay{background:radial-gradient(ellipse at 50% 40%,rgba(14,11,8,.62),rgba(5,4,3,.84))}
+.panel{background:radial-gradient(ellipse at 18% 12%,rgba(255,248,225,.35),rgba(0,0,0,0) 45%),radial-gradient(ellipse at 85% 90%,rgba(120,80,30,.22),rgba(0,0,0,0) 50%),linear-gradient(#e8d8b3,#d4bd8c)!important;color:#2e1d0c;border:3px solid #2a2119!important;border-radius:6px!important;box-shadow:0 12px 34px rgba(0,0,0,.75),inset 0 0 0 2px rgba(178,142,82,.85),inset 0 0 26px rgba(90,55,15,.35)!important;font-family:Georgia,'Times New Roman',serif}
+.phead{background:linear-gradient(#3b3129,#1d1712);color:#e8d5a6;box-shadow:inset 0 -1px 0 rgba(178,142,82,.7),0 2px 4px rgba(0,0,0,.35);border-radius:3px 3px 0 0}
+.phead h2,#title h1{font-family:Georgia,'Times New Roman',serif;letter-spacing:.4px;color:#e8d29a;text-shadow:0 1px 0 #000}
+#title h1{color:#3a2410;text-shadow:0 1px 0 rgba(255,240,210,.5)}
+.tabs{background:linear-gradient(rgba(29,23,18,.92),rgba(29,23,18,.75));padding-top:6px!important}
+.tabs button{background:linear-gradient(#4a3f35,#2a221c)!important;color:#e6d7b5!important;border:1px solid rgba(178,142,82,.45)!important;border-radius:4px!important;font-family:Georgia,'Times New Roman',serif;box-shadow:inset 0 1px 0 rgba(255,235,200,.08)}
+.tabs button.on{background:linear-gradient(#b08a45,#6e5022)!important;color:#fff6dc!important;border-color:#e0c27a!important;box-shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,240,200,.35)}
+.gold{font-family:Georgia,'Times New Roman',serif}
+.item{background:rgba(255,248,230,.38)!important;border:1px solid rgba(110,75,30,.28);border-radius:4px!important;box-shadow:inset 0 0 10px rgba(120,80,30,.12)}
+.help{background:rgba(255,248,230,.35)!important;border:1px solid rgba(110,75,30,.25);border-radius:4px!important}
+.note{color:#3b2810}
+button.b,button.big{background:linear-gradient(#4f7a3f,#2d4c24)!important;color:#f3ead2!important;border:1px solid #1a2a12!important;border-radius:5px!important;box-shadow:inset 0 1px 0 rgba(255,240,200,.25),inset 0 0 0 1px rgba(214,180,100,.35),0 2px 4px rgba(0,0,0,.35)!important;font-family:Georgia,'Times New Roman',serif;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+button.b.sell{background:linear-gradient(#a8743a,#6b4318)!important;border-color:#3a230c!important}
+button.b.red,button.big.red{background:linear-gradient(#8c2c22,#521610)!important;border-color:#2a0a06!important}
+button.big.alt,#xferTitleBtn,#titleX{background:linear-gradient(#5a4632,#33261a)!important;color:#f0e2c0!important;border:1px solid #1d140c!important;box-shadow:inset 0 1px 0 rgba(255,240,200,.2),inset 0 0 0 1px rgba(214,180,100,.4)!important}
+#tutBtn{background:linear-gradient(#3d5560,#22323a)!important}
+button.b:disabled,button.big:disabled{background:linear-gradient(#a59a82,#8a7f68)!important;color:#ece4d2!important;box-shadow:none!important;text-shadow:none}
+#title .tfoot{background:linear-gradient(rgba(40,32,25,.94),rgba(24,19,15,.96))!important;border-top:1px solid rgba(178,142,82,.6)!important}
+#title .thead{border-bottom:1px solid rgba(110,75,30,.35)!important}
+#howTo summary{background:rgba(70,45,15,.14)!important;border:1px solid rgba(110,75,30,.3);border-radius:4px!important}
+.xta{background:#f7efdc!important;border-color:#5a4632!important;border-radius:4px!important}
+/* HUD: dark iron plaque with brass trim */
+#hud{background:linear-gradient(rgba(36,30,24,.9),rgba(18,14,11,.9))!important;border:1px solid rgba(178,142,82,.6);border-radius:6px!important;box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,235,200,.08);font-family:Georgia,'Times New Roman',serif;color:#efe4c9}
+.hpbar{background:#2a0e0a!important;border:1px solid rgba(0,0,0,.6);border-radius:3px!important;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+#hHpT{text-shadow:0 1px 1px #000}
+.xpbar{border-radius:2px!important;background:rgba(0,0,0,.55)!important}
+#hXp{background:linear-gradient(90deg,#9a7a3a,#e3c27a)!important}
+.xpb{border-radius:2px!important}.xpb i{background:linear-gradient(90deg,#9a7a3a,#e3c27a)!important}
+#mTrack{background:rgba(0,0,0,.35)!important;border-color:rgba(178,142,82,.45)!important;border-radius:4px!important}
+/* round controls: iron discs with brass rims */
+.btnr{background:radial-gradient(circle at 38% 30%,#4a423b,#1a1613 72%)!important;color:#eadcbd!important;box-shadow:0 4px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(178,142,82,.8),inset 0 0 0 4px rgba(0,0,0,.45)!important;font-family:Georgia,'Times New Roman',serif}
+.btnr b,.btnr .lbl{font-family:Georgia,'Times New Roman',serif;color:#e6d4a8;text-shadow:0 1px 1px #000}
+.fire.ready{background:radial-gradient(circle at 38% 30%,#7a2c20,#2a0d08 72%)!important}
+.fire .rl{background:rgba(0,0,0,.45)!important}
+#autoBtn.on{background:radial-gradient(circle at 38% 30%,#3f5d36,#141f11 72%)!important;box-shadow:0 4px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(214,190,110,.95),inset 0 0 0 4px rgba(0,0,0,.45)!important}
+#boostBtn.ready{background:radial-gradient(circle at 38% 30%,#8a5a22,#2e1c08 72%)!important}
+#boostBtn.on{background:radial-gradient(circle at 38% 30%,#d08a2a,#5a3208 72%)!important;box-shadow:0 0 14px 4px rgba(255,170,60,.7),inset 0 0 0 2px #f0d08a!important}
+#ammoBtn.on{background:radial-gradient(circle at 38% 30%,#7a3a1a,#2a1206 72%)!important}
+.btnr.held{filter:brightness(1.35)}
+#menuBtn{border-radius:6px!important}
+#brCtl .btnr{border-radius:50%}
+/* pill buttons on the sea */
+#dockBtn,#actBtn,#grapBtn,#boardBtn,#seizeBtn{background:linear-gradient(#4a3a2a,#241a12)!important;color:#f0e2c0!important;border:1px solid rgba(214,180,100,.75)!important;border-radius:8px!important;box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,235,200,.15)!important;font-family:Georgia,'Times New Roman',serif!important;text-shadow:0 1px 1px #000}
+#boardBtn{background:linear-gradient(#7e2a20,#3e100b)!important}
+#seizeBtn{background:linear-gradient(#3f5d36,#1d2c18)!important}
+#dockBtn{background:linear-gradient(#d9b25e,#8a6526)!important;color:#22160a!important;border-color:#f0d69a!important;text-shadow:0 1px 0 rgba(255,235,190,.5)!important}
+#dockBtn .ic{--c:#3a2410!important}
+/* toasts, tips, tutorial bubble (position/width unchanged) */
+#toast{background:linear-gradient(rgba(36,29,23,.94),rgba(18,14,11,.94))!important;border:1px solid rgba(178,142,82,.6)!important;color:#efe2c4!important;font-family:Georgia,'Times New Roman',serif;border-radius:5px!important;box-shadow:0 4px 12px rgba(0,0,0,.55)}
+#tipBox,#tutBub{background:radial-gradient(ellipse at 20% 10%,rgba(255,248,225,.4),rgba(0,0,0,0) 50%),linear-gradient(#e8d8b3,#d4bd8c)!important;color:#2e1d0c!important;border:2px solid #2a2119!important;border-radius:6px!important;box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 0 0 1.5px rgba(178,142,82,.85)!important;font-family:Georgia,'Times New Roman',serif}
+#tutSkip{background:linear-gradient(#5a4632,#33261a)!important}
+#tutBar{background:linear-gradient(90deg,#9a7a3a,#e3c27a)!important}
+#tutRing{border-color:#e3c27a!important;box-shadow:0 0 16px 4px rgba(227,194,122,.75)!important}

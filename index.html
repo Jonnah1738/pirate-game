@@ -198,6 +198,65 @@ body.brawl #brVig{display:block}
 #brRes .b[disabled]{opacity:.45}
 body.brawl #hud{filter:saturate(.4) sepia(.25) brightness(.92);font-family:Georgia,'Times New Roman',serif;background:rgba(16,13,10,.85)!important;box-shadow:inset 0 0 0 1px rgba(176,140,80,.45)}
 body.brawl #toast{background:rgba(18,14,11,.9)!important;border:1px solid rgba(178,142,82,.55)!important;color:#e9dcc0!important;font-family:Georgia,'Times New Roman',serif;font-weight:600;border-radius:4px}
+/* ===== restyle: weathered iron / brass / parchment UI (matches the boarding art) ===== */
+html,body{background:#0d1c22}
+.ic{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;overflow:hidden;text-indent:3em;white-space:nowrap;font-style:normal;background:var(--c,currentColor);-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;filter:drop-shadow(0 1px 0 rgba(0,0,0,.45))}
+.panel .ic,#tipBox .ic,#tutBub .ic{filter:none;background:color-mix(in srgb,var(--c,currentColor) 55%,#2a1a08)}
+/* overlays + panels: parchment sheet in a dark iron frame with brass edge */
+.overlay{background:radial-gradient(ellipse at 50% 40%,rgba(14,11,8,.62),rgba(5,4,3,.84))}
+.panel{background:radial-gradient(ellipse at 18% 12%,rgba(255,248,225,.35),rgba(0,0,0,0) 45%),radial-gradient(ellipse at 85% 90%,rgba(120,80,30,.22),rgba(0,0,0,0) 50%),linear-gradient(#e8d8b3,#d4bd8c)!important;color:#2e1d0c;border:3px solid #2a2119!important;border-radius:6px!important;box-shadow:0 12px 34px rgba(0,0,0,.75),inset 0 0 0 2px rgba(178,142,82,.85),inset 0 0 26px rgba(90,55,15,.35)!important;font-family:Georgia,'Times New Roman',serif}
+.phead{background:linear-gradient(#3b3129,#1d1712);color:#e8d5a6;box-shadow:inset 0 -1px 0 rgba(178,142,82,.7),0 2px 4px rgba(0,0,0,.35);border-radius:3px 3px 0 0}
+.phead h2,#title h1{font-family:Georgia,'Times New Roman',serif;letter-spacing:.4px;color:#e8d29a;text-shadow:0 1px 0 #000}
+#title h1{color:#3a2410;text-shadow:0 1px 0 rgba(255,240,210,.5)}
+.tabs{background:linear-gradient(rgba(29,23,18,.92),rgba(29,23,18,.75));padding-top:6px!important}
+.tabs button{background:linear-gradient(#4a3f35,#2a221c)!important;color:#e6d7b5!important;border:1px solid rgba(178,142,82,.45)!important;border-radius:4px!important;font-family:Georgia,'Times New Roman',serif;box-shadow:inset 0 1px 0 rgba(255,235,200,.08)}
+.tabs button.on{background:linear-gradient(#b08a45,#6e5022)!important;color:#fff6dc!important;border-color:#e0c27a!important;box-shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,240,200,.35)}
+.gold{font-family:Georgia,'Times New Roman',serif}
+.item{background:rgba(255,248,230,.38)!important;border:1px solid rgba(110,75,30,.28);border-radius:4px!important;box-shadow:inset 0 0 10px rgba(120,80,30,.12)}
+.help{background:rgba(255,248,230,.35)!important;border:1px solid rgba(110,75,30,.25);border-radius:4px!important}
+.note{color:#3b2810}
+button.b,button.big{background:linear-gradient(#4f7a3f,#2d4c24)!important;color:#f3ead2!important;border:1px solid #1a2a12!important;border-radius:5px!important;box-shadow:inset 0 1px 0 rgba(255,240,200,.25),inset 0 0 0 1px rgba(214,180,100,.35),0 2px 4px rgba(0,0,0,.35)!important;font-family:Georgia,'Times New Roman',serif;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+button.b.sell{background:linear-gradient(#a8743a,#6b4318)!important;border-color:#3a230c!important}
+button.b.red,button.big.red{background:linear-gradient(#8c2c22,#521610)!important;border-color:#2a0a06!important}
+button.big.alt,#xferTitleBtn,#titleX{background:linear-gradient(#5a4632,#33261a)!important;color:#f0e2c0!important;border:1px solid #1d140c!important;box-shadow:inset 0 1px 0 rgba(255,240,200,.2),inset 0 0 0 1px rgba(214,180,100,.4)!important}
+#tutBtn{background:linear-gradient(#3d5560,#22323a)!important}
+button.b:disabled,button.big:disabled{background:linear-gradient(#a59a82,#8a7f68)!important;color:#ece4d2!important;box-shadow:none!important;text-shadow:none}
+#title .tfoot{background:linear-gradient(rgba(40,32,25,.94),rgba(24,19,15,.96))!important;border-top:1px solid rgba(178,142,82,.6)!important}
+#title .thead{border-bottom:1px solid rgba(110,75,30,.35)!important}
+#howTo summary{background:rgba(70,45,15,.14)!important;border:1px solid rgba(110,75,30,.3);border-radius:4px!important}
+.xta{background:#f7efdc!important;border-color:#5a4632!important;border-radius:4px!important}
+/* HUD: dark iron plaque with brass trim */
+#hud{background:linear-gradient(rgba(36,30,24,.9),rgba(18,14,11,.9))!important;border:1px solid rgba(178,142,82,.6);border-radius:6px!important;box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,235,200,.08);font-family:Georgia,'Times New Roman',serif;color:#efe4c9}
+.hpbar{background:#2a0e0a!important;border:1px solid rgba(0,0,0,.6);border-radius:3px!important;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+#hHpT{text-shadow:0 1px 1px #000}
+.xpbar{border-radius:2px!important;background:rgba(0,0,0,.55)!important}
+#hXp{background:linear-gradient(90deg,#9a7a3a,#e3c27a)!important}
+.xpb{border-radius:2px!important}.xpb i{background:linear-gradient(90deg,#9a7a3a,#e3c27a)!important}
+#mTrack{background:rgba(0,0,0,.35)!important;border-color:rgba(178,142,82,.45)!important;border-radius:4px!important}
+/* round controls: iron discs with brass rims */
+.btnr{background:radial-gradient(circle at 38% 30%,#4a423b,#1a1613 72%)!important;color:#eadcbd!important;box-shadow:0 4px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(178,142,82,.8),inset 0 0 0 4px rgba(0,0,0,.45)!important;font-family:Georgia,'Times New Roman',serif}
+.btnr b,.btnr .lbl{font-family:Georgia,'Times New Roman',serif;color:#e6d4a8;text-shadow:0 1px 1px #000}
+.fire.ready{background:radial-gradient(circle at 38% 30%,#7a2c20,#2a0d08 72%)!important}
+.fire .rl{background:rgba(0,0,0,.45)!important}
+#autoBtn.on{background:radial-gradient(circle at 38% 30%,#3f5d36,#141f11 72%)!important;box-shadow:0 4px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(214,190,110,.95),inset 0 0 0 4px rgba(0,0,0,.45)!important}
+#boostBtn.ready{background:radial-gradient(circle at 38% 30%,#8a5a22,#2e1c08 72%)!important}
+#boostBtn.on{background:radial-gradient(circle at 38% 30%,#d08a2a,#5a3208 72%)!important;box-shadow:0 0 14px 4px rgba(255,170,60,.7),inset 0 0 0 2px #f0d08a!important}
+#ammoBtn.on{background:radial-gradient(circle at 38% 30%,#7a3a1a,#2a1206 72%)!important}
+.btnr.held{filter:brightness(1.35)}
+#menuBtn{border-radius:6px!important}
+#brCtl .btnr{border-radius:50%}
+/* pill buttons on the sea */
+#dockBtn,#actBtn,#grapBtn,#boardBtn,#seizeBtn{background:linear-gradient(#4a3a2a,#241a12)!important;color:#f0e2c0!important;border:1px solid rgba(214,180,100,.75)!important;border-radius:8px!important;box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,235,200,.15)!important;font-family:Georgia,'Times New Roman',serif!important;text-shadow:0 1px 1px #000}
+#boardBtn{background:linear-gradient(#7e2a20,#3e100b)!important}
+#seizeBtn{background:linear-gradient(#3f5d36,#1d2c18)!important}
+#dockBtn{background:linear-gradient(#d9b25e,#8a6526)!important;color:#22160a!important;border-color:#f0d69a!important;text-shadow:0 1px 0 rgba(255,235,190,.5)!important}
+#dockBtn .ic{--c:#3a2410!important}
+/* toasts, tips, tutorial bubble (position/width unchanged) */
+#toast{background:linear-gradient(rgba(36,29,23,.94),rgba(18,14,11,.94))!important;border:1px solid rgba(178,142,82,.6)!important;color:#efe2c4!important;font-family:Georgia,'Times New Roman',serif;border-radius:5px!important;box-shadow:0 4px 12px rgba(0,0,0,.55)}
+#tipBox,#tutBub{background:radial-gradient(ellipse at 20% 10%,rgba(255,248,225,.4),rgba(0,0,0,0) 50%),linear-gradient(#e8d8b3,#d4bd8c)!important;color:#2e1d0c!important;border:2px solid #2a2119!important;border-radius:6px!important;box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 0 0 1.5px rgba(178,142,82,.85)!important;font-family:Georgia,'Times New Roman',serif}
+#tutSkip{background:linear-gradient(#5a4632,#33261a)!important}
+#tutBar{background:linear-gradient(90deg,#9a7a3a,#e3c27a)!important}
+#tutRing{border-color:#e3c27a!important;box-shadow:0 0 16px 4px rgba(227,194,122,.75)!important}
 </style>
 </head>
 <body>
@@ -449,11 +508,11 @@ function renderIsland(o){
 
 // map base
 const MAPRES=1200;const mapBase=document.createElement('canvas');mapBase.width=mapBase.height=MAPRES;
-(function(){const g=mapBase.getContext('2d');g.fillStyle='#1d5f86';g.fillRect(0,0,MAPRES,MAPRES);const k=MAPRES/WORLD;
- for(const o of ISL){g.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,rr=radiusAt(o,a);const x=(o.x+Math.cos(a)*rr)*k,y=(o.y+Math.sin(a)*rr)*k;i?g.lineTo(x,y):g.moveTo(x,y);}g.fillStyle=o.isPort?(o.clan!=null?'#c7a04a':'#7fbf5a'):'#c9b57a';g.fill();}})();
+(function(){const g=mapBase.getContext('2d');g.fillStyle='#183039';g.fillRect(0,0,MAPRES,MAPRES);const k=MAPRES/WORLD;
+ for(const o of ISL){g.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,rr=radiusAt(o,a);const x=(o.x+Math.cos(a)*rr)*k,y=(o.y+Math.sin(a)*rr)*k;i?g.lineTo(x,y):g.moveTo(x,y);}g.fillStyle=o.isPort?(o.clan!=null?'#b8924a':'#7f9a5a'):'#a8946a';g.fill();g.strokeStyle='rgba(30,20,10,0.6)';g.lineWidth=1;g.stroke();}})();
 const FOGN=240,FOGC=WORLD/FOGN;const fogCv=document.createElement('canvas');fogCv.width=fogCv.height=FOGN;const fogCtx=fogCv.getContext('2d');
 let fog=new Uint8Array(FOGN*FOGN);
-function rebuildFog(){const im=fogCtx.createImageData(FOGN,FOGN),d=im.data;for(let i=0;i<FOGN*FOGN;i++)if(!fog[i]){d[i*4]=10;d[i*4+1]=22;d[i*4+2]=38;d[i*4+3]=255;}fogCtx.putImageData(im,0,0);}
+function rebuildFog(){const im=fogCtx.createImageData(FOGN,FOGN),d=im.data;for(let i=0;i<FOGN*FOGN;i++)if(!fog[i]){d[i*4]=16;d[i*4+1]=15;d[i*4+2]=14;d[i*4+3]=255;}fogCtx.putImageData(im,0,0);}
 function fogBits(){const fb=new Uint8Array(Math.ceil(fog.length/8));for(let i=0;i<fog.length;i++)if(fog[i])fb[i>>3]|=1<<(i&7);return b64e(fb);}
 function fogLoadBits(fb,n,off){for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i;if((fb[k>>3]>>(k&7))&1){const x=i+off,y=j+off;if(x<FOGN&&y<FOGN)fog[y*FOGN+x]=1;}}}
 
@@ -1102,7 +1161,7 @@ function render(t){perfT=t;
   const l=18+12*Math.sin(s.life*2);ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-wdx*l,s.y-wdy*l);}ctx.stroke();
  // labels
  ctx.textAlign='center';ctx.textBaseline='middle';
- for(const p of PORTS){const X=sx(p.x),Y=sy(p.y-p.r*1.15);if(X<-150||X>vw+150||Y<-50||Y>vh+80)continue;ctx.font='bold 15px sans-serif';const w=ctx.measureText(p.name).width+16;ctx.fillStyle='rgba(20,12,4,0.6)';ctx.fillRect(X-w/2,Y-11,w,22);ctx.fillStyle=p.haven?'#ffb0a0':'#ffe7a8';ctx.fillText((p.haven?'🏴‍☠️ ':'⚖️ ')+p.name,X,Y);}
+ for(const p of PORTS){const X=sx(p.x),Y=sy(p.y-p.r*1.15);if(X<-150||X>vw+150||Y<-50||Y>vh+80)continue;ctx.font='bold 15px Georgia,serif';const w=ctx.measureText(p.name).width+18;rsPlate(X-w/2,Y-11,w,22);ctx.fillStyle=p.haven?'#f0a890':'#ecd59a';ctx.fillText(p.name,X,Y+1);}
  if(S.infamy>=12000&&!P.dead){ctx.font='22px serif';ctx.fillText('👑',sx(P.x),sy(P.y)-P.len*zoom*0.6-22);}
  for(const f of fleet){if(f.sinking)continue;const X=sx(f.x),Y=avoidY(sx(f.x),sy(f.y)-f.len*zoom*0.6-8);if(X<-40||X>vw+40||Y<-40||Y>vh+40)continue;
   ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(X-19,Y,38,5);ctx.fillStyle='#5be36a';ctx.fillRect(X-19,Y,38*clamp(f.d.hp/f.d.maxHp,0,1),5);ctx.font='bold 11px sans-serif';ctx.fillStyle='#b8ffbf';ctx.fillText('⛵ '+f.d.name,X,Y-8);}
@@ -1129,8 +1188,8 @@ function render(t){perfT=t;
  // minimap
  const m=miniRect();drawMap(m.x,m.y,m.s,false);
  // wind & sail gauge
- const wx=m.x+m.s/2,wy=m.y+m.s+16;ctx.fillStyle='rgba(10,25,40,0.55)';ctx.fillRect(m.x,m.y+m.s+4,m.s,24);ctx.save();ctx.translate(m.x+14,wy);ctx.rotate(wind.dir);ctx.fillStyle='#bfe8ff';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-7,-6);ctx.lineTo(-3,0);ctx.lineTo(-7,6);ctx.closePath();ctx.fill();ctx.restore();
- ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(P.boost>0?`${Math.round(Math.hypot(P.vx,P.vy))}kn  🚀${P.boost.toFixed(1)}s`:`${Math.round(Math.hypot(P.vx,P.vy))}kn  ⛵${Math.round(thrEff()*100)}%`,m.x+26,wy);ctx.textAlign='center';
+ const wx=m.x+m.s/2,wy=m.y+m.s+16;rsPlate(m.x,m.y+m.s+5,m.s,24);ctx.save();ctx.translate(m.x+14,wy);ctx.rotate(wind.dir);ctx.fillStyle='#d9c08a';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-7,-6);ctx.lineTo(-3,0);ctx.lineTo(-7,6);ctx.closePath();ctx.fill();ctx.restore();
+ ctx.font='bold 11px Georgia,serif';ctx.textAlign='left';ctx.fillStyle='#efe2c4';ctx.fillText(P.boost>0?`${Math.round(Math.hypot(P.vx,P.vy))} kn · boost ${P.boost.toFixed(1)}s`:`${Math.round(Math.hypot(P.vx,P.vy))} kn · sails ${Math.round(thrEff()*100)}%`,m.x+26,wy);ctx.textAlign='center';
  if(state==='map'){drawBigMap();}else mapOpen=false;
 }
 // ---------- HUD ----------
@@ -1996,11 +2055,11 @@ function drawMap(X,Y,s,big){const v=mapView(big),k=s/v.span;const mx=x=>X+(x-v.x
   ctx.fillStyle=e.kind==='clan'?CLANS[e.clan].col:e.kind==='merchant'?'#9fd8ff':e.kind==='navy'?'#ffffff':'#ff4a4a';ctx.fillRect(mx(e.x)-1.5,my(e.y)-1.5,big?4:3,big?4:3);}
  for(const q of QT){ctx.font=(big?18:11)+'px serif';ctx.fillText(q.icon,mx(q.x),my(q.y));}
  mpMap(mx,my,big);ctx.save();ctx.translate(mx(P.x),my(P.y));ctx.rotate(P.h);ctx.fillStyle='#fff';ctx.beginPath();const zz=big?8:5;ctx.moveTo(zz,0);ctx.lineTo(-zz*0.7,-zz*0.6);ctx.lineTo(-zz*0.7,zz*0.6);ctx.closePath();ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.stroke();ctx.restore();
- ctx.restore();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;ctx.strokeRect(X,Y,s,s);}
-function drawBigMap(){if(!mapOpen){mapOpen=true;MV.z=1;MV.cx=MV.cy=WORLD/2;mapPtr.clear();mapPinch=null;}ctx.fillStyle='rgba(5,10,20,0.78)';ctx.fillRect(0,0,vw,vh);const R=bigMapRect();drawMap(R.x,R.y,R.s,true);
- ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🗺️ Sea chart — drag to pan • pinch / ＋－ to zoom • tap to close',vw/2,R.y-14,vw-12);
+ ctx.restore();rsFrame(X,Y,s,s);}
+function drawBigMap(){if(!mapOpen){mapOpen=true;MV.z=1;MV.cx=MV.cy=WORLD/2;mapPtr.clear();mapPinch=null;}ctx.fillStyle='rgba(10,8,6,0.84)';ctx.fillRect(0,0,vw,vh);const R=bigMapRect();drawMap(R.x,R.y,R.s,true);
+ ctx.fillStyle='#e8d5a6';ctx.font='bold 14px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Sea chart — drag to pan • pinch / ＋－ to zoom • tap to close',vw/2,R.y-14,vw-12);
  {const w=ftWait(),t=w>0?`⏳ Fast travel in ${mmss(w)}`:'⛵ Fast travel ready (at havens)';ctx.font='600 12px Georgia,serif';const tw=ctx.measureText(t).width+16;ctx.fillStyle='rgba(16,13,10,.82)';const by=R.y+R.s-36;ctx.fillRect(R.x+6,by,tw,22);ctx.strokeStyle='rgba(176,140,80,.7)';ctx.lineWidth=1;ctx.strokeRect(R.x+6.5,by+0.5,tw-1,21);ctx.fillStyle=w>0?'#e3b86a':'#cfe3b0';ctx.textAlign='left';ctx.fillText(t,R.x+14,by+11);ctx.textAlign='center';ctx.font='bold 14px sans-serif';}
- for(const b of mapBtns()){ctx.fillStyle='rgba(10,25,40,0.8)';ctx.beginPath();ctx.arc(b.x,b.y,22,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.fillText(b.t,b.x,b.y+1);}
+ for(const b of mapBtns())rsMapBtn(b);
  // legend
  const items=[['#5be36a','You']].concat(CLANS.map(c=>[c.col,c.short]));ctx.font='bold 11px sans-serif';let tw=0;for(const it of items)tw+=ctx.measureText(it[1]).width+22;let x=vw/2-tw/2;const y=Math.min(vh-8,R.y+R.s+14);
  ctx.textAlign='left';for(const it of items){ctx.fillStyle=it[0];ctx.fillRect(x,y-5,10,10);ctx.fillStyle='#fff';ctx.fillText(it[1],x+13,y);x+=ctx.measureText(it[1]).width+22;}ctx.textAlign='center';
@@ -4526,6 +4585,31 @@ function rsLootSprite(k){const key='l'+k;if(RS[key])return RS[key];const K=3,c=d
   g.strokeStyle='#c9a24a';g.lineWidth=1.6;g.beginPath();g.moveTo(-5,-5);g.lineTo(5,-5);g.stroke();g.fillStyle='#d9b45a';for(const [x,y] of [[-3,-9],[2,-10],[5,-7]]){g.beginPath();g.arc(x,y,2.6,0,TAU);g.fill();g.strokeStyle='#8a6a20';g.lineWidth=0.6;g.stroke();}g.fillStyle='rgba(255,230,190,0.18)';g.beginPath();g.ellipse(-4,2,2.5,4,0.3,0,TAU);g.fill();}
  return RS[key]=c;}
 function rsDrawLoot(l,ts){const bob=Math.sin(ts*3+l.x)*3;ctx.fillStyle='rgba(215,230,232,0.16)';ctx.beginPath();ctx.arc(l.x,l.y,16+Math.sin(ts*4)*3,0,TAU);ctx.fill();ctx.drawImage(rsLootSprite(Object.keys(l.goods).length?1:0),l.x-15,l.y-15+bob,30,30);}
+
+const RSICO=[["coin", "<ellipse cx=\"12\" cy=\"7\" rx=\"7\" ry=\"3\"/><path d=\"M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7\"/><path d=\"M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5\"/>", "#d4a845"], ["skull", "<path d=\"M12 3c-4.4 0-7.5 3-7.5 7 0 2.4 1.1 4 2.6 5v3h9.8v-3c1.5-1 2.6-2.6 2.6-5 0-4-3.1-7-7.5-7z\"/><circle cx=\"9\" cy=\"10.5\" r=\"1.6\"/><circle cx=\"15\" cy=\"10.5\" r=\"1.6\"/><path d=\"M10 18v3M14 18v3M12 13.5l-.9 1.8h1.8z\"/>", "#e2d6bc"], ["flag", "<path d=\"M5 21V3\"/><path d=\"M5 4h12l-2.5 4L17 12H5\"/>", "#c9573f"], ["swords", "<path d=\"M4 4l11 11M20 4L9 15\"/><path d=\"M13.5 18.5l5-5M10.5 18.5l-5-5\"/><path d=\"M17 17l3 3M7 17l-3 3\"/>", "#cfd3d6"], ["anchor", "<circle cx=\"12\" cy=\"5\" r=\"2\"/><path d=\"M12 7v14M8 10h8\"/><path d=\"M4.5 13.5c.5 4 3.5 7.5 7.5 7.5s7-3.5 7.5-7.5\"/><path d=\"M3 15l1.5-1.5L6 15M18 15l1.5-1.5L21 15\"/>", "#b9c4cc"], ["ship", "<path d=\"M3 16h18l-2.5 4.5h-13z\"/><path d=\"M12 3v13\"/><path d=\"M12 4c3 2 5 5.5 5 10h-5M12 6c-2.3 1.8-4 4.5-4 8h4\"/>", "#e2d6bc"], ["castle", "<path d=\"M4 21V9h3V6h2v3h2V6h2v3h2V6h2v3h3v12z\"/><path d=\"M10 21v-5h4v5\"/>", "#b9b2a4"], ["scroll", "<path d=\"M7 4h11a2 2 0 0 1 0 4h-1v11a2 2 0 0 1-2 2H6a2 2 0 0 1 0-4h1z\"/><path d=\"M6 17h9a2 2 0 0 0 2 2M10 8h4M10 12h4\"/>", "#e0c890"], ["shield", "<path d=\"M12 3l7.5 2.8v5.4c0 4.8-3.3 8-7.5 9.8-4.2-1.8-7.5-5-7.5-9.8V5.8z\"/><path d=\"M12 3.4v17.4M5 10.5h14\"/>", "#b9c4cc"], ["check", "<path d=\"M4.5 12.5l5 5L19.5 7\"/>", "#7fbf5a"], ["lock", "<rect x=\"5\" y=\"10.5\" width=\"14\" height=\"10\" rx=\"1.5\"/><path d=\"M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5\"/>", "#c9a24a"], ["shark", "<path d=\"M3 17c4-1 7-1 11 0s5 1 7 0\"/><path d=\"M8 16c1-4 3-8 6-11 0 4 1 8 3 11\"/>", "#9fb4bd"], ["cross", "<path d=\"M6 6l12 12M18 6L6 18\"/>", "#d0573f"], ["star", "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z\"/>", "#e3b94e"], ["crown", "<path d=\"M3 8l4 4 5-7 5 7 4-4-2 11H5z\"/><path d=\"M5 19h14\"/>", "#e3b94e"], ["medal", "<path d=\"M8 3l4 7 4-7\"/><circle cx=\"12\" cy=\"15\" r=\"5\"/><path d=\"M12 12.5l.9 1.7 1.9.3-1.4 1.3.3 1.9-1.7-.9-1.7.9.3-1.9-1.4-1.3 1.9-.3z\"/>", "#e3b94e"], ["crew", "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3.5 20c0-3.6 2.5-6 5.5-6s5.5 2.4 5.5 6\"/><circle cx=\"16.5\" cy=\"9\" r=\"2.5\"/><path d=\"M15.5 14.2c3 .2 5 2.4 5 5.8\"/>", "#d8c9a8"], ["crate", "<path d=\"M4 7l8-4 8 4v10l-8 4-8-4z\"/><path d=\"M4 7l8 4 8-4M12 11v10\"/>", "#c49a62"], ["target", "<circle cx=\"12\" cy=\"12\" r=\"8\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v4M12 18v4M2 12h4M18 12h4\"/>", "#e07a5a"], ["deal", "<path d=\"M3 11l4-4 4 2 3-2 7 5-6 5-4-3\"/><path d=\"M7 7l-4 4 6 6 2-2\"/>", "#d8c9a8"], ["menu", "<path d=\"M4 7h16M4 12h16M4 17h16\"/>", "#e6d7b5"], ["trophy", "<path d=\"M7 4h10v5a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4c0 3 1.5 4.5 3 4.5M17 6h3c0 3-1.5 4.5-3 4.5M12 14v3M8 21h8M9 21l1-4h4l1 4\"/>", "#e3b94e"], ["brush", "<path d=\"M20 4l-9 9\"/><path d=\"M11 13c-2-1-4.5 0-5 2.5-.4 2-1.5 3-2.5 3.5 3 1.5 7 .5 8.5-2 .8-1.4.5-3-1-4z\"/>", "#c98a5a"], ["chart", "<path d=\"M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z\"/><path d=\"M9 4v14M15 6v14\"/>", "#d6c08a"], ["boom", "<path d=\"M12 2l2 6 6-3-3 6 5 2-6 2 3 6-6-3-1 4-1-4-6 3 3-6-6-2 5-2-3-6 6 3z\"/>", "#f0a040"], ["ball", "<circle cx=\"12\" cy=\"12\" r=\"7\"/><path d=\"M9 9.5a3.5 3.5 0 0 1 3-1.8\" stroke-opacity=\".7\"/>", "#a9a9a9"], ["book", "<path d=\"M12 6c-2-1.5-5-2-8-1.5v14c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-14c-3-.5-6 0-8 1.5z\"/><path d=\"M12 6v14\"/>", "#d6c08a"], ["globe", "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9z\"/>", "#9fc0c8"], ["hook", "<path d=\"M14 3v10a5 5 0 0 1-10 0v-2l3 2\"/><circle cx=\"14\" cy=\"3\" r=\"1\"/>", "#b9c4cc"], ["hourglass", "<path d=\"M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9\"/>", "#d6c08a"], ["boost", "<path d=\"M3 8h9M3 12h12M3 16h9\"/><path d=\"M15 6l5 6-5 6\"/>", "#f0b04a"], ["disk", "<path d=\"M4 4h13l3 3v13H4z\"/><path d=\"M8 4v5h8V4M8 20v-6h8v6\"/>", "#b9c4cc"], ["chain", "<rect x=\"2.5\" y=\"9\" width=\"10\" height=\"6\" rx=\"3\"/><rect x=\"11.5\" y=\"9\" width=\"10\" height=\"6\" rx=\"3\"/>", "#b9c4cc"], ["scales", "<path d=\"M12 4v16M7 20h10M5 7h14\"/><path d=\"M5 7l-3 6h6zM19 7l-3 6h6z\"/>", "#d6c08a"], ["bomb", "<circle cx=\"11\" cy=\"14\" r=\"7\"/><path d=\"M15 8l2-2M17 6c1-1 3-1 4 1\"/>", "#a9a9a9"], ["pistol", "<path d=\"M2.5 8.5h14.5l1.6-1.6h2.9v3.6h-4.1l-1.1 1.2h-3.2l-1 2.2v5.6H7.6l1.1-6.6H2.5z\"/>", "#b9c4cc"], ["warn", "<path d=\"M12 3L2 20h20z\"/><path d=\"M12 10v4M12 17v.5\"/>", "#e3b94e"], ["mug", "<path d=\"M5 6h10v14H5z\"/><path d=\"M15 9h3v7h-3M5 9h10\"/>", "#d6a050"], ["hammer", "<path d=\"M14 4l6 6-2.5 2.5-6-6z\"/><path d=\"M12.8 8.7L4 17.5 6.5 20l8.8-8.8\"/>", "#b9c4cc"], ["heart", "<path d=\"M12 20s-8-4.8-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.2-8 11-8 11z\"/>", "#d85a4a"], ["wave", "<path d=\"M2 9c3-3 5-3 7 0s5 3 7 0 4-3 6 0M2 15c3-3 5-3 7 0s5 3 7 0 4-3 6 0\"/>", "#8fb8c8"], ["fire", "<path d=\"M12 21c-4 0-6.5-2.6-6.5-6 0-4 3-5.5 3.5-9 2 1.5 3 3 3 5 1-1 1.5-2.5 1.5-4 3 2 5 5 5 8 0 3.4-2.5 6-6.5 6z\"/>", "#f08040"], ["wood", "<rect x=\"3\" y=\"8\" width=\"18\" height=\"8\" rx=\"4\"/><ellipse cx=\"17\" cy=\"12\" rx=\"2\" ry=\"4\"/>", "#b08050"], ["squid", "<path d=\"M12 3c-3 0-5 2.5-5 6v3h10V9c0-3.5-2-6-5-6z\"/><path d=\"M8 12c0 4-2 6-3 8M10.5 12c0 4-.5 6-1 8M13.5 12c0 4 .5 6 1 8M16 12c0 4 2 6 3 8\"/>", "#c97a8a"], ["eye", "<path d=\"M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "#d8c9a8"], ["dive", "<circle cx=\"12\" cy=\"10\" r=\"6\"/><rect x=\"8.5\" y=\"8\" width=\"7\" height=\"4\" rx=\"1\"/><path d=\"M9 16l-2 5M15 16l2 5\"/>", "#9fc0c8"], ["bell", "<path d=\"M6 16V11a6 6 0 0 1 12 0v5l2 2H4z\"/><path d=\"M10 20a2 2 0 0 0 4 0\"/>", "#e3b94e"], ["chat", "<path d=\"M4 5h16v11H9l-5 4z\"/>", "#d8c9a8"], ["gift", "<rect x=\"4\" y=\"9\" width=\"16\" height=\"12\"/><path d=\"M3 9h18M12 9v12M12 9c-2-4-6-4-6-1.5S9 9 12 9c3 0 6-1 6-1.5S14 5 12 9\"/>", "#d85a4a"], ["snake", "<path d=\"M4 18c3 2 6 0 6-3s-4-3-4-6 3-5 6-4 4 3 7 2\"/><circle cx=\"19\" cy=\"7\" r=\"1\"/>", "#7fbf5a"], ["statue", "<circle cx=\"12\" cy=\"6\" r=\"3\"/><path d=\"M8 21v-9a4 4 0 0 1 8 0v9M6 21h12\"/>", "#b9b2a4"], ["medic", "<path d=\"M5 3v6a5 5 0 0 0 10 0V3\"/><path d=\"M10 14v2a4 4 0 0 0 8 0v-3\"/><circle cx=\"18\" cy=\"11\" r=\"2\"/>", "#d8c9a8"], ["storm", "<path d=\"M6 15a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.5 1.5A3.5 3.5 0 0 1 17 15z\"/><path d=\"M12 15l-2 4h3l-2 3\"/>", "#9fb4bd"], ["door", "<path d=\"M6 21V3h12v18M3 21h18\"/><circle cx=\"15\" cy=\"12\" r=\".8\"/>", "#c49a62"], ["up", "<path d=\"M12 20V5M6 11l6-6 6 6\"/>", "#7fbf5a"], ["tooth", "<path d=\"M7 3c-2 0-3 2-3 4 0 3 1.5 4 2 7s1 7 2.5 7 1.5-5 3.5-5 2 5 3.5 5 2-4 2.5-7 2-4 2-7c0-2-1-4-3-4s-3 1-5 1-3-1-5-1z\"/>", "#e2d6bc"], ["fish", "<path d=\"M3 12c3-4 9-6 14 0-5 6-11 4-14 0z\"/><path d=\"M17 12l4-3v6z\"/><circle cx=\"8\" cy=\"11\" r=\".8\"/>", "#9fc0c8"], ["hat", "<path d=\"M2 15c3 2 17 2 20 0\"/><path d=\"M5 15c0-5 3-8 7-8s7 3 7 8\"/>", "#d8c9a8"], ["joy", "<circle cx=\"12\" cy=\"7\" r=\"3\"/><path d=\"M12 10v7M6 20h12l-1-3H7z\"/>", "#d8c9a8"], ["refresh", "<path d=\"M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5\"/>", "#d8c9a8"]];
+const RSEMO={"💰": "coin", "💎": "coin", "🏦": "coin", "☠": "skull", "💀": "skull", "👻": "skull", "🏴": "flag", "🚩": "flag", "🏳": "flag", "🏴‍☠️": "flag", "⚔": "swords", "🗡": "swords", "🤺": "swords", "🔱": "swords", "⚓": "anchor", "⛵": "ship", "🚢": "ship", "🛥": "ship", "🏰": "castle", "🏯": "castle", "🏪": "castle", "📜": "scroll", "📋": "scroll", "📒": "scroll", "🛡": "shield", "✅": "check", "✓": "check", "✔": "check", "🔒": "lock", "🗝": "lock", "🦈": "shark", "🐋": "shark", "🐟": "shark", "❌": "cross", "✕": "cross", "⭐": "star", "★": "star", "✨": "star", "👑": "crown", "🎖": "medal", "🎓": "medal", "👥": "crew", "🧑": "crew", "👋": "crew", "📦": "crate", "🎯": "target", "📍": "target", "🤝": "deal", "☰": "menu", "🏆": "trophy", "🎨": "brush", "🗺": "chart", "🧭": "chart", "💥": "boom", "⚡": "boom", "⚫": "ball", "🌑": "ball", "📖": "book", "📚": "book", "🌐": "globe", "📡": "globe", "🪝": "hook", "🎣": "hook", "⏳": "hourglass", "⏱": "hourglass", "🚀": "boost", "💨": "boost", "💾": "disk", "📤": "disk", "📥": "disk", "⛓": "chain", "⚖": "scales", "💣": "bomb", "🧨": "bomb", "🔫": "pistol", "⚠": "warn", "🆘": "warn", "🚨": "warn", "⛔": "warn", "🍺": "mug", "🍾": "mug", "🔨": "hammer", "🛠": "hammer", "🔧": "hammer", "⚙": "hammer", "⛏": "hammer", "❤": "heart", "🩸": "heart", "🌊": "wave", "🌫": "wave", "🔥": "fire", "🕯": "fire", "🪵": "wood", "🦑": "squid", "🐙": "squid", "👁": "eye", "🔭": "eye", "🔎": "eye", "🤿": "dive", "🔔": "bell", "📯": "bell", "💬": "chat", "🎁": "gift", "🐍": "snake", "🗿": "statue", "🩺": "medic", "⛈": "storm", "🚪": "door", "⬆": "up", "🦷": "tooth", "🎩": "hat", "🕹": "joy", "⌨": "joy", "👆": "joy", "↻": "refresh"};
+// ===== Visual restyle part 3: drawn icons instead of emoji, iron/brass canvas UI =====
+// Emoji stay in the DOM text (so text/aria/tests are unchanged) but are visually replaced by drawn line icons.
+(function(){const css=[];for(const [k,b,c] of RSICO){const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+b+'</svg>';
+ css.push(`.ic[data-i="${k}"]{--m:url("data:image/svg+xml,${encodeURIComponent(svg).replace(/'/g,'%27').replace(/\(/g,'%28').replace(/\)/g,'%29')}");--c:${c}}`);}
+ const st=document.createElement('style');st.textContent=css.join('\n');document.head.appendChild(st);})();
+const RSRE=new RegExp('('+Object.keys(RSEMO).sort((a,b)=>b.length-a.length).map(e=>e.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\uFE0F?','gu');
+const RSSKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,TITLE:1,CANVAS:1,SELECT:1};
+function rsIcoNode(t){const p=t.parentNode;if(!p||p.nodeType!==1||RSSKIP[p.nodeName]||p.classList.contains('ic')||p.namespaceURI!=='http://www.w3.org/1999/xhtml')return;
+ const v=t.nodeValue;RSRE.lastIndex=0;if(!v||!RSRE.test(v))return;RSRE.lastIndex=0;const f=document.createDocumentFragment();let last=0,m;
+ while((m=RSRE.exec(v))){if(m.index>last)f.appendChild(document.createTextNode(v.slice(last,m.index)));const k=RSEMO[m[1]]||RSEMO[m[1].replace(/\uFE0F/g,'')];const i=document.createElement('i');i.className='ic';i.dataset.i=k;i.textContent=m[0];f.appendChild(i);last=m.index+m[0].length;}
+ if(last<v.length)f.appendChild(document.createTextNode(v.slice(last)));p.replaceChild(f,t);}
+function rsIcons(root){if(!root)return;if(root.nodeType===3){rsIcoNode(root);return;}if(root.nodeType!==1||RSSKIP[root.nodeName])return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const a=[];let n;while((n=w.nextNode()))a.push(n);for(const t of a)rsIcoNode(t);}
+const RSOBS=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')rsIcoNode(m.target);else for(const n of m.addedNodes)rsIcons(n);}});
+rsIcons(document.body);RSOBS.observe(document.body,{childList:true,subtree:true,characterData:true});
+// ---- canvas UI: brass-framed minimap / chart, iron gauge, serif port plates
+function rsFrame(X,Y,w,h){ctx.lineWidth=4;ctx.strokeStyle='#1d1712';ctx.strokeRect(X-2,Y-2,w+4,h+4);ctx.lineWidth=1.5;ctx.strokeStyle='rgba(196,160,92,0.95)';ctx.strokeRect(X-0.5,Y-0.5,w+1,h+1);ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=1;ctx.strokeRect(X+1.5,Y+1.5,w-3,h-3);
+ ctx.fillStyle='#c9a45a';for(const [x,y] of [[X-2,Y-2],[X+w+2,Y-2],[X-2,Y+h+2],[X+w+2,Y+h+2]]){ctx.beginPath();ctx.arc(x,y,2.6,0,TAU);ctx.fill();ctx.strokeStyle='#2a1c10';ctx.lineWidth=0.8;ctx.stroke();}}
+function rsPlate(X,Y,w,h){ctx.fillStyle='rgba(22,17,13,0.86)';ctx.fillRect(X,Y,w,h);ctx.strokeStyle='rgba(196,160,92,0.75)';ctx.lineWidth=1;ctx.strokeRect(X+0.5,Y+0.5,w-1,h-1);}
+function rsMapBtn(b){const g=ctx.createRadialGradient(b.x-6,b.y-7,2,b.x,b.y,22);g.addColorStop(0,'#4a423b');g.addColorStop(1,'#1a1613');ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,22,0,TAU);ctx.fill();ctx.strokeStyle='rgba(196,160,92,0.9)';ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle='#eadcbd';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(b.x-8,b.y);ctx.lineTo(b.x+8,b.y);if(b.t!=='－'){ctx.moveTo(b.x,b.y-8);ctx.lineTo(b.x,b.y+8);}if(b.t==='⌖'){ctx.stroke();ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,6,0,TAU);}ctx.stroke();ctx.lineCap='butt';}
+// chart look for the map base: dark sea, faint graticule, parchment-toned land
+(function(){const g=mapBase.getContext('2d'),k=MAPRES/WORLD;g.globalCompositeOperation='destination-over';g.fillStyle='#183039';g.fillRect(0,0,MAPRES,MAPRES);g.globalCompositeOperation='source-over';
+ g.strokeStyle='rgba(200,180,130,0.08)';g.lineWidth=1;for(let i=0;i<=MAPRES;i+=MAPRES/12){g.beginPath();g.moveTo(i,0);g.lineTo(i,MAPRES);g.moveTo(0,i);g.lineTo(MAPRES,i);g.stroke();}})();
 
 readSafe();const hadSave=load();if(!(S.bal>=2)){S.bal=2;if(hadSave){S.crew=Math.max(S.crew,10);recalc();S.hp=ST.maxHp;}}recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=clamp(S.hp||ST.maxHp,1,ST.maxHp);cam.x=P.x;cam.y=P.y;lastCam.x=cam.x;lastCam.y=cam.y;rebuildFog();applyCos();populate();placeFleet();
 if(hadSave)$('startBtn').textContent='⛵ Continue voyage';oBoot(hadSave);
