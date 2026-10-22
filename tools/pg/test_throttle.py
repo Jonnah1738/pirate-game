@@ -20,9 +20,9 @@ def start(pg):
     pg.evaluate("(()=>{const g=__game;if(g.T.on){g.T.on=false;document.getElementById('tut').classList.add('hidden');}g.S.tutDone=true;})()")
 G="const g=__game,G=g.GRIND,S=g.S,P=g.P;"
 # open sea, no enemies, calm weather; keep it that way
-SEA=G+"""const free=(x,y)=>{for(let a=0;a<6.3;a+=0.4)for(let r=0;r<=1500;r+=150)if(g.inAnyIsland(x+Math.cos(a)*r,y+Math.sin(a)*r,60))return false;return !g.nearSafePort(x,y);};
+SEA=G+"""const free=(x,y)=>{for(let a=0;a<6.3;a+=0.4)for(let r=0;r<=2800;r+=140)if(g.inAnyIsland(x+Math.cos(a)*r,y+Math.sin(a)*r,60))return false;return !g.nearSafePort(x,y);};
 let pt=null;for(let k=0;k<4000&&!pt;k++){const x=3000+Math.random()*14000,y=3000+Math.random()*14000;if(free(x,y))pt={x,y};}
-P.x=pt.x;P.y=pt.y;P.h=0;P.vx=P.vy=P.speed=0;P.boost=0;P.boostCd=0;G.wxSet('clear',9999);
+window.__pt=pt;P.x=pt.x;P.y=pt.y;P.h=0;P.vx=P.vy=P.speed=0;P.boost=0;P.boostCd=0;G.wxSet('clear',9999);
 if(!window.__cl)window.__cl=setInterval(()=>{g.enemies.length=0;g.sharks.length=0;if(G.WX)G.WX.wt=999;},100);"""
 def W(pg,ms): pg.wait_for_timeout(ms)
 def overlaps(pg,label):
@@ -48,17 +48,17 @@ with sync_playwright() as p:
     E("(()=>{"+SEA+"})()")
     sp={}
     for v in [1,0.5,0.25]:
-        E("(v=>{"+G+"P.h=0;G.thrSet(v);})",v);W(pg,7000)
+        E("(v=>{"+G+"P.h=0;P.x=__pt.x;P.y=__pt.y;G.thrSet(v);})",v);W(pg,7000)
         sp[v]=E("(()=>{const P=__game.P;return {s:P.speed,v:Math.hypot(P.vx,P.vy),rd:document.getElementById('thrRead').textContent,eff:__game.GRIND.thrEff(),max:__game.ST().maxSpeed}})()")
     print(sp)
     chk(abs(sp[0.5]['s']/sp[1]['s']-0.5)<0.06 and abs(sp[0.25]['s']/sp[1]['s']-0.25)<0.05,'partial speeds: 100%%→%.0f, 50%%→%.0f, 25%%→%.0f kn'%(sp[1]['s'],sp[0.5]['s'],sp[0.25]['s']))
     chk(sp[0.5]['rd']=='50%' and sp[0.25]['rd']=='25%','readout shows the setting (%s/%s)'%(sp[0.5]['rd'],sp[0.25]['rd']))
     # joystick trim scales within the cap
-    E("(()=>{"+G+"G.thrSet(0.5);P.throttle=0.5;})()");W(pg,6000)
+    E("(()=>{"+G+"P.x=__pt.x;P.y=__pt.y;G.thrSet(0.5);P.throttle=0.5;})()");W(pg,6000)
     js=E("(()=>{const P=__game.P;return {s:P.speed,eff:__game.GRIND.thrEff()}})()")
     chk(abs(js['eff']-0.25)<1e-6 and abs(js['s']/sp[1]['s']-0.25)<0.05,'joystick half deflection under a 50%% cap → 25%% (%.0f kn)'%js['s'])
     # ---- all stop & hold
-    E("(()=>{"+G+"G.thrSet(1);})()");W(pg,6000)
+    E("(()=>{"+G+"P.x=__pt.x;P.y=__pt.y;G.thrSet(1);})()");W(pg,6000)
     E("(()=>{"+G+"P.vx0=P.speed;G.thrStop();window.__t0=performance.now();})()")
     W(pg,1500);mid=E("__game.P.speed");W(pg,4500)
     st=E("(()=>{const P=__game.P;window.__h0={x:P.x,y:P.y};return {s:P.speed,v:Math.hypot(P.vx,P.vy),rd:document.getElementById('thrRead').textContent}})()")
@@ -76,9 +76,9 @@ with sync_playwright() as p:
     tu=E("(()=>{const P=__game.P;return {dh:P.h-__h0.h,d:Math.hypot(P.x-__h0.x,P.y-__h0.y),s:P.speed}})()")
     chk(abs(tu['dh'])>0.6 and tu['d']<6,'rotates in place while stopped (%.0f° in 3s, moved %.1f px)'%(math.degrees(tu['dh']),tu['d']))
     # ---- boost on top, then back to the setting
-    E("(()=>{"+G+"P.h=0;G.thrSet(0.5);})()");W(pg,6000);c50=E("__game.P.speed")
-    E("(()=>{const g=__game;g.P.boostCd=0;g.boost();})()");W(pg,1500)
-    bo=E("(()=>{const P=__game.P;return {s:P.speed,b:P.boost,rd:document.getElementById('thrRead').textContent}})()")
+    E("(()=>{"+G+"P.h=0;P.x=__pt.x;P.y=__pt.y;G.thrSet(0.5);})()");W(pg,6000);c50=E("__game.P.speed")
+    E("(()=>{const g=__game;g.P.x=__pt.x;g.P.y=__pt.y;g.P.boostCd=0;g.boost();window.__bm=0;window.__bi=setInterval(()=>{__bm=Math.max(__bm,g.P.speed);},50);})()");W(pg,1500)
+    bo=E("(()=>{const P=__game.P;return {b:P.boost,rd:document.getElementById('thrRead').textContent}})()");W(pg,1200);bo['s']=E("(()=>{clearInterval(__bi);return __bm})()")
     E("(()=>{const P=__game.P;P.boost=Math.min(P.boost,0.05);})()");W(pg,7000)
     af=E("(()=>{const P=__game.P;return {s:P.speed,sail:__game.S.sail,rd:document.getElementById('thrRead').textContent}})()")
     chk(bo['b']>0 and bo['s']>sp[1]['s']*1.05 and 'BOOST' in bo['rd'],'boost adds on top at 50%% (%.0f kn > full sail %.0f, readout "%s")'%(bo['s'],sp[1]['s'],bo['rd']))

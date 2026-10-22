@@ -1366,7 +1366,7 @@ function updateFleet(dt){const safe=nearSafePort(P.x,P.y);
     else if(Math.abs(rel+Math.PI/2)<0.5&&f.rl<=0){f.rl=fRel(f.d);fireBroadside(f,-1,f.d.cannons,f.d.dmg*(sk('cmd')>=1?1.15:1)*(sk('cmd')>=5?1.15:1)*(S.off.ad?1.2:1),'f',370);}}}
   else{const p=slotPos(i),dx=p.x-f.x,dy=p.y-f.y,dist=Math.hypot(dx,dy);
    if(dist>1600){f.x=p.x;f.y=p.y;f.h=P.h;f.vx=P.vx;f.vy=P.vy;f.speed=P.speed;}
-   const pv=Math.hypot(P.vx,P.vy);if(pv<22&&dist<300){if(dist<45)f.hold=1;else if(dist>110)f.hold=0;if(f.hold){desired=P.h;thr=0;}else{desired=Math.atan2(dy,dx);thr=clamp(dist/520,0.08,0.45);}}else{f.hold=0;if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(pv/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(pv/(ms*0.95),0,1);}}}
+   const pv=Math.hypot(P.vx,P.vy);if(pv<22&&dist<320){if(dist<75)f.hold=1;else if(dist>150)f.hold=0;if(f.hold){desired=P.h;thr=0;}else{desired=Math.atan2(dy,dx);thr=clamp(dist/420,0.12,0.5);}}else{f.hold=0;if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(pv/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(pv/(ms*0.95),0,1);}}}
   const ca=Math.cos(f.h),sa=Math.sin(f.h);for(const look of LOOKS){const o=inAnyIsland(f.x+ca*look,f.y+sa*look,30);if(o){const ai=Math.atan2(o.y-f.y,o.x-f.x);desired=f.h+(angDiff(ai,f.h)>=0?1:-1)*1.4;break;}}
   moveShip(f,desired,thr,ms,ST.turn*1.1,dt);
   // keep a little distance from the flagship and each other

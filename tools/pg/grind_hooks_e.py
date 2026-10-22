@@ -13,6 +13,6 @@ rep("c.maxThr=Math.max(c.maxThr||0,P.throttle);","c.maxThr=Math.max(c.maxThr||0,
 rep("function tutStart(i){T.on=true;","function tutStart(i){T.on=true;if(S.sail<0.5)S.sail=1;")
 # fleet: hold station when the flagship is stopped
 rep("if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(Math.hypot(P.vx,P.vy)/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(Math.hypot(P.vx,P.vy)/(ms*0.95),0,1);}}",
- "const pv=Math.hypot(P.vx,P.vy);if(pv<22&&dist<300){if(dist<45)f.hold=1;else if(dist>110)f.hold=0;if(f.hold){desired=P.h;thr=0;}else{desired=Math.atan2(dy,dx);thr=clamp(dist/520,0.08,0.45);}}else{f.hold=0;if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(pv/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(pv/(ms*0.95),0,1);}}}")
+ "const pv=Math.hypot(P.vx,P.vy);if(pv<22&&dist<320){if(dist<75)f.hold=1;else if(dist>150)f.hold=0;if(f.hold){desired=P.h;thr=0;}else{desired=Math.atan2(dy,dx);thr=clamp(dist/420,0.12,0.5);}}else{f.hold=0;if(dist>35){desired=Math.atan2(dy,dx);thr=clamp(pv/ms+dist/220,0.25,1);}else{desired=P.h;thr=clamp(pv/(ms*0.95),0,1);}}}")
 # menu: steering row mentions the lever
 rep("'Drag anywhere on the sea (floating joystick)'","'Drag anywhere on the sea (floating joystick). ⛵ Sail lever on the left sets speed 0–100% (⚓ stop / ⛵ full; keys W/S, +/−, X)'")
