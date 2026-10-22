@@ -1,0 +1,1 @@
+FUP,VT,VN,fvl,fRep,fBase,fRecalc,fSpd,fRel,fRepMin,fUpCost,fRefitCost,fRefitCh,fRushCost,fleetLayUp,fUpgrade,fRefit,fRush,fDone,fleetTickD,fleetSunkD,fleetCards,get fleetEnts(){return fleet},damageFleet:(f,x)=>damageFleet(f,x),syncFleet:()=>syncFleet()

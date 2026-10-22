@@ -1,0 +1,6 @@
+rep("ctx.globalAlpha=1;\n // ---- screen space\n ctx.setTransform(dpr,0,0,dpr,0,0);\n","ctx.globalAlpha=1;\n // ---- screen space\n ctx.setTransform(dpr,0,0,dpr,0,0);\n grindDraw(ts);\n")
+rep(":`🏰 Manage ${fortAct.f.name}`;return null;}",":`🏰 Manage ${fortAct.f.name}`;return grindActLabel();}")
+rep("if(!fortAct||stormF)return;const f=fortAct.f;","if(!fortAct||stormF){if(!stormF)grindActTap();return;}const f=fortAct.f;")
+rep('<button data-m="rep">🏴<br>Republic</button>','<button data-m="rep">🏴<br>Republic</button><button data-m="codex">📚<br>Codex</button>')
+rep("if(mView==='story'){$('mBody').innerHTML=journalHTML();return;}","if(mView==='story'){$('mBody').innerHTML=journalHTML();return;}if(mView==='codex'){$('mBody').innerHTML=codexHTML();return;}")
+rep("function defaultState(){return{res:","function defaultState(){return{codex:{ships:{},fish:{},art:{},crew:{}},dive:{},fishN:{d:0,n:0},res:")

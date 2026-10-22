@@ -1,0 +1,6 @@
+rep("else drawShip(e,'#3b3b42','#111',0.9);clsOverlay(e,ts);","else drawShip(e,e.evg?'rgba(170,255,210,0.5)':'#3b3b42',e.evg?'#0d1a14':'#111',0.9);clsOverlay(e,ts);")
+rep('<button data-m="codex">📚<br>Codex</button>','<button data-m="codex">📚<br>Codex</button><button data-m="board">📋<br>Board</button>')
+rep("if(mView==='codex'){$('mBody').innerHTML=codexHTML();return;}","if(mView==='codex'){$('mBody').innerHTML=codexHTML();return;}if(mView==='board'){$('mBody').innerHTML=boardHTML();return;}")
+rep("if(storyMenuAct(a,b.dataset.arg)){renderMenu();return;}","if(storyMenuAct(a,b.dataset.arg)){renderMenu();return;}if(boardAct(a,b.dataset.arg)){if(state==='menu')renderMenu();return;}")
+rep(".tabs#mTabs button{min-width:0;padding:4px 1px;font-size:11px;line-height:1.25}",".tabs#mTabs button{min-width:0;padding:4px 0;font-size:10px;line-height:1.25;letter-spacing:-.2px}")
+rep(":`☠ Rival Pirate Lv${e.lvl}`),X,Y-8);}",":e.evg?`👻 ${e.name} Lv${e.lvl}`:`☠ Rival Pirate Lv${e.lvl}`),X,Y-8);}")
