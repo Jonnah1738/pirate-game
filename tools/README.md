@@ -14,3 +14,9 @@ Dev-only scripts; nothing here is loaded by the game.
 - Module f = boarding hull lock (both grappled hulls immune; 150 s max fight; 12 s re-grapple cooldown).
 - `firebase/` = Firebase project config + Realtime Database security rules (no credentials).
   Deploy: `cd firebase && npx firebase-tools deploy --only database --project pirate-seas-jonnah`.
+
+## Online multiplayer (module m)
+- `grind_m.js` (+ `grind_hooks_m.py`, `grind_m.exp`): Firebase RTDB lobbies (16 max), anonymous auth, spatial-cell motion sync, chat/emotes, PvP with victim-side validation, crews, kill cam, cloud save. Build: `INP=old_grind.html python3 tools/pg/patch_grind.py a,b,c,d,e,f,m`.
+- `test_rules.py`: REST checks of `firebase/database.rules.json` against the real project (anonymous sign-up only, no credentials).
+- `test_mp.py`: 6 headless clients against real Firebase; `--stress` = 16 clients + overflow. Screenshots go to `screenshots-mp/` (git-ignored).
+- Deploy rules: `cd firebase && npx -y firebase-tools@latest deploy --only database --project pirate-seas-jonnah`.

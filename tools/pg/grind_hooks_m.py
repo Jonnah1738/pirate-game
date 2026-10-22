@@ -1,0 +1,10 @@
+# --- module M (online multiplayer) hooks ---
+rep("if(dt>0.05)dt=0.05;if(dt<0)dt=0;","if(dt>0.05)dt=0.05;if(dt<0)dt=0;mpFrame(dt);")
+rep("const lx=P.x+P.vx*0.45,ly=P.y+P.vy*0.45;","let lx=P.x+P.vx*0.45,ly=P.y+P.vy*0.45;{const kc=mpKC();if(kc){lx=kc.x;ly=kc.y;}}")
+rep("if(P.boost>0&&!P.dead){const g=0.35","mpDraw(ts);if(P.boost>0&&!P.dead){const g=0.35")
+rep("if(!hit&&b.owner==='p')hit=fortBallHit(b);}","if(!hit&&b.owner==='p')hit=mpHit(b);if(!hit&&b.owner==='p')hit=fortBallHit(b);}")
+rep("else if(b.owner==='c'&&clanBallHit(b))hit=true;","else if(b.owner==='x'){hit=mpXHit(b);}else if(b.owner==='c'&&clanBallHit(b))hit=true;")
+rep("if(P.dead>2.2&&state==='play')playerDied();","if(P.dead>(mpKC()?4.5:2.2)&&state==='play')playerDied();")
+rep("function playerDied(){if(S.roster)crewHurt(true);","function playerDied(){mpDied();if(S.roster)crewHurt(true);")
+rep("function fire(side,scanned){if(P.dead)return;","function fire(side,scanned){if(P.dead||mpNoFire())return;")
+rep("ctx.save();ctx.translate(mx(P.x),my(P.y));ctx.rotate(P.h);","mpMap(mx,my,big);ctx.save();ctx.translate(mx(P.x),my(P.y));ctx.rotate(P.h);")
