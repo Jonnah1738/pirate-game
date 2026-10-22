@@ -356,7 +356,7 @@ function makeIsland(d,seed,isPort){
  if(isPort){
   o.pa=d.pa;const pr=radiusAt(o,d.pa)+48;o.port={x:d.x+Math.cos(d.pa)*pr,y:d.y+Math.sin(d.pa)*pr};
   o.desc=d.desc;o.haven=!!d.haven;o.cheap=d.cheap;o.want=d.want;
-  o.mult=GOODS.map(g=>g.id===d.cheap?0.55:g.id===d.want?1.6:0.8+r()*0.45);
+  o.mult=GOODS.map(g=>g.id===d.cheap?0.55:g.id===d.want?(d.haven?1:1.2):0.8+r()*0.45);
  }
  return o;
 }
@@ -431,7 +431,7 @@ function fogLoadBits(fb,n,off){for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=
 
 // ---------- SAVE STATE ----------
 const SAVEKEY='pirateSeas_save_v1';
-function defaultState(){return{gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0,command:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0,teeth:0},
+function defaultState(){return{eco:ecoDef(),ftT:0,xpv:2,gold:150,up:{hull:0,sails:0,cannons:0,cargo:0,rigging:0,command:0},crew:10,roles:{gunner:0,sailor:0,carpenter:0,navigator:0},cargo:{rum:0,sugar:0,spice:0,silk:0,gems:0,teeth:0},
  quests:[],offers:{},qid:1,x:PORTS[0].port.x,y:PORTS[0].port.y+40,h:Math.PI/2,hp:150,kills:0,infamy:0,lastPort:0,playTime:0,fog:'',earned:0,muted:false,seen:false,autoFire:true,bal:2,boostTip:false,heat:0,heatT:0,tips:{},tutDone:false,tutStep:0,steer:'drag',fleet:[],fid:1,upkT:0,sharks:0,xp:0,clvl:1,sp:0,sk:{gun:0,sea:0,plun:0,cmd:0,war:0},ship:'sloop',ach:{},st:{dig:0,resc:0,smug:0,race:0,convoy:0,block:0,jobs:0},megas:0,track:0,lastRank:'',wv:2,rep:[0,0,0,0],forts:{},leaders:{},lrev:{},vis:[0],king:0,cst:{fort:0,lead:0,cj:0,def:0,sk:0,trib:0,rev:0,lev:0},leg:0,cos:{sail:'def',flag:'def',hull:'def',fx:'def'},ammo:{chain:0,fire:0,mortar:0},asel:'ball',off:{},unl:1,cap:{sw:0,pi:0,ar:0,sty:'',cw:0,ca:0,tr:0},bst:{win:0,loss:0,duel:0,repel:0,raid:0,parry:0,ko:0,ret:0,feed:0}};}
 let S=defaultState();
 function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false;const d=JSON.parse(raw);const def=defaultState();
@@ -440,7 +440,7 @@ function load(){try{const raw=localStorage.getItem(SAVEKEY);if(!raw)return false
  if(!(d.xp>=0)){S.xp=Math.round((S.kills|0)*14+(S.raids|0)*10+(S.sharks|0)*4+(S.infamy|0)*0.3);const L=lvlFromXp(S.xp).l;S.clvl=L;S.sp=L-1;S.retro=L>1?L:0;achSilent=true;}
  S.clvl=clamp((S.clvl|0)||1,1,MAXLVL);S.sp=Math.max(0,S.sp|0);if(!Array.isArray(S.quests))S.quests=[];S.quests=S.quests.filter(q=>q&&typeof q==='object'&&q.type);
  S.quests=(S.quests||[]).map(q=>{q.spawned=false;return q;});
- migrateExp(d);migrateBoard(d);
+ migrateExp(d);migrateBoard(d);migrateEco(d);migrateXp(d);
  {const v2=d.wv>=2;if(typeof d.fogb==='string'&&d.fogb){try{fogLoadBits(b64d(d.fogb),v2?FOGN:80,v2?0:80);}catch(e){}}
   else if(typeof d.fog==='string'&&d.fog.length===6400&&!v2){for(let j=0;j<80;j++)for(let i=0;i<80;i++)if(d.fog.charCodeAt(j*80+i)===49)fog[(j+80)*FOGN+i+80]=1;}S.fog='';S.fogb='';}
  return true;}catch(e){console.warn('save load failed',e);return false;}}
@@ -488,8 +488,44 @@ function recalc(){const u=S.up,r=S.roles,C=hullC(),g=sk('gun'),se=sk('sea');cons
 function cargoUsed(){let n=0;for(const g of GOODS)n+=S.cargo[g.id]||0;for(const q of S.quests)if(q.crates)n+=q.crates;return n;}
 const RANKS=[[0,'Deckhand'],[100,'Swabbie'],[300,'Buccaneer'],[700,'Captain'],[1500,'Sea Wolf'],[3000,'Commodore'],[6000,'Pirate Lord'],[12000,'Pirate King'],[20000,'Pirate Emperor'],[35000,'Sovereign of the Seas']];
 function rankOf(x){let r=RANKS[0][1];for(const [t,n] of RANKS)if(x>=t)r=n;return r;}
-function price(pi,gi){const p=PORTS[pi];return Math.max(1,Math.round(GOODS[gi].base*p.mult[gi]*(1+0.12*Math.sin(S.playTime/90+pi*1.7+gi*2.3))));}
-const sellPrice=(pi,gi)=>Math.max(1,Math.round(price(pi,gi)*0.82*(sk('plun')>=3?1.1:1)*(S.off&&S.off.qm?1.08:1)));
+
+// ---------- DYNAMIC ECONOMY: gluts, shifting demand, daily caps, fast-travel tolls ----------
+const ECO={TAU:110,DROP:0.92,RISE:1.08,FLOOR:0.38,BCAP:2.2,DAY:600,HOTX:1.8,NHOT:3,HOTMIN:240,HOTMAX:420,
+ LOT:{rum:4,sugar:4,spice:3,silk:2,gems:1,teeth:2},CAP:{rum:60,sugar:50,spice:36,silk:24,gems:12,teeth:30},HOTCAP:1.5,
+ FT_BASE:90,FT_DIST:32,FT_PCT:0.12,FT_CD:105};
+function ecoDef(){return{t:0,p:{},d:0,q:{},hot:[],pr:0};}
+function migrateEco(d){const E=(d.eco&&typeof d.eco==='object')?d.eco:{};const o=ecoDef();o.t=E.t>=0?+E.t:0;o.d=Math.floor(o.t/ECO.DAY);
+ if(E.p&&typeof E.p==='object')for(const k in E.p){const v=E.p[k];if(Array.isArray(v)&&v.length===3&&v.every(x=>typeof x==='number'&&isFinite(x)))o.p[k]=v;}
+ if(E.q&&typeof E.q==='object'&&E.d===o.d)for(const k in E.q)o.q[k]=Math.max(0,E.q[k]|0);
+ if(Array.isArray(E.hot))o.hot=E.hot.filter(h=>h&&GOODS[h.g]&&PORTS[h.p]&&h.u>=0).slice(0,ECO.NHOT).map(h=>({g:h.g|0,p:h.p|0,u:+h.u}));
+ S.eco=o;S.ftT=(d.ftT>=0&&d.ftT<=o.t+ECO.FT_CD)?+d.ftT:0;}
+function ecoS(){const E=S.eco;if(E&&E.p&&E.q&&Array.isArray(E.hot)&&E.t>=0)return E;return S.eco=ecoDef();}
+const ekey=(pi,gi)=>pi*8+gi;
+const lotOf=gi=>ECO.LOT[GOODS[gi].id]||1;
+function pres(pi,gi){const E=ecoS(),o=E.p[ekey(pi,gi)];if(!o)return{s:0,b:0};const k=Math.exp(-Math.max(0,E.t-o[2])/ECO.TAU);return{s:o[0]*k,b:o[1]*k};}
+function addPres(pi,gi,ds,db){const p=pres(pi,gi),a=p.s+ds,b=p.b+db;if(a<0.01&&b<0.01){delete S.eco.p[ekey(pi,gi)];return;}S.eco.p[ekey(pi,gi)]=[Math.round(a*1000)/1000,Math.round(b*1000)/1000,S.eco.t];}
+function hotAt(pi,gi){for(const h of ecoS().hot)if(h.p===pi&&h.g===gi)return h;return null;}
+// valuable goods only boom at lawful ports (no fast travel there); never where they're cheap or at war with you
+function hotOk(gi,pi){const p=PORTS[pi],g=GOODS[gi].id;if(p.cheap===g)return false;if(p.haven&&!(g==='rum'||g==='sugar'||g==='teeth'))return false;if(p.clan!=null&&clanHostile(p.clan))return false;return true;}
+function pickHot(gi,prev){const c=[],far=[];for(let pi=0;pi<PORTS.length;pi++){if(pi===prev||!hotOk(gi,pi))continue;(Math.hypot(PORTS[pi].port.x-P.x,PORTS[pi].port.y-P.y)<9000?c:far).push(pi);}const L=c.length?c:far;return L.length?L[(Math.random()*L.length)|0]:-1;}
+function ecoTick(dt){const E=ecoS();E.t+=dt;const day=Math.floor(E.t/ECO.DAY);if(day!==E.d){E.d=day;E.q={};}
+ while(E.hot.length<ECO.NHOT){const used=E.hot.map(h=>h.g),free=GOODS.map((g,i)=>i).filter(i=>!used.includes(i));const gi=free[(Math.random()*free.length)|0];const pi=pickHot(gi,-1);if(pi<0)break;E.hot.push({g:gi,p:pi,u:E.t+rand(ECO.HOTMIN,ECO.HOTMAX)});}
+ for(let i=0;i<E.hot.length;i++){const h=E.hot[i];if(E.t<h.u)continue;const used=E.hot.map(x=>x.g),pool=GOODS.map((g,j)=>j).filter(j=>j===h.g||!used.includes(j));const gi=pool[(Math.random()*pool.length)|0];const pi=pickHot(gi,gi===h.g?h.p:-1);
+  if(pi<0){h.u=E.t+60;continue;}E.hot[i]={g:gi,p:pi,u:E.t+rand(ECO.HOTMIN,ECO.HOTMAX)};
+  if(state==='play'&&S.tutDone&&!T.on)toast(`📯 Trade winds shift — a new port is paying top coin for ${GOODS[gi].name}. Ask in any tavern.`);}
+ if((E.pr+=dt)>5){E.pr=0;for(const k in E.p){const o=E.p[k];if(Math.max(o[0],o[1])*Math.exp(-(E.t-o[2])/ECO.TAU)<0.02)delete E.p[k];}}}
+function basePrice(pi,gi){const p=PORTS[pi];return GOODS[gi].base*p.mult[gi]*(hotAt(pi,gi)?ECO.HOTX:1)*(1+0.12*Math.sin(S.playTime/90+pi*1.7+gi*2.3));}
+const buyMul=(pi,gi,ex)=>Math.min(ECO.BCAP,Math.pow(ECO.RISE,pres(pi,gi).b+(ex||0)/lotOf(gi)));
+const sellMul=(pi,gi,ex)=>Math.max(ECO.FLOOR,Math.pow(ECO.DROP,pres(pi,gi).s+(ex||0)/lotOf(gi)));
+function capOf(pi,gi){return Math.round((ECO.CAP[GOODS[gi].id]||20)*(hotAt(pi,gi)?ECO.HOTCAP:1));}
+function capLeft(pi,gi){return Math.max(0,capOf(pi,gi)-(ecoS().q[ekey(pi,gi)]|0));}
+function sellTotal(pi,gi,n){let t=0;for(let k=0;k<n;k++)t+=sellPrice(pi,gi,k);return t;}
+function dayLeft(){return ECO.DAY-(ecoS().t%ECO.DAY);}
+function mmss(t){t=Math.max(0,Math.ceil(t));return `${(t/60)|0}:${String(t%60).padStart(2,'0')}`;}
+function cargoVal(){let v=0;for(const g of GOODS)v+=(S.cargo[g.id]||0)*g.base;return v;}
+function ftWait(){return Math.max(0,(S.ftT||0)-ecoS().t);}
+function price(pi,gi,ex){return Math.max(1,Math.round(basePrice(pi,gi)*buyMul(pi,gi,ex)));}
+const sellPrice=(pi,gi,ex)=>Math.max(1,Math.round(basePrice(pi,gi)*0.82*(sk('plun')>=3?1.1:1)*(S.off&&S.off.qm?1.08:1)*sellMul(pi,gi,ex)));
 
 // ---------- ENTITIES ----------
 const P={x:0,y:0,vx:0,vy:0,h:0,speed:0,throttle:0,boost:0,boostCd:0,hp:100,len:52,wid:18,rl:0,rr:0,rb:0,calm:0,dead:0,kind:'player'};
@@ -761,11 +797,16 @@ function renderPort(){const p=PORTS[curPort];$('pName').textContent='⚓ '+p.nam
   for(const k in ROLES){const d=ROLES[k],l=S.roles[k];const c=pCost(d,l);const max=l>=d.max;
    h+=row(`${d.icon} ${d.name} ${pips(l,d.max)}`,max?d.desc(l)+' (MAX)':`${l?d.desc(l)+'<br>➜ ':''}${d.desc(l+1)}`,btn('role',max?'MAX':(l?'Train ':'Hire ')+c+' 💰',!max&&S.gold>=c,k));}h+=officersHTML(p);}
  else if(tab==='arms'){h+=armsHTML(p);}
- else if(tab==='market'){const used=cargoUsed();h+=`<div class="note">Hold: ${used}/${ST.cargoCap} crates. Buy low, sell high in another port. Prices drift over time.</div>`;
-  GOODS.forEach((g,gi)=>{const b=Math.ceil(price(curPort,gi)*mk()),s=sellPrice(curPort,gi);const own=S.cargo[g.id];const tag=p.cheap===g.id?' <small style="display:inline;color:#2f7d3b">▼ cheap here</small>':p.want===g.id?' <small style="display:inline;color:#a12a1d">▲ in demand</small>':'';
-   h+=row(`${g.icon} ${g.name}${tag}`,`Buy ${b} • Sell ${s} • You have ${own}`,btn('buy','Buy',S.gold>=b&&used<ST.cargoCap,gi)+btn('buy','×5',S.gold>=b*5&&used+5<=ST.cargoCap,gi+':5')+btn('sell','Sell',own>0,gi,'sell')+btn('sell','All',own>0,gi+':all','sell'));});
-  h+=`<h3>🗣️ Tavern rumours</h3><div class="note">`;const nr=S.roles.navigator>=2?GOODS.length:2;
-  for(let gi=0;gi<nr;gi++){const gg=(gi+curPort)%GOODS.length;let best=0,bp=0;PORTS.forEach((pp,pi)=>{const v=sellPrice(pi,gg);if(v>bp){bp=v;best=pi;}});h+=`• ${GOODS[gg].icon} ${GOODS[gg].name} sells for ~${bp} in ${PORTS[best].name}.<br>`;}
+ else if(tab==='market'){const used=cargoUsed();h+=`<div class="note">Hold: ${used}/${ST.cargoCap} crates. Buy low, sell high elsewhere. <b>Markets react:</b> each load you sell gluts the port (−8%), each load you buy makes it dearer (+8%); prices recover over a few minutes. Each port only buys so much of a good per day (new day in ${mmss(dayLeft())}).</div>`;
+  GOODS.forEach((g,gi)=>{const b=Math.ceil(price(curPort,gi)*mk()),s=sellPrice(curPort,gi);const own=S.cargo[g.id];const hot=hotAt(curPort,gi);const sm=sellMul(curPort,gi),bm=buyMul(curPort,gi);const left=capLeft(curPort,gi),cap=capOf(curPort,gi);
+   const tg=(c,t)=>` <small style="display:inline;color:${c}">${t}</small>`;const tag=hot?tg('#a12a1d','🔥 high demand'):p.cheap===g.id?tg('#2f7d3b','▼ cheap here'):p.want===g.id&&!p.haven?tg('#8a5a1a','▲ steady demand'):'';
+   const tr=[];if(sm<0.97)tr.push(`<span style="color:#a12a1d">▼ glutted −${Math.round((1-sm)*100)}%${sm<=ECO.FLOOR+0.001?' (floor)':''}</span>`);if(bm>1.03)tr.push(`<span style="color:#8a5a1a">▲ dearer +${Math.round((bm-1)*100)}%</span>`);if(tr.length)tr.push('<i>recovering</i>');
+   const ns=Math.min(own,left),tot=ns?sellTotal(curPort,gi,ns):0;
+   const capT=left<=0?`<b style="color:#a12a1d">Full up today</b>`:`Buys ${left}/${cap} more today`;
+   h+=row(`${g.icon} ${g.name}${tag}`,`Buy ${b}${bm>1.03?'▲':''} • Sell ${s}${sm<0.97?'▼':''} • You have ${own}<br>${capT}${ns>1?` • all ${ns} ≈ ${tot}💰`:''}${tr.length?'<br>'+tr.join(' · '):''}`,btn('buy','Buy',S.gold>=b&&used<ST.cargoCap,gi)+btn('buy','×5',S.gold>=b*5&&used+5<=ST.cargoCap,gi+':5')+btn('sell','Sell',own>0&&left>0,gi,'sell')+btn('sell','All',own>0&&left>0,gi+':all','sell'));});
+  h+=`<h3>🗣️ Tavern rumours</h3><div class="note">`;const nav2=S.roles.navigator>=2,nr=nav2?GOODS.length:2;
+  {const hs=S.eco.hot.slice(0,nav2?ECO.NHOT:2);for(const hh of hs){const left=hh.u-S.eco.t;h+=`• 🔥 <b>${PORTS[hh.p].name}</b> is paying top coin for ${GOODS[hh.g].icon} ${GOODS[hh.g].name} (~${sellPrice(hh.p,hh.g)}) — ${left>150?'for now':'but not for long'}.<br>`;}}
+  for(let gi=0;gi<nr;gi++){const gg=(gi+curPort)%GOODS.length;if(S.eco.hot.some(x=>x.g===gg))continue;let best=0,bp=0;PORTS.forEach((pp,pi)=>{if(pi===curPort)return;const v=sellPrice(pi,gg);if(v>bp){bp=v;best=pi;}});h+=`• ${GOODS[gg].icon} ${GOODS[gg].name} sells for ~${bp} in ${PORTS[best].name}.<br>`;}
   if(S.roles.navigator<2)h+=`<i>A Navigator (Lv2) would hear more rumours.</i>`;h+='</div>';}
  else if(tab==='fleet'){const cap=fleetCap();
   h+=`<div class="note">Your fleet: <b>${S.fleet.length}/${cap}</b> ships • wages <b>${wagesTotal()} 💰/min</b> at sea. Fleet ships follow you and fight hostile ships (merchants only after you've attacked them). Unpaid crews desert after 3 missed wages. More slots: <b>⚓ Fleet Command</b> in the 🛠️ Ship tab. The Navy hunts bigger fleets harder.</div>`;
@@ -792,8 +833,11 @@ function portAction(act,arg){if(act==='xfer'){openXfer();return;}if(exPortAction
  else if(act==='up'){const d=UPG[arg];const c=pCost(d,S.up[arg]);if(S.gold>=c&&S.up[arg]<d.max){S.gold-=c;S.up[arg]++;const old=ST.maxHp;recalc();if(arg==='hull')P.hp+=ST.maxHp-old;chime();tutEv('buy');toast(`${d.icon} ${d.name} upgraded to Lv${S.up[arg]}!`);}}
  else if(act==='role'){const d=ROLES[arg];const c=pCost(d,S.roles[arg]);if(S.gold>=c&&S.roles[arg]<d.max){S.gold-=c;S.roles[arg]++;recalc();chime();tutEv('buy');toast(`${d.icon} ${d.name} now Lv${S.roles[arg]}!`);}}
  else if(act==='hire'){const hire=Math.ceil((15+2*S.up.hull)*mk());let n=arg==='fill'?Math.max(1,ST.crewNeed-S.crew):+arg;n=Math.min(n,ST.maxCrew-S.crew,Math.floor(S.gold/hire));if(n>0){S.gold-=n*hire;S.crew+=n;recalc();chime();}}
- else if(act==='buy'){const [gi,m]=String(arg).split(':');const g=GOODS[+gi];const pr=Math.ceil(price(curPort,+gi)*mk());let n=Math.min(+(m||1),ST.cargoCap-cargoUsed(),Math.floor(S.gold/pr));if(n>0){S.gold-=n*pr;S.cargo[g.id]+=n;}}
- else if(act==='sell'){const [gi,m]=String(arg).split(':');const g=GOODS[+gi];const pr=sellPrice(curPort,+gi);const n=m==='all'?S.cargo[g.id]:Math.min(1,S.cargo[g.id]);if(n>0){S.cargo[g.id]-=n;S.gold+=n*pr;S.earned+=n*pr;chime();}}
+ else if(act==='buy'){const [g0,m]=String(arg).split(':');const gi=+g0,g=GOODS[gi];if(!g)return;const want=Math.min(Math.max(1,+(m||1)|0),ST.cargoCap-cargoUsed());let n=0,cost=0;while(n<want){const pr=Math.ceil(price(curPort,gi,n)*mk());if(S.gold-cost<pr)break;cost+=pr;n++;}if(n>0){S.gold-=cost;S.cargo[g.id]+=n;addPres(curPort,gi,0,n/lotOf(gi));}}
+ else if(act==='sell'){const [g0,m]=String(arg).split(':');const gi=+g0,g=GOODS[gi];if(!g)return;const own=S.cargo[g.id]|0,left=capLeft(curPort,gi);let n=m==='all'?own:Math.min(1,own);
+  if(n>0&&left<=0)toast(`🚫 "We're full up, captain." ${PORTS[curPort].name} won't take more ${g.name} today (new day in ${mmss(dayLeft())}).`);
+  else if(n>0){const k=Math.min(n,left),tot=sellTotal(curPort,gi,k);S.cargo[g.id]-=k;S.gold+=tot;S.earned+=tot;addPres(curPort,gi,k/lotOf(gi),0);S.eco.q[ekey(curPort,gi)]=(S.eco.q[ekey(curPort,gi)]|0)+k;chime();
+   if(k<n)toast(`"That's all the ${g.name} we'll take today, captain." Sold ${k} for ${tot} 💰.`);}}
  else if(act==='accept'){const o=offersFor(curPort);const i=o.findIndex(q=>q.id==arg);if(i>=0&&S.quests.length<maxJobs()&&!(o[i].cost&&S.gold<o[i].cost)){const q=o.splice(i,1)[0];if(q.cost)S.gold-=q.cost;S.quests.push(q);S.track=q.id;offersFor(curPort);toast('📜 Job accepted: '+q.title);}}
  else if(act==='frep'){const d=S.fleet.find(x=>x.id==arg);if(d){const miss=Math.max(0,d.maxHp-Math.ceil(d.hp)),c=Math.ceil(miss*0.6*mk());if(S.gold>=c){S.gold-=c;d.hp=d.maxHp;chime();}}}
  else if(act==='fren'){const d=S.fleet.find(x=>x.id==arg);if(d){const n=prompt('Rename your ship:',d.name);if(n&&n.trim())d.name=n.replace(/[<>&"]/g,'').trim().slice(0,18);}}
@@ -1083,10 +1127,13 @@ function updateHUD(){QT=questTargets();setTxt('hGold','💰 '+S.gold);setTxt('hC
 // ---------- LOOP ----------
 let last=performance.now();
 let perfAcc=0,perfN=0;
+let ftUiT=0,ftWasWait=false;
+function ftUi(){const w=ftWait();const els=document.querySelectorAll('#pBody [data-ftcd]');for(const el of els)el.textContent=(el.dataset.ftcd==='n'?'':'⏳ ')+mmss(w);if(ftWasWait&&w<=0&&els.length)renderPort();ftWasWait=w>0&&els.length>0;}
 function frame(t){requestAnimationFrame(frame);let dt=(t-last)/1000;last=t;
  // adaptive resolution: if the device can't hold ~40fps, drop the canvas pixel ratio a step (never below 1)
  if(dt>0&&dt<0.1&&!document.hidden){perfAcc+=dt;perfN++;if(perfN>=150){if(perfAcc/perfN>0.027&&dprCap>1&&(window.devicePixelRatio||1)>1){dprCap=Math.max(1,dprCap-0.5);resize();}perfAcc=0;perfN=0;}}
  if(dt>0.05)dt=0.05;if(dt<0)dt=0;
+ if(state!=='title')ecoTick(dt);if(state==='port'){ftUiT-=dt;if(ftUiT<=0){ftUiT=0.5;ftUi();}}
  if(state==='play')update(dt);
  else if(state==='brawl')brawlFrame(dt);
  else if(state==='title'){P.h+=0; wind.dir+=0;}
@@ -1319,7 +1366,12 @@ function sharkBoarding(){let near=!!inSharkZone(P.x,P.y);if(!near)for(const s of
  if(near&&S.crew>4&&Math.random()<0.35){S.crew--;recalc();addText(P.x,P.y-60,'-1 crew 🦈','#ffb3b3');return true;}return false;}
 // ---------- PROGRESSION: captain XP, skills, ranks, trophies ----------
 const MAXLVL=60;
-function xpNeed(l){return 60+40*l+(l>=30?8*(l-29)*(l-29):0);}
+function xpNeed(l){return 60+40*l+(l>=30?26*(l-29)*(l-29):0)+(l>=45?60*(l-44)*(l-44):0);}
+function xpNeedV1(l){return 60+40*l+(l>=30?8*(l-29)*(l-29):0);}
+function xpTot(l,f){let t=0;for(let i=1;i<l;i++)t+=f(i);return t;}
+// old saves keep their level & unlocks; XP is re-based onto the new curve keeping progress within the level
+function migrateXp(d){if(d.xpv>=2){S.xpv=2;return;}S.xpv=2;const L=S.clvl|0;if(L<30||!(S.xp>=0))return;
+ let rem=S.xp-xpTot(L,xpNeedV1);const fr=L>=MAXLVL?0:clamp(rem/xpNeedV1(L),0,0.999);const nx=Math.round(xpTot(L,xpNeed)+(L>=MAXLVL?Math.max(0,rem):fr*xpNeed(L)));if(nx>S.xp)S.xp=nx;}
 function lvlFromXp(x){let l=1;x=Math.max(0,x||0);while(l<MAXLVL&&x>=xpNeed(l)){x-=xpNeed(l);l++;}return{l,rem:Math.floor(x),need:xpNeed(l)};}
 function sk(k){return(S.sk&&S.sk[k])|0;}
 function grantXP(n,x,y){n=Math.round(n*(sk('war')>=6?1.25:1));if(!(n>0))return;S.xp=(S.xp||0)+n;if(x!=null)addText(x,y-62,'+'+n+' XP','#d6b8ff');
@@ -1758,20 +1810,21 @@ function clanQTarget(q){if(q.type==='fortraid'){const f=FORTS[q.fid];return f?{x
  if(q.type==='clanhunt'){let b=null,bd=1e18;for(const e of enemies)if(e.kind==='clan'&&e.clan===q.tc&&!e.sinking){const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;b=e;}}if(b&&bd<2500)return{x:b.x,y:b.y,icon:'🏴',c:CLANS[q.tc].col};
   for(const f of FORTS)if(f.clan===q.tc){const d=Math.hypot(f.x-P.x,f.y-P.y);if(d<bd){bd=d;b=f;}}return b?{x:b.x,y:b.y,icon:'🏴',c:CLANS[q.tc].col}:null;}return null;}
 // ---- fast travel / docking extras ----
-function ftCost(pi){const a=PORTS[curPort].port,b=PORTS[pi].port;return Math.round((30+Math.hypot(a.x-b.x,a.y-b.y)/60)*(S.off.ca?0.7:1));}
+function ftCost(pi){const a=PORTS[curPort].port,b=PORTS[pi].port;return Math.round((ECO.FT_BASE+Math.hypot(a.x-b.x,a.y-b.y)/ECO.FT_DIST)*(S.off.ca?0.7:1)+ECO.FT_PCT*cargoVal());}
 function ftOk(){return!S.quests.some(q=>(q.type==='race'||q.type==='blockade')&&q.started);}
-function fastTravel(pi){const c=ftCost(pi);if(!PORTS[curPort]||!PORTS[curPort].haven||!PORTS[pi].haven||!S.vis.includes(pi)||S.gold<c||!ftOk())return;if(PORTS[pi].clan!=null&&clanHostile(PORTS[pi].clan))return;
- S.gold-=c;$('port').classList.add('hidden');const p=PORTS[pi];P.x=p.port.x;P.y=p.port.y;P.vx=P.vy=0;cam.x=P.x;cam.y=P.y;
+function fastTravel(pi){if(!PORTS[curPort]||!PORTS[pi])return;const c=ftCost(pi);if(!PORTS[curPort].haven||!PORTS[pi].haven||pi===curPort||!S.vis.includes(pi)||S.gold<c||!ftOk()||ftWait()>0)return;if(PORTS[pi].clan!=null&&clanHostile(PORTS[pi].clan))return;
+ S.gold-=c;S.ftT=S.eco.t+ECO.FT_CD;$('port').classList.add('hidden');const p=PORTS[pi];P.x=p.port.x;P.y=p.port.y;P.vx=P.vy=0;cam.x=P.x;cam.y=P.y;
  for(let i=enemies.length-1;i>=0;i--)if(!enemies[i].keep||enemies[i].lead)enemies.splice(i,1);sharks.length=0;balls.length=0;shells.length=0;loot.length=0;populate();placeFleet();
- dock(pi);setTimeout(()=>toast(`⛵ Your crew sailed you to ${p.name} (−${c} 💰).`),80);}
+ dock(pi);setTimeout(()=>toast(`⛵ Your crew sailed you to ${p.name} (toll −${c} 💰). They'll need ${mmss(ECO.FT_CD)} ashore before the next voyage.`),80);}
 function exDock(pi){if(!S.vis.includes(pi))S.vis.push(pi);const p=PORTS[pi];if(!p.haven)return;let t=0;for(const id in S.forts){const s=S.forts[id];if(s.o==='p'&&s.g>=1){t+=Math.floor(s.g);s.g-=Math.floor(s.g);}}
  if(t>0){const n=Math.round(t*0.8);S.gold+=n;S.earned+=n;S.cst.trib+=n;setTimeout(()=>toast(`🏰 Couriers brought ${n} 💰 of fort tribute (20% fee).`),2700);}}
 function dockExtraHTML(p){let h='';
  if(p.clan!=null){const c=CLANS[p.clan];h+=`<div class="note">${c.icon} <b>Stronghold of the ${c.name}</b> — you are <b>${repTxt(p.clan)}</b> (${rep(p.clan)}).${rep(p.clan)>=REP_ALLY?' Allies pay 15% less here.':''} Their leader: ${S.leaders[p.clan]?'sunk ✅':c.leader+' (flagship the '+c.ship+')'}.</div>`;}
  if(p.haven){const hv=S.vis.filter(i=>i!==curPort&&PORTS[i]&&PORTS[i].haven&&!(PORTS[i].clan!=null&&clanHostile(PORTS[i].clan)));
   h+=`<h3>⛵ Fast travel</h3>`;if(!hv.length)h+=`<div class="note">Hire a crew to sail you to any 🏴‍☠️ haven you've already visited. Visit more havens to unlock routes.</div>`;
-  else{const ok=ftOk();if(!ok)h+=`<div class="note">Not during a timed job (regatta / blockade run).</div>`;
-   hv.sort((a,b)=>ftCost(a)-ftCost(b));for(const i of hv){const c=ftCost(i);h+=row(`${PORTS[i].clan!=null?CLANS[PORTS[i].clan].icon:'🏴‍☠️'} ${PORTS[i].name}`,`${Math.round(Math.hypot(PORTS[i].port.x-p.port.x,PORTS[i].port.y-p.port.y)/10)*10}m • Waters Lv${lvlAt(PORTS[i].port.x,PORTS[i].port.y)}`,btn('ft',`${c} 💰`,ok&&S.gold>=c,i));}}}
+  else{const ok=ftOk(),w=ftWait(),cv=cargoVal();if(!ok)h+=`<div class="note">Not during a timed job (regatta / blockade run).</div>`;
+   h+=`<div class="note">Hired crews charge a toll: ${ECO.FT_BASE}💰 + distance${S.off.ca?' (−30% Cartographer)':''} + <b>${Math.round(ECO.FT_PCT*100)}% of cargo value</b> (${cv}💰 aboard → +${Math.round(ECO.FT_PCT*cv)}💰). They rest ${mmss(ECO.FT_CD)} between voyages. Sailing yourself is free.${w>0?`<br><b>⏳ Crew resting — next voyage in <span data-ftcd="n">${mmss(w)}</span></b>`:''}</div>`;
+   hv.sort((a,b)=>ftCost(a)-ftCost(b));for(const i of hv){const c=ftCost(i);h+=row(`${PORTS[i].clan!=null?CLANS[PORTS[i].clan].icon:'🏴‍☠️'} ${PORTS[i].name}`,`${Math.round(Math.hypot(PORTS[i].port.x-p.port.x,PORTS[i].port.y-p.port.y)/10)*10}m • Waters Lv${lvlAt(PORTS[i].port.x,PORTS[i].port.y)} • toll ${c}💰`,w>0?`<button class="b" disabled data-ftcd>⏳ ${mmss(w)}</button>`:btn('ft',`${c} 💰`,ok&&S.gold>=c,i));}}}
  return h;}
 // ---- ammo ----
 const AMMO={ball:{name:'Round shot',icon:'⚫',lvl:1,cost:0,desc:'Standard iron balls.'},
@@ -1917,6 +1970,7 @@ function drawMap(X,Y,s,big){const v=mapView(big),k=s/v.span;const mx=x=>X+(x-v.x
  ctx.restore();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1.5;ctx.strokeRect(X,Y,s,s);}
 function drawBigMap(){if(!mapOpen){mapOpen=true;MV.z=1;MV.cx=MV.cy=WORLD/2;mapPtr.clear();mapPinch=null;}ctx.fillStyle='rgba(5,10,20,0.78)';ctx.fillRect(0,0,vw,vh);const R=bigMapRect();drawMap(R.x,R.y,R.s,true);
  ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🗺️ Sea chart — drag to pan • pinch / ＋－ to zoom • tap to close',vw/2,R.y-14,vw-12);
+ {const w=ftWait(),t=w>0?`⏳ Fast travel in ${mmss(w)}`:'⛵ Fast travel ready (at havens)';ctx.font='600 12px Georgia,serif';const tw=ctx.measureText(t).width+16;ctx.fillStyle='rgba(16,13,10,.82)';const by=R.y+R.s-36;ctx.fillRect(R.x+6,by,tw,22);ctx.strokeStyle='rgba(176,140,80,.7)';ctx.lineWidth=1;ctx.strokeRect(R.x+6.5,by+0.5,tw-1,21);ctx.fillStyle=w>0?'#e3b86a':'#cfe3b0';ctx.textAlign='left';ctx.fillText(t,R.x+14,by+11);ctx.textAlign='center';ctx.font='bold 14px sans-serif';}
  for(const b of mapBtns()){ctx.fillStyle='rgba(10,25,40,0.8)';ctx.beginPath();ctx.arc(b.x,b.y,22,0,TAU);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.fillText(b.t,b.x,b.y+1);}
  // legend
  const items=[['#5be36a','You']].concat(CLANS.map(c=>[c.col,c.short]));ctx.font='bold 11px sans-serif';let tw=0;for(const it of items)tw+=ctx.measureText(it[1]).width+22;let x=vw/2-tw/2;const y=Math.min(vh-8,R.y+R.s+14);
@@ -2555,7 +2609,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});w
 requestAnimationFrame(frame);
 setTimeout(()=>{(window.requestIdleCallback||(f=>f()))(countLoad);},2500);
 // test hook
-window.__game={B:BRAPI,get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
+window.__game={ECON:{ECO,ecoTick,hotOk,mk:()=>mk(),dayLeft,price,sellPrice,basePrice,pres,capLeft,capOf,hotAt,ftCost,ftWait,cargoVal,xpNeed,xpNeedV1,xpTot,sellTotal,get curPort(){return curPort},portAction:(a,b)=>portAction(a,b),fastTravel,renderPort},B:BRAPI,get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
 })();
 </script>
 </body>
