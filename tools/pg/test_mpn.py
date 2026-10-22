@@ -12,6 +12,7 @@ def keepclear(pg,sec=12):E(pg,"(()=>{const g=__game;const iv=setInterval(()=>{g.
 with sync_playwright() as p:
     b=p.chromium.launch(args=['--enable-unsafe-swiftshader','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows'])
     C=[client(b,i) for i in range(N)];A,B,Cc=[c[1] for c in C]
+    seed([A,B,Cc])
     r=E(A,"async()=>{const G=__game.GRIND;G.MPX.name='Iron Anne';try{await G.mpApi.mpCreate(true,'NX Test '+Math.floor(Math.random()*900+100));return G.MPX.lid}catch(e){return 'ERR '+e.message}}")
     lid=r;chk(lid and lid[0]=='L',f'A created lobby {lid}');start(A);place(A,*SEA)
     for pg,n in ((B,'Black Jack'),(Cc,'Calico Kate')):
@@ -157,6 +158,7 @@ with sync_playwright() as p:
     # clean test rows out of the real weekly/season leaderboard
     for x in (A,B,Cc):E(x,f"async()=>{{const G=__game.GRIND,D=G.MPX.fb.D;for(const w of [{NA}.nxWeek(),{NA}.nxWeek(-1)])await D.remove(D.ref(G.MPX.fb.db,'lb/'+w+'/'+G.MPX.uid)).catch(()=>{{}});}}")
     for x in (A,B,Cc):E(x,"__game.GRIND.mpApi.mpLeave(true)")
+    unseed()
     A.wait_for_timeout(1500)
     chk(not errs,f'0 console errors {errs[:5]}')
     print('FAILS',len(fails),fails);b.close()

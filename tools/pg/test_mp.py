@@ -17,8 +17,29 @@ def client(b,i,touch=True):
     pg=ctx.new_page();tag=f'c{i}'
     pg.on('pageerror',lambda e,t=tag:errs.append(f'{t} pageerror {e}'))
     pg.on('console',lambda m,t=tag:(m.type=='error' and errs.append(f'{t} console {m.text[:160]}')))
-    s=dict(SAVE);pg.add_init_script("if(!sessionStorage.getItem('inj')){sessionStorage.setItem('inj','1');localStorage.setItem('pirateSeas_save_v1',JSON.stringify(%s));}"%json.dumps(s))
+    s=dict(SAVE);pg.add_init_script("if(!sessionStorage.getItem('inj')){sessionStorage.setItem('inj','1');sessionStorage.setItem('pirateSeas_mode','online');localStorage.setItem('pirateSeas_onNotice','1');localStorage.setItem('pirateSeas_online_v1',JSON.stringify(%s));}"%json.dumps(s))
     pg.goto(URL+'?t=1');pg.wait_for_timeout(500);return ctx,pg
+SEEDED=[]
+def seed(pgs,lvl=12):
+    # online captains are cloud-validated (rules cap presence level by the cloud profile). Test captains get an
+    # admin-seeded Lv{lvl} cloud profile via the firebase CLI (the box's logged-in CLI; nothing private is committed).
+    import subprocess,string
+    up={}
+    for pg in pgs:
+        E(pg,LEVEL+f"({lvl})")
+        uid=E(pg,"async()=>{const G=__game.GRIND;await G.mpApi.fbLoad();return G.MPX.uid}")
+        k=''.join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(24))
+        v=E(pg,"(()=>{const S=__game.S;return {lv:S.clvl,g:Math.floor((S.gold||0)+(S.vault||0)),x:Math.floor(S.xp||0)}})()")
+        v.update({'u':uid,'t':int(time.time()*1000),'d':'','n':'test'});up['oc/'+k]=v;up['ou/'+uid]=k
+        E(pg,f"(()=>{{__game.S.oc={{k:'{k}'}};}})()");SEEDED.append(pg)
+    open('/tmp/mpseed.json','w').write(json.dumps(up))
+    r=subprocess.run('cd /workspace/pirate-game/firebase && npx -y firebase-tools@latest database:update / /tmp/mpseed.json -f --project pirate-seas-jonnah',shell=True,capture_output=True,text=True,timeout=120)
+    chk(r.returncode==0,f'seeded {len(pgs)} Lv{lvl} online test captains in the cloud')
+def unseed():
+    for pg in SEEDED:
+        if pg.is_closed():continue
+        try:E(pg,"async()=>{const G=__game.GRIND,D=G.MPX.fb.D,db=G.MPX.fb.db;const k=__game.S.oc&&__game.S.oc.k;if(k)await D.remove(D.ref(db,'oc/'+k)).catch(()=>{});await D.remove(D.ref(db,'ou/'+G.MPX.uid)).catch(()=>{});}")
+        except Exception:pass
 def start(pg,lvl=12):
     E(pg,"document.getElementById('startBtn').click()");pg.wait_for_timeout(150);E(pg,LEVEL+f"({lvl})")
     E(pg,"(()=>{const g=__game;g.enemies.length=0;if(g.sharks)g.sharks.length=0;})()")
@@ -33,6 +54,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(args=['--enable-unsafe-swiftshader','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows'])
     C=[client(b,i) for i in range(N)];pgs=[c[1] for c in C]
     A=pgs[0]
+    seed(pgs)
     # --- lobby browser UI on A ---
     A.tap('#mpBtn');ok=waitf(A,"document.getElementById('mpLSt')&&/Signed in/.test(document.getElementById('mpLSt').textContent)",20000)
     chk(ok,'A: Play Online opens lobby browser and signs in anonymously')
@@ -184,6 +206,7 @@ with sync_playwright() as p:
     A.wait_for_timeout(2500)
     ex=E(A,f"async()=>{{const G=__game.GRIND,D=G.MPX.fb.D;const db=G.MPX.fb.db;return [(await D.get(D.ref(db,'lob/{lid}/s'))).exists(),(await D.get(D.ref(db,'idx/{lid}'))).exists()]}}")
     chk(ex==[False,False],f'lobby emptied + garbage-collected after everyone left {ex}')
+    unseed()
     real=[e for e in errs if 'favicon' not in e]
     chk(not real,f'console errors: {real[:5]}')
     b.close()

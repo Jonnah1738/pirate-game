@@ -19,7 +19,7 @@ def ok(c,m):
 A,ta=anon();B,tb=anon();C,tc=anon()
 lid='L'+''.join(random.choice(string.ascii_letters+string.digits) for _ in range(8))
 L=f'lob/{lid}'
-prof=lambda n:{'n':n,'l':5,'h':'sloop','c':'def|def|def|def','g':2,'rg':400,'cr':'','cn':'','b':0,'k':0,'xy':'1,1','hb':TS,'j':TS}
+prof=lambda n:{'n':n,'l':2,'h':'sloop','c':'def|def|def|def','g':2,'rg':400,'cr':'','cn':'','b':0,'k':0,'xy':'1,1','hb':TS,'j':TS}
 ok(G(None,'lob')[0]==401,'unauthenticated read denied')
 ok(G(ta,'lob')[0]==401,'listing all lobbies denied (private codes stay secret)')
 ok(U(ta,{f'{L}/m':{'n':'Test','r':'NA','pub':True,'t':TS},f'{L}/s/0':A,f'{L}/u/{A}':'0',f'{L}/p/{A}':prof('Alpha'),f'idx/{lid}':{'n':'Test','r':'NA','t':TS}})==200,'A creates lobby + slot 0 atomically')
@@ -56,6 +56,33 @@ code=''.join(random.choice(string.ascii_uppercase+string.digits) for _ in range(
 ok(W(tc,f'rc/{code}',{'d':'PSEAS1.test','t':TS})==200 and G(ta,f'rc/{code}')[1]['d']=='PSEAS1.test','cloud save write + read by code')
 ok(G(ta,'rc')[0]==401,'cloud saves cannot be listed')
 ok(W(ta,f'{L}',None)!=200,'cannot delete a lobby that has players')
+# --- online captain profile (oc/ou) + presence level cap ---
+import random as _r
+def ocode():return ''.join(_r.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(24))
+ka=ocode();oc=lambda u,lv,g,x,d='blob':{'u':u,'lv':lv,'g':g,'x':x,'d':d,'n':'T','t':TS}
+ok(W(ta,f'{L}/p/{A}/l',5)!=200,'presence level 5 denied without a cloud profile')
+ok(W(ta,f'oc/{ka}',oc(A,5,150,0))!=200,'new online profile must start at Lv1-2')
+ok(W(ta,f'oc/{ka}',oc(A,1,99999,0))!=200,'new online profile with big gold denied')
+ok(W(tb,f'oc/{ka}',oc(A,1,150,0))!=200,'cannot create a profile owned by someone else')
+ok(U(ta,{f'oc/{ka}':oc(A,1,150,0),f'ou/{A}':ka})==200,'A creates fresh online profile + pointer')
+ok(G(None,f'oc/{ka}')[0]==401,'unauthenticated profile read denied')
+ok(G(tb,f'ou/{A}')[0]==401,"B cannot read A's profile pointer")
+ok(W(tb,f'ou/{B}',ka)!=200,"B cannot point at A's profile")
+ok(W(ta,f'oc/{ka}',oc(A,12,150,500))!=200,'level jump 1->12 denied')
+ok(W(ta,f'oc/{ka}',oc(A,3,150,500))==200,'level 1->3 allowed')
+ok(W(ta,f'{L}/p/{A}/l',3)==200,'presence level 3 allowed (= cloud level)')
+ok(W(ta,f'{L}/p/{A}/l',4)!=200,'presence level 4 denied (> cloud level)')
+ok(W(ta,f'oc/{ka}',oc(A,3,2000000,500))!=200,'gold jump +2M denied')
+ok(W(ta,f'oc/{ka}',oc(A,3,30000,500))==200,'gold +30k allowed')
+ok(W(ta,f'oc/{ka}',oc(A,2,30000,500))!=200,'level cannot go down')
+ok(W(ta,f'oc/{ka}',oc(A,3,30000,100))!=200,'xp cannot go down')
+ok(W(tb,f'oc/{ka}',oc(B,4,30000,500))!=200,'claim by recovery code cannot change level')
+ok(W(tb,f'oc/{ka}',oc(B,3,30000,500,'other'))!=200,'claim cannot change the save blob')
+ok(U(tb,{f'oc/{ka}':oc(B,3,30000,500),f'ou/{B}':ka})==200,'B claims profile with the recovery code (unchanged)')
+ok(W(ta,f'oc/{ka}',oc(A,3,30000,600))!=200,'old owner can no longer write after the claim')
+ok(W(ta,f'oc/{ka}',None)!=200,'non-owner cannot delete')
+ok(W(tb,f'oc/{ka}',None)==200 and W(tb,f'ou/{B}',None)==200,'owner deletes profile (cleanup)')
+ok(W(ta,f'{L}/p/{A}/l',2)==200,'presence level back to 2')
 # cleanup
 for t,u,s in((ta,A,0),(tb,B,1)):ok(U(t,{f'{L}/s/{s}':None,f'{L}/u/{u}':None,f'{L}/p/{u}':None,f'{L}/c/5_5/{u}':None})==200,f'leave cleans own nodes ({s})')
 ok(U(ta,{L:None,f'idx/{lid}':None})==200,'empty lobby garbage-collected')
