@@ -12,7 +12,8 @@ with sync_playwright() as p:
     import os
     WXM=os.environ.get('WX','')
     if WXM: pg.evaluate("(m=>{const G=__game.GRIND,S=__game.S;if(m.includes('night'))S.playTime=__game.GRIND.DAYLEN*0.75;if(m.includes('storm')){G.wxSet('storm',200);G.WX.t=150;}if(m.includes('fog')){G.wxSet('fog',200);G.WX.t=150;}})",WXM)
+    pg.evaluate('m=>__game.GRIND.gfxSet&&__game.GRIND.gfxSet(m)',os.environ.get('GFX','high'))
     if os.environ.get('RSDBG'): pg.evaluate('d=>{__game.GRIND.RS.dbg=d}',int(os.environ['RSDBG']))
-    pg.wait_for_timeout(1500)
+    pg.wait_for_timeout(int(os.environ.get('WARM','1500')))
     r=pg.evaluate("new Promise(r=>{let n=0,w=0,l=performance.now();const t0=l;function f(t){n++;w=Math.max(w,t-l);l=t;if(t-t0<5000)requestAnimationFrame(f);else r([Math.round(n/5),Math.round(w)])}requestAnimationFrame(f)})")
-    print('FPS (4x CPU throttle, 9 class ships in combat'+(' + '+WXM if WXM else '')+') [avg, worst ms]:',r,'errors',errs)
+    print('dpr',pg.evaluate('window.devicePixelRatio'),'low',pg.evaluate('__game.GRIND.RS.low'));print('FPS (4x CPU throttle, 9 class ships in combat'+(' + '+WXM if WXM else '')+') [avg, worst ms]:',r,'errors',errs)

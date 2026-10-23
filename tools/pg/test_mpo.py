@@ -1,6 +1,7 @@
 # Online-profile separation + cloud persistence test (module o) against the real Firebase project.
 import sys,json,time,os
 from playwright.sync_api import sync_playwright
+sys.path.insert(0,'/workspace/tools/pg');import mpclean  # removes this run's own oc/ou/lb test records at exit
 URL=os.environ.get('MPURL','http://127.0.0.1:8765/index.html');OUT='/workspace/pirate-game/screenshots-mp/'
 fails=[];errs=[]
 def chk(c,m):
@@ -13,6 +14,7 @@ def waitf(pg,js,ms=15000):
 OFF={"gold":6000,"crew":40,"tutDone":True,"seen":True,"bal":2,"infamy":3000,"ship":"brig","xp":5000,"clvl":14,"xpv":2,"up":{"hull":4,"sails":3,"cannons":4,"cargo":2,"rigging":1,"command":1},"fleet":[{"id":2,"name":"Test","type":"sloop","lvl":1,"maxHp":90,"hp":90}],"tips":{"ammo":1,"board":1}}
 def ctx(b,tag,inject=True):
     c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
+    mpclean.attach(c)
     pg=c.new_page()
     pg.on('pageerror',lambda e:errs.append(f'{tag} pageerror {e}'))
     pg.on('console',lambda m:(m.type=='error' and errs.append(f'{tag} console {m.text[:160]}')))
@@ -97,7 +99,7 @@ with sync_playwright() as p:
     chk(own==[True,code],f'profile now owned by the new browser {own}')
     chk((E(B,KF+f"('{OFK}')") or [1,150])[:2]==[1,150],'restore did not touch the offline save in the new browser')
     # --- Founding Captain: offline save that played online before the change ---
-    cF=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True);F=cF.new_page()
+    cF=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True);mpclean.attach(cF);F=cF.new_page()
     F.on('pageerror',lambda e:errs.append(f'F pageerror {e}'))
     OLD=dict(OFF);OLD.update({'mpName':'Old Salt','mpK':3,'mpM':40})
     F.add_init_script("if(!localStorage.getItem('inj')){localStorage.setItem('inj','1');localStorage.setItem('pirateSeas_save_v1',JSON.stringify(%s));}"%json.dumps(OLD))

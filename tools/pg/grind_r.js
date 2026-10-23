@@ -23,12 +23,12 @@ function rsSea(t){const ts=t/1000;const Q=0.5,w=Math.max(2,Math.ceil(vw*Q)),h=Ma
  const g=RS.sg;g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.fillStyle=rsSeaBase();g.fillRect(0,0,w,h);
  if(!(RS.dbg&1)){if(!RS.pat){RS.pat=g.createPattern(rsTile(256,77,false),'repeat');RS.pat2=g.createPattern(rsTile(256,191,true),'repeat');}
   const wdx=Math.cos(wind.dir),wdy=Math.sin(wind.dir);
-  for(const [p,sc,sp,al] of [[RS.pat,2.2,5,1],[RS.pat2,1,11,0.9]]){const z=zoom*sc*Q,T=256*z;
+  for(const [p,sc,sp,al] of (RS.low?[[RS.pat2,1.4,8,1]]:[[RS.pat,2.2,5,1],[RS.pat2,1,11,0.9]])){const z=zoom*sc*Q,T=256*z;
    let ox=((vw/2-cam.x*zoom-wdx*ts*sp*zoom)*Q)%T,oy=((vh/2-cam.y*zoom-wdy*ts*sp*zoom)*Q)%T;if(ox>0)ox-=T;if(oy>0)oy-=T;
    g.setTransform(z,0,0,z,ox,oy);g.globalAlpha=al;g.fillStyle=p;g.fillRect(0,0,(w-ox)/z+2,(h-oy)/z+2);}
   g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;}
  if(!(RS.dbg&2))g.drawImage(RS.vig,0,0);
- ctx.imageSmoothingEnabled=!(RS.dbg&8);ctx.drawImage(RS.sc,0,0,vw,vh);ctx.imageSmoothingEnabled=true;}
+ ctx.imageSmoothingEnabled=!(RS.dbg&8)&&!RS.low;ctx.drawImage(RS.sc,0,0,vw,vh);ctx.imageSmoothingEnabled=true;}
 function rsLight(){}
 // ---- ships: cached detailed hull sprite (planking, rails, cannons, rigging, wear) + shaded sails drawn live
 function rsHull(g,L,W,d){g.beginPath();g.moveTo(L/2-d*1.4,0);g.quadraticCurveTo(L*0.28,-W/2+d,-L*0.32,-W/2+d);g.lineTo(-L/2+d,-W*0.36+d*0.5);g.lineTo(-L/2+d,W*0.36-d*0.5);g.lineTo(-L*0.32,W/2-d);g.quadraticCurveTo(L*0.28,W/2-d,L/2-d*1.4,0);g.closePath();}

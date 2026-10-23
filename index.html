@@ -939,12 +939,12 @@ const ghost=()=>!menuPD&&performance.now()-menuOpenT<450;
 function openMenu(){state='menu';resetArm=false;mView='log';menuOpenT=performance.now();menuPD=false;$('menu').classList.remove('hidden');renderMenu();}
 function renderMenu(){[...$('mTabs').children].forEach(b=>b.classList.toggle('on',b.dataset.m===mView));if(mView==='skills'){$('mBody').innerHTML=skillsHTML();return;}if(mView==='trophies'){$('mBody').innerHTML=trophiesHTML();return;}if(mView==='style'){$('mBody').innerHTML=styleHTML();return;}if(mView==='rep'){$('mBody').innerHTML=repHTML();return;}if(mView==='story'){$('mBody').innerHTML=journalHTML();return;}if(mView==='codex'){$('mBody').innerHTML=codexHTML();return;}if(mView==='board'){$('mBody').innerHTML=boardHTML();return;}const used=cargoUsed();let cg=GOODS.filter(g=>S.cargo[g.id]).map(g=>`${g.icon}${S.cargo[g.id]}`).join(' ')||'empty';
  let h=`<div class="note"><b>${rankOf(S.infamy)}</b> • ${S.infamy} infamy • ${S.kills} ships sunk • ${S.earned} gold earned</div>`;
- {const X=lvlFromXp(S.xp||0);h+=row(`🎖️ Captain level ${S.clvl}`,`${X.rem}/${X.need} XP • ${S.sp|0} skill point${(S.sp|0)===1?'':'s'} • ${hullC().icon} ${hullC().name} • 🏆 ${ACH.filter(a=>S.ach[a[0]]).length}/${ACH.length}`,btn('mv',S.sp>0?'Spend points':'Skills',true,'skills'));}
+ h+=pMenuTop();{const X=lvlFromXp(S.xp||0);h+=row(`🎖️ Captain level ${S.clvl}`,`${X.rem}/${X.need} XP • ${S.sp|0} skill point${(S.sp|0)===1?'':'s'} • ${hullC().icon} ${hullC().name} • 🏆 ${ACH.filter(a=>S.ach[a[0]]).length}/${ACH.length}`,btn('mv',S.sp>0?'Spend points':'Skills',true,'skills'));}
  h+=row('⚔️ Captain',capSummary(),'');
  h+=row('🏴 Pirate Republic',`${ownedForts()} forts • ${leadersDown()}/4 clan leaders sunk${S.king?' • 👑 Pirate King':''}`,btn('mv','Open',true,'rep'));
  h+=row('📦 Cargo',`${used}/${ST.cargoCap}: ${cg}`,'');hEns();h+=row('🔨 Shipwright stores',Object.keys(RES).map(k=>`${RES[k][0]} ${RES[k][1]} <b>${resN(k)}</b>`).join(' • ')+` • 👥 named crew ${(S.roster||[]).length}/${crewCap()} • ⭐ ${HULLS[S.ship].name} mastery ${mastLvl()}/10`,'');h+=row('🪵 Rare materials',matInv()+` • 🗺️ chart fragments <b>${S.tr.frag|0}/${FRAG_MAX}</b>`,'');h+=ledgerHTML();
  h+=row('📜 Jobs',S.quests.length?S.quests.map(q=>q.title+(qProg(q)?` (${qProg(q)})`:'')).join('<br>'):'none','');
- h+=row('🔊 Sound',S.muted?'Muted':'On',btn('mute',S.muted?'Unmute':'Mute',true));
+ h+=pMenuRows();h+=row('🔊 Sound',S.muted?'Muted':'On',btn('mute',S.muted?'Unmute':'Mute',true));
  h+=row('🎯 Auto-fire',S.autoFire!==false?'On — broadsides fire at hostile ships in range (key T)':'Off — fire manually (key T)',btn('auto',S.autoFire!==false?'Turn off':'Turn on',true));
  h+=row('🗺️ Map','See the whole sea',btn('map','Open',true));
  h+=row('💾 Save game','Progress also saves automatically every few seconds.',btn('savenow','💾 Save now',true));
@@ -954,7 +954,7 @@ function renderMenu(){[...$('mTabs').children].forEach(b=>b.classList.toggle('on
  h+=row('💾 Save Transfer','Move progress to another device (export / import a save code).',btn('xfer','💾 Save Transfer',true));
  h+=row('⚠️ Reset progress','Delete your save and start over.',btn('reset',resetArm?'Tap again!':'Reset',true,'','red'));
  h+=`<div class="note">Progress saves automatically on this device. Use 💾 Save Transfer to move it to another one.</div>`;$('mBody').innerHTML=h;}
-$('mBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled||ghost())return;const a=b.dataset.act;if(storyMenuAct(a,b.dataset.arg)){renderMenu();return;}if(boardAct(a,b.dataset.arg)){if(state==='menu')renderMenu();return;}
+$('mBody').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled||ghost())return;const a=b.dataset.act;if(pAct(a))return;if(storyMenuAct(a,b.dataset.arg)){renderMenu();return;}if(boardAct(a,b.dataset.arg)){if(state==='menu')renderMenu();return;}
  if(a==='cos'){equipCos(b.dataset.arg);renderMenu();return;}if(a==='leg'){learnLeg();renderMenu();return;}
  if(a==='learn'){learn(b.dataset.arg);renderMenu();}
  else if(a==='mv'){mView=b.dataset.arg;renderMenu();$('mBody').scrollTop=0;}
@@ -3636,7 +3636,7 @@ function hullLocked(){return !!(BR.on||(GR.e&&GR.ph==='pull'));}
 function lockFx(){if(performance.now()-lockFxT<900)return;lockFxT=performance.now();addText(P.x,P.y-30,'🔒','#e9d7a5');}
 (function(){const st=document.createElement('style');st.textContent=`#hullLock{position:fixed;left:50%;transform:translateX(-50%);top:calc(6px + env(safe-area-inset-top));z-index:40;pointer-events:none;padding:3px 10px;border-radius:9px;font:700 11.5px Georgia,'Times New Roman',serif;letter-spacing:.4px;color:#f1e2b8;background:rgba(20,16,12,.88);border:1px solid rgba(178,142,82,.85);box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap}#hullLock.hidden{display:none}`;document.head.appendChild(st);
  const d=document.createElement('div');d.id='hullLock';d.className='hidden';d.textContent='🔒 Boarding: hulls locked';document.body.appendChild(d);
- setInterval(()=>{const on=hullLocked();d.classList.toggle('hidden',!on);if(on){const hb=Math.round($('hud').getBoundingClientRect().bottom)||100;d.style.top=(hb+5)+'px';}if(on&&BR.on&&BR.ph==='fight'){const left=Math.max(0,Math.ceil(BRMAX-BR.t));d.textContent=left<=30?`🔒 Boarding: hulls locked • ${left}s`:'🔒 Boarding: hulls locked';}else if(on)d.textContent='🔒 Boarding: hulls locked';},250);})();
+ setInterval(()=>{const on=hullLocked();d.classList.toggle('hidden',!on);if(on){const hb=Math.round($('hud').getBoundingClientRect().bottom)||100;d.style.top=pLockTop(hb)+'px';}if(on&&BR.on&&BR.ph==='fight'){const left=Math.max(0,Math.ceil(BRMAX-BR.t));d.textContent=left<=30?`🔒 Boarding: hulls locked • ${left}s`:'🔒 Boarding: hulls locked';}else if(on)d.textContent='🔒 Boarding: hulls locked';},250);})();
 
 // ================= M: ONLINE — Firebase RTDB lobbies (cap 16), shared sea, PvP, crews, chat, cloud save =================
 // Lazy: nothing here loads or connects until the player taps "Play Online" (or enables cloud save).
@@ -4411,12 +4411,12 @@ function rsSea(t){const ts=t/1000;const Q=0.5,w=Math.max(2,Math.ceil(vw*Q)),h=Ma
  const g=RS.sg;g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.fillStyle=rsSeaBase();g.fillRect(0,0,w,h);
  if(!(RS.dbg&1)){if(!RS.pat){RS.pat=g.createPattern(rsTile(256,77,false),'repeat');RS.pat2=g.createPattern(rsTile(256,191,true),'repeat');}
   const wdx=Math.cos(wind.dir),wdy=Math.sin(wind.dir);
-  for(const [p,sc,sp,al] of [[RS.pat,2.2,5,1],[RS.pat2,1,11,0.9]]){const z=zoom*sc*Q,T=256*z;
+  for(const [p,sc,sp,al] of (RS.low?[[RS.pat2,1.4,8,1]]:[[RS.pat,2.2,5,1],[RS.pat2,1,11,0.9]])){const z=zoom*sc*Q,T=256*z;
    let ox=((vw/2-cam.x*zoom-wdx*ts*sp*zoom)*Q)%T,oy=((vh/2-cam.y*zoom-wdy*ts*sp*zoom)*Q)%T;if(ox>0)ox-=T;if(oy>0)oy-=T;
    g.setTransform(z,0,0,z,ox,oy);g.globalAlpha=al;g.fillStyle=p;g.fillRect(0,0,(w-ox)/z+2,(h-oy)/z+2);}
   g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;}
  if(!(RS.dbg&2))g.drawImage(RS.vig,0,0);
- ctx.imageSmoothingEnabled=!(RS.dbg&8);ctx.drawImage(RS.sc,0,0,vw,vh);ctx.imageSmoothingEnabled=true;}
+ ctx.imageSmoothingEnabled=!(RS.dbg&8)&&!RS.low;ctx.drawImage(RS.sc,0,0,vw,vh);ctx.imageSmoothingEnabled=true;}
 function rsLight(){}
 // ---- ships: cached detailed hull sprite (planking, rails, cannons, rigging, wear) + shaded sails drawn live
 function rsHull(g,L,W,d){g.beginPath();g.moveTo(L/2-d*1.4,0);g.quadraticCurveTo(L*0.28,-W/2+d,-L*0.32,-W/2+d);g.lineTo(-L/2+d,-W*0.36+d*0.5);g.lineTo(-L/2+d,W*0.36-d*0.5);g.lineTo(-L*0.32,W/2-d);g.quadraticCurveTo(L*0.28,W/2-d,L/2-d*1.4,0);g.closePath();}
@@ -4481,6 +4481,80 @@ function rsDrawShip(s,sail,flag,thr){if(RS.dbg&4)return RS.old(s,sail,flag,thr);
  else{ctx.fillStyle=flag;ctx.beginPath();ctx.moveTo(fm,0);ctx.lineTo(fm-11,-3+Math.sin(perfT*0.008+s.x)*2);ctx.lineTo(fm-11,4);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=0.5;ctx.stroke();}
  ctx.restore();ctx.globalAlpha=1;}
 RS.old=drawShip;drawShip=rsDrawShip;
+
+// ===== module P: polish — graphics setting (auto Low), Cloud Save & Recovery screen, founder DB check, badge layout =====
+// ---- Graphics: High / Low / Auto (device setting, not part of the save). Low = cheaper sea blit + fewer foam particles.
+const GFXK='pirateSeas_gfx';
+const GFX={mode:'auto',auto:'high',n:0,t0:0,bad:0,last:0,skip:0};
+try{GFX.mode=localStorage.getItem(GFXK)||'auto';GFX.auto=localStorage.getItem(GFXK+'_auto')||'high';}catch(e){}
+function gfxLow(){return GFX.mode==='low'||(GFX.mode==='auto'&&GFX.auto==='low');}
+function gfxApply(){RS.low=gfxLow();}
+function gfxSet(m){GFX.mode=m;try{localStorage.setItem(GFXK,m);}catch(e){}if(m==='auto'){GFX.auto='high';GFX.bad=0;try{localStorage.removeItem(GFXK+'_auto');}catch(e){}}gfxApply();}
+gfxApply();
+// auto: measure real frame rate while sailing; 3 consecutive seconds under 40 fps -> switch to Low (remembered on this device)
+function gfxTick(){const now=performance.now();if(GFX.mode!=='auto'||GFX.auto==='low')return;
+ if(state!=='play'||document.hidden){GFX.t0=0;return;}
+ if(!GFX.t0||now-GFX.last>250){GFX.t0=now;GFX.n=0;GFX.last=now;return;}GFX.last=now;GFX.n++;
+ if(now-GFX.t0>=1000){const fps=GFX.n*1000/(now-GFX.t0);GFX.t0=now;GFX.n=0;if(GFX.skip<2){GFX.skip++;return;}
+  GFX.bad=fps<40?GFX.bad+1:0;if(GFX.bad>=3){GFX.auto='low';try{localStorage.setItem(GFXK+'_auto','low');}catch(e){}gfxApply();toast('⚙️ Graphics set to Low for smoother sailing (☰ Menu → Graphics)');}}}
+GH.draw.push(gfxTick);
+{const _ap=addPart;addPart=function(type,x,y,vx,vy,life,size,color){if(RS.low&&(type==='foam'||type==='wake')&&Math.random()<0.5)return;return _ap(type,x,y,vx,vy,life,size,color);};}
+function gfxLabel(){return GFX.mode==='auto'?`Auto (now ${gfxLow()?'Low':'High'})`:GFX.mode==='low'?'Low':'High';}
+// ---- Cloud Save & Recovery screen (online captains)
+(()=>{const st=document.createElement('style');st.textContent=`#oCloud{position:fixed;inset:0;z-index:130;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:12px}#oCloud.hidden{display:none}
+#oCloud .panel{max-width:360px;width:100%;padding:14px 16px;text-align:left;max-height:92vh;overflow:auto}#oCloud h3{margin:0 0 8px;font-size:19px}#oCloud .ocCode{font:700 15px/1.35 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.3px;white-space:nowrap;text-align:center;padding:8px;margin:8px 0;border:1.5px dashed #8a6a3a;border-radius:8px;background:rgba(255,248,225,.55);user-select:all;-webkit-user-select:all;word-break:break-all}
+#oCloud .ocRow{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}#oCloud .ocRow>*{flex:1 1 auto}#oCloud input{min-width:0;padding:8px;font:600 15px ui-monospace,monospace;border-radius:8px;border:1.5px solid #8a6a3a;background:#fffaf0;text-transform:uppercase}#oCloud .ocSt{min-height:18px;font-size:13px;margin-top:4px}#oCloud small{display:block;opacity:.85;line-height:1.35}#oCloud .ocHi{padding:8px;border-radius:8px;background:rgba(176,138,74,.18);border:1px solid rgba(176,138,74,.6);margin-bottom:6px;font-size:14px}`;document.head.appendChild(st);
+ const d=document.createElement('div');d.id='oCloud';d.className='hidden';d.innerHTML='<div class="panel" id="ocP"></div>';document.body.appendChild(d);
+ d.addEventListener('pointerdown',e=>{if(e.target===d)ocClose();});})();
+let ocPrev=null;
+function ocClose(){$('oCloud').classList.add('hidden');if(ocPrev==='play'&&state==='menu')state='play';ocPrev=null;}
+function ocCopy(t){const ok=()=>{const s=$('ocSt');if(s)s.textContent='✅ Copied — paste it somewhere safe (notes, email to yourself).';};
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,()=>ocCopyOld(t,ok));return;}}catch(e){}ocCopyOld(t,ok);}
+function ocCopyOld(t,ok){try{const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();ok();}catch(e){const s=$('ocSt');if(s)s.textContent='Select the code above and copy it.';}}
+function ocOpen(prompt){if(!ONLINE)return;const d=$('oCloud');if(state==='play'){ocPrev='play';state='menu';}d.classList.remove('hidden');ocRender(prompt);
+ if(!OC.ready)ocSync().then(()=>{if(!d.classList.contains('hidden'))ocRender(prompt);}).catch(e=>{const s=$('ocSt');if(s)s.textContent='❌ '+mpLErr(e);});}
+function ocRender(prompt){const p=$('ocP');const code=OC.ready&&OC.k?mpFmtCode(OC.k):'';
+ p.innerHTML=`<h3>☁️ Cloud Save &amp; Recovery</h3>${prompt?`<div class="ocHi">⚓ <b>Save your recovery code now.</b> It's the only way to get this online captain back on a new phone or browser.</div>`:''}
+ <small>Online captain · Lv${S.clvl} · 💰${ocGold()} — saved to the cloud automatically. Your offline captain is separate and stays on this device.</small>
+ ${code?`<div class="ocCode" id="ocCode">${code}</div><div class="ocRow"><button class="b green" id="ocCopy">📋 Copy code</button><button class="b" id="ocUp">⬆️ Save now</button></div><small>Anyone with this code can load the captain — keep it private.</small>`:`<div class="ocCode">Connecting…</div>`}
+ <div class="ocSt" id="ocSt"></div>
+ <div style="margin-top:10px"><b>🔄 Restore on this device</b><small>Enter a recovery code to load that online captain here. Replaces the online captain in this browser (offline captain untouched).</small></div>
+ <div class="ocRow"><input id="ocIn" placeholder="XXXX-XXXX-…" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="b" id="ocGo">Restore</button></div><div class="ocSt" id="ocRSt"></div>
+ <div class="ocRow"><button class="b" id="ocX">${prompt?'✅ I saved it':'Close'}</button></div>`;
+ if(prompt){S.oRcP=1;save();}
+ if($('ocCopy'))$('ocCopy').onclick=()=>ocCopy(OC.k);
+ if($('ocUp'))$('ocUp').onclick=async()=>{const s=$('ocSt');s.textContent='⏳ Saving…';s.textContent=(await ocUp(true))?'✅ Saved to the cloud.':'❌ Not saved yet ('+(/permission/i.test(OC.err)?'too much progress at once — retrying soon':OC.err||'offline')+').';};
+ $('ocX').onclick=ocClose;const inp=$('ocIn');['keydown','keyup','keypress'].forEach(t=>inp.addEventListener(t,e=>e.stopPropagation()));
+ $('ocGo').onclick=async()=>{const st=$('ocRSt');if(OC.k&&ocNorm(inp.value)===OC.k){st.textContent='That is already this captain.';return;}st.textContent='⏳ Fetching…';try{const [k,v]=await ocGet(inp.value);
+  if(k===OC.k){st.textContent='That is already this captain.';return;}
+  st.innerHTML=`Load this online captain? Lv${v.lv|0} · 💰${v.g|0}<br><b>Replaces the online captain in this browser.</b><br><button class="b green" id="ocYes">Yes, load it</button>`;
+  $('ocYes').onclick=async()=>{st.textContent='⏳ Loading…';try{await ocRestore(k);}catch(e){st.textContent='❌ '+mpLErr(e);}};}catch(e){st.textContent='❌ '+mpLErr(e);}};}
+// one-time prompt: after the first online session (on leaving it), or after 4 min of online sailing
+const RCPK='pirateSeas_rcp';
+{const _lv=mpLeave;mpLeave=async function(s){if(ONLINE&&MPX.on&&!S.oRcP){try{sessionStorage.setItem(RCPK,'1');}catch(e){}}return _lv(s);};mpApi.mpLeave=mpLeave;}
+GH.tick.push(dt=>{if(!ONLINE||S.oRcP||!MPX.on||!OC.ready||!OC.k)return;S.oOnT=(S.oOnT||0)+dt;
+ if(S.oOnT>240&&state==='play'&&$('tipBox').classList.contains('hidden')&&!T.on&&!hullLocked())ocOpen(true);});
+function ocBootPrompt(){let f=false;try{f=!!sessionStorage.getItem(RCPK);sessionStorage.removeItem(RCPK);}catch(e){}if(f&&ONLINE&&!S.oRcP)setTimeout(()=>ocOpen(true),900);}
+// ---- Founding Captain: also check the DB for this browser's pre-change online activity (weekly leaderboard / market)
+const OFOUND_TS=1792708631000+10*60000;
+async function oFounderDb(){if(!ONLINE||S.founder||S.oFdb||!S.oFresh)return;try{if(localStorage.getItem('pirateSeas_founder'))return;}catch(e){}
+ await fbLoad();const {D,db}=MPX.fb,uid=MPX.uid;if(!uid)return;let hit=false;
+ for(const w of [nxWeek(),nxWeek(-1)]){try{const r=await D.get(mpR('lb/'+w+'/'+uid));if(r.exists()&&(r.val().t||0)<OFOUND_TS){hit=true;break;}}catch(e){}}
+ if(!hit){try{const q=await D.get(D.query(D.ref(db,'mk'),D.orderByChild('s'),D.equalTo(uid)));q.forEach(c=>{if(((c.val()||{}).t||0)<OFOUND_TS)hit=true;});}catch(e){}}
+ S.oFdb=1;if(hit){oFounderGrant();}save();if(hit){ocUp(true).catch(()=>{});
+  const d=document.createElement('div');d.id='oNote';d.innerHTML=`<div class="panel"><b>⚓ Founding Captain!</b>You sailed online on launch day.<div class="oFound">Exclusive Founding Captain flag &amp; sails + 100☠ Infamy added.</div><br><button class="big" id="oNoteOk2">Aye!</button></div>`;document.body.appendChild(d);$('oNoteOk2').onclick=()=>d.remove();}}
+{const _s=ocSync;ocSync=function(){return _s().then(r=>{oFounderDb().catch(()=>{});return r;});};}
+// ---- boarding badge: never sit on top of the online lobby pill (joiners)
+let pLockForce=false;{const _h=hullLocked;hullLocked=function(){return pLockForce||_h();};}
+function pLockTest(v){pLockForce=!!v;}
+function pLockTop(hb){let t=hb+5;const pl=$('mpPill'),b=$('hullLock');if(pl&&!pl.classList.contains('hidden')&&b){const r=pl.getBoundingClientRect(),w=b.offsetWidth||190,x0=window.innerWidth/2-w/2;
+ if(r.width&&r.right>x0-4&&r.bottom>t-2&&r.top<t+26)t=Math.round(r.bottom)+6;}return t;}
+// ---- title (online): obvious entry point
+function ocTitleBtn(){if(!ONLINE)return;const tf=document.querySelector('#title .tfoot');if(tf&&!$('ocTBtn')){const b=document.createElement('button');b.className='big';b.id='ocTBtn';b.style.flex='1 1 100%';b.textContent='☁️ Cloud Save & Recovery';b.onclick=()=>{initAudio();ocOpen(false);};tf.appendChild(b);}}
+function pMenuTop(){return ONLINE?row('☁️ Cloud Save & Recovery','View / copy your recovery code, or restore your online captain on a new device.',btn('ocloud','Open',true)):'';}
+function pMenuRows(){return row('⚙️ Graphics',`${gfxLabel()} — Low draws a cheaper sea and fewer foam particles for smoother play on slower phones.`,btn('gfx',GFX.mode==='auto'?'High':GFX.mode==='high'?'Low':'Auto',true));}
+function pAct(a){if(a==='ocloud'){$('menu').classList.add('hidden');state='play';ocOpen(false);return true;}
+ if(a==='gfx'){gfxSet(GFX.mode==='auto'?'high':GFX.mode==='high'?'low':'auto');renderMenu();return true;}return false;}
 
 // ===== Visual restyle part 2: islands, ports, forts, loot (all cached sprites) =====
 function rsPalm(g,x,y,s,R){// top-down palm: shadow, trunk crown, fronds with lit midribs
@@ -4612,7 +4686,7 @@ function rsMapBtn(b){const g=ctx.createRadialGradient(b.x-6,b.y-7,2,b.x,b.y,22);
  g.strokeStyle='rgba(200,180,130,0.08)';g.lineWidth=1;for(let i=0;i<=MAPRES;i+=MAPRES/12){g.beginPath();g.moveTo(i,0);g.lineTo(i,MAPRES);g.moveTo(0,i);g.lineTo(MAPRES,i);g.stroke();}})();
 
 readSafe();const hadSave=load();if(!(S.bal>=2)){S.bal=2;if(hadSave){S.crew=Math.max(S.crew,10);recalc();S.hp=ST.maxHp;}}recalc();P.x=S.x;P.y=S.y;P.h=S.h;P.hp=clamp(S.hp||ST.maxHp,1,ST.maxHp);cam.x=P.x;cam.y=P.y;lastCam.x=cam.x;lastCam.y=cam.y;rebuildFog();applyCos();populate();placeFleet();
-if(hadSave)$('startBtn').textContent='⛵ Continue voyage';oBoot(hadSave);
+if(hadSave)$('startBtn').textContent='⛵ Continue voyage';oBoot(hadSave);ocTitleBtn();ocBootPrompt();
 updateAutoBtn();
 try{if(sessionStorage.getItem('pirateSeas_imported')){sessionStorage.removeItem('pirateSeas_imported');$('titleMsg').textContent='✅ Save imported — welcome back, Captain!';$('titleMsg').classList.remove('hidden');}}catch(e){}
 $('startBtn').addEventListener('click',()=>{initAudio();if(!hadSave&&!S.seen)countHit('newgames');$('title').classList.add('hidden');state='play';S.seen=true;if(!S.tutDone)tutStart(hadSave?tutResumeIdx(S.tutStep|0):0);save();});
@@ -4623,7 +4697,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});w
 requestAnimationFrame(frame);
 setTimeout(()=>{(window.requestIdleCallback||(f=>f()))(countLoad);},2500);
 // test hook
-window.__game={GRIND:{RES,resN,resGain,CT,COMP,CTIER,CBON,cTier,craftCost,craftChance,craftTry,MXP,MPERK,mastLvl,mastGain,CREWR,TRAITS,RARECREW,crewCap,crewEff,recruitsAt,crewHire,crewXP,crewHurt,crewWage,grindRecalc,ramTick,grindPortAct,grindSunk,grindTick,grindEv,grindMigrate,GH,WX,wxSet,wxDark,wxNight,wxFog,wxStorm,wxTick,dayPhase,DAYLEN,grindLootK,FISH,ART,SHIPCX,CXCAT,codexAdd,codexSet,codexHTML,cxHave,fishStart,fishCatch,fishPool,wrecks,diveStart,diveFresh,wreckNear,grindActLabel,grindActTap,get MG(){return MG},mgEnd,setDate:d=>{DOV=d;},ctrRoll,ctrEv,ctrClaim,CTPL,marks,markGain,BMI,bmBuy,EVENTS,evActive,evNext,evS,evTick,evSunk,evClaim,evSummon,boardHTML,boardAct,FUP,VT,VN,fvl,fRep,fBase,fRecalc,fSpd,fRel,fRepMin,fUpCost,fRefitCost,fRefitCh,fRushCost,fleetLayUp,fUpgrade,fRefit,fRush,fDone,fleetTickD,fleetSunkD,fleetCards,get fleetEnts(){return fleet},damageFleet:(f,x)=>damageFleet(f,x),syncFleet:()=>syncFleet(),thrCap,thrEff,thrSet,thrStep,thrStop,thrFull,thrUI,hullLocked,BRMAX,GRAP_CD,MPX,mpApi,NX,nxApi,ONLINE,OEC,OC,ocSync,ocUp,ocRestore,ocGet,oSetMode,RS,rsShipSprite},STORY:{CH,SQ,SQI,ACTS,chBegin,storyPortAct,storyMenuAct,actives,storyTick,sLoc,journalHTML,storyEv,chAvail,sNext,bossTick,stepTxt,sDockCheck,get SQUE(){return SQUE},storyMigrate},HARD:{FORTS,vetTag,waterNear:(x,y,a,b)=>waterNear(x,y,a,b),applyCls,pickCls,havenDist,ironK,ironTick,squadTick,CLS,foeCrewK,hardSunk,megaSunk,hardTargets,get FRT(){return FRT},fortRT,ledgerHTML,threat,scaleFoe,matGain,matN,upkRates,upkSettle,upkOwed,LEGENDS,legAccept,legTick,ebTick,EBOSS,ebPt,fragGain,grandSpot,SREG:SREGP,regionAt,warCan,KT,krakenTick,perkCost,gearMat,upMat,HULLMAT,deathRepair,portOpen,playerDied:()=>playerDied(),captureFort,fortEconomy:dt=>fortEconomy(dt),get curFort(){return curFort}},ECON:{ECO,ecoTick,hotOk,mk:()=>mk(),dayLeft,price,sellPrice,basePrice,pres,capLeft,capOf,hotAt,ftCost,ftWait,cargoVal,xpNeed,xpNeedV1,xpTot,sellTotal,get curPort(){return curPort},portAction:(a,b)=>portAction(a,b),fastTravel,renderPort},B:BRAPI,get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
+window.__game={GRIND:{RES,resN,resGain,CT,COMP,CTIER,CBON,cTier,craftCost,craftChance,craftTry,MXP,MPERK,mastLvl,mastGain,CREWR,TRAITS,RARECREW,crewCap,crewEff,recruitsAt,crewHire,crewXP,crewHurt,crewWage,grindRecalc,ramTick,grindPortAct,grindSunk,grindTick,grindEv,grindMigrate,GH,WX,wxSet,wxDark,wxNight,wxFog,wxStorm,wxTick,dayPhase,DAYLEN,grindLootK,FISH,ART,SHIPCX,CXCAT,codexAdd,codexSet,codexHTML,cxHave,fishStart,fishCatch,fishPool,wrecks,diveStart,diveFresh,wreckNear,grindActLabel,grindActTap,get MG(){return MG},mgEnd,setDate:d=>{DOV=d;},ctrRoll,ctrEv,ctrClaim,CTPL,marks,markGain,BMI,bmBuy,EVENTS,evActive,evNext,evS,evTick,evSunk,evClaim,evSummon,boardHTML,boardAct,FUP,VT,VN,fvl,fRep,fBase,fRecalc,fSpd,fRel,fRepMin,fUpCost,fRefitCost,fRefitCh,fRushCost,fleetLayUp,fUpgrade,fRefit,fRush,fDone,fleetTickD,fleetSunkD,fleetCards,get fleetEnts(){return fleet},damageFleet:(f,x)=>damageFleet(f,x),syncFleet:()=>syncFleet(),thrCap,thrEff,thrSet,thrStep,thrStop,thrFull,thrUI,hullLocked,BRMAX,GRAP_CD,MPX,mpApi,NX,nxApi,ONLINE,OEC,OC,ocSync,ocUp,ocRestore,ocGet,oSetMode,RS,rsShipSprite,GFX,gfxSet,gfxLow,ocOpen,ocClose,oFounderDb,pLockTop,pLockTest,OFOUND_TS},STORY:{CH,SQ,SQI,ACTS,chBegin,storyPortAct,storyMenuAct,actives,storyTick,sLoc,journalHTML,storyEv,chAvail,sNext,bossTick,stepTxt,sDockCheck,get SQUE(){return SQUE},storyMigrate},HARD:{FORTS,vetTag,waterNear:(x,y,a,b)=>waterNear(x,y,a,b),applyCls,pickCls,havenDist,ironK,ironTick,squadTick,CLS,foeCrewK,hardSunk,megaSunk,hardTargets,get FRT(){return FRT},fortRT,ledgerHTML,threat,scaleFoe,matGain,matN,upkRates,upkSettle,upkOwed,LEGENDS,legAccept,legTick,ebTick,EBOSS,ebPt,fragGain,grandSpot,SREG:SREGP,regionAt,warCan,KT,krakenTick,perkCost,gearMat,upMat,HULLMAT,deathRepair,portOpen,playerDied:()=>playerDied(),captureFort,fortEconomy:dt=>fortEconomy(dt),get curFort(){return curFort}},ECON:{ECO,ecoTick,hotOk,mk:()=>mk(),dayLeft,price,sellPrice,basePrice,pres,capLeft,capOf,hotAt,ftCost,ftWait,cargoVal,xpNeed,xpNeedV1,xpTot,sellTotal,get curPort(){return curPort},portAction:(a,b)=>portAction(a,b),fastTravel,renderPort},B:BRAPI,get state(){return state},get S(){return S},P,ST:()=>ST,enemies,PORTS,dock,leavePort,fire,setTab:t=>{tab=t;renderPort();},start:()=>$('startBtn').click(),step:dt=>update(dt),makeEnemy,lvlAt,inAnyIsland,recalc,nearSafePort,setS:o=>{S=o;},makeCode,toggleAuto,get autoTgt(){return autoTgt},balls,parseCode,openXfer,setState:s=>state=s,boost,sharks,fleet,seize,makeShark,SHARKZ,updateFleet,syncFleet,payWages,chum,stars,addHeat,board,tryDock,spawnNavy,spawnMerchant,get boardTgt(){return boardTgt},T,TSTEPS,tutStart,loot,get tab(){return tab},get nearPort(){return nearPort},genQuest,genQ,grantXP,learn,lvlFromXp,HULLS,buyHull,missionTick,cways,get actQ(){return actQ},startDig,dockQuests,completeQuest,qTarget,progTick,ACH,renderPort,offersFor,trackHUD,renderMenu,openMenu,setMView:v=>{mView=v;renderMenu();},sharkKillQuest,makeTreasureQ,load,X:EXP};
 })();
 </script>
 </body>
