@@ -1,8 +1,10 @@
-# Multiplayer test against the REAL Firebase project (pirate-seas-jonnah). 6 headless clients by default; --stress = 16 (+1 overflow).
+# Multiplayer test against the REAL Firebase project (pirate-seas-jonnah). 6 headless clients by default; --stress = 20 humans + 4 AI captains (+1 overflow).
 import sys,json,time,random
 from playwright.sync_api import sync_playwright
+sys.path.insert(0,'/workspace/tools/pg');import mpclean  # removes this run's own oc/ou/lb test records at exit
 import os;URL=os.environ.get('MPURL','http://127.0.0.1:8765/index.html');OUT='/workspace/pirate-game/screenshots-mp/'
-STRESS='--stress' in sys.argv;N=16 if STRESS else 6
+STRESS='--stress' in sys.argv;N=20 if STRESS else 6
+BOTS=STRESS or os.environ.get('BOTS')=='1'  # AI captains run on the lobby host; off in the feature suites for determinism (test_mpq covers bots)
 fails=[];errs=[]
 def chk(c,m):
     print(('PASS ' if c else 'FAIL ')+m,flush=True)
@@ -14,10 +16,11 @@ LEVEL="(l=>{const g=__game;let need=0;for(let k=1;k<l;k++)need+=g.X.xpNeed(k);g.
 SEA=(12000,9500)
 def client(b,i,touch=True):
     ctx=b.new_context(viewport={'width':390,'height':844},is_mobile=touch,has_touch=touch,device_scale_factor=1)
+    mpclean.attach(ctx)
     pg=ctx.new_page();tag=f'c{i}'
     pg.on('pageerror',lambda e,t=tag:errs.append(f'{t} pageerror {e}'))
     pg.on('console',lambda m,t=tag:(m.type=='error' and errs.append(f'{t} console {m.text[:160]}')))
-    s=dict(SAVE);pg.add_init_script("if(!sessionStorage.getItem('inj')){sessionStorage.setItem('inj','1');sessionStorage.setItem('pirateSeas_mode','online');localStorage.setItem('pirateSeas_onNotice','1');localStorage.setItem('pirateSeas_online_v1',JSON.stringify(%s));}"%json.dumps(s))
+    s=dict(SAVE);pg.add_init_script("if(!sessionStorage.getItem('inj')){sessionStorage.setItem('inj','1');sessionStorage.setItem('pirateSeas_mode','online');localStorage.setItem('pirateSeas_onNotice','1');%slocalStorage.setItem('pirateSeas_online_v1',JSON.stringify(%s));}"%("" if BOTS else "localStorage.setItem('pirateSeas_qbOff','1');",json.dumps(s)))
     pg.goto(URL+'?t=1');pg.wait_for_timeout(500);return ctx,pg
 SEEDED=[]
 def seed(pgs,lvl=12):
@@ -31,7 +34,7 @@ def seed(pgs,lvl=12):
         k=''.join(random.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') for _ in range(24))
         v=E(pg,"(()=>{const S=__game.S;return {lv:S.clvl,g:Math.floor((S.gold||0)+(S.vault||0)),x:Math.floor(S.xp||0)}})()")
         v.update({'u':uid,'t':int(time.time()*1000),'d':'','n':'test'});up['oc/'+k]=v;up['ou/'+uid]=k
-        E(pg,f"(()=>{{__game.S.oc={{k:'{k}'}};}})()");SEEDED.append(pg)
+        E(pg,f"(()=>{{__game.S.oc={{k:'{k}'}};}})()");SEEDED.append(pg);mpclean.key(k);mpclean._cb(uid,'')
     open('/tmp/mpseed.json','w').write(json.dumps(up))
     r=subprocess.run('cd /workspace/pirate-game/firebase && npx -y firebase-tools@latest database:update / /tmp/mpseed.json -f --project pirate-seas-jonnah',shell=True,capture_output=True,text=True,timeout=120)
     chk(r.returncode==0,f'seeded {len(pgs)} Lv{lvl} online test captains in the cloud')
@@ -68,7 +71,7 @@ with sync_playwright() as p:
     lst=E(pgs[1],"async()=>{const G=__game.GRIND;return (await G.mpApi.mpList()).map(l=>[l.lid,l.n])}")
     chk(any(l[0]==lid for l in lst),f'lobby listed in browser for B: {[l for l in lst if l[0]==lid]}')
     pgs[1].tap('#mpBtn');waitf(pgs[1],"document.querySelector('#mpList .mpLob')",15000);pgs[1].fill('#mpName','Black Jack');pgs[1].wait_for_timeout(300);pgs[1].screenshot(path=OUT+'01_lobby_browser.png');E(pgs[1],"document.getElementById('mpLX').click()")
-    names=['Iron Anne','Black Jack','Calico Kate','Salty Pete','Mad Meg','Long Tom','Red Ned','Grey Ghost','Bloody Mary','Scurvy Sam','Gent Ned','Barnacle Bill','Rum Rosa','One Eye','Hook Hal','Sea Wolf','Overflow']
+    names=['Iron Anne','Black Jack','Calico Kate','Salty Pete','Mad Meg','Long Tom','Red Ned','Grey Ghost','Bloody Mary','Scurvy Sam','Gent Ned','Barnacle Bill','Rum Rosa','One Eye','Hook Hal','Sea Wolf','Jolly Roz','Gunner Gil','Tide Tess','Bilge Bo','Overflow']
     for i in range(1,N):
         r=join(pgs[i],lid,names[i]);start(pgs[i]);
         if i<6:place(pgs[i],SEA[0]+i*40,SEA[1]+400+i*30)
@@ -80,9 +83,10 @@ with sync_playwright() as p:
     slots=E(A,"async()=>{const G=__game.GRIND,D=G.MPX.fb.D;const s=(await D.get(D.ref(G.MPX.fb.db,'lob/'+G.MPX.lid+'/s'))).val()||{};return Object.values(s).filter(Boolean).length}")
     chk(slots==N,f'server slots used = {slots}')
     if STRESS:
-        r=join(pgs[0].context.new_page() if False else pgs[1],lid,'Overflow') if False else None
+        ok=waitf(A,"__game.GRIND.qbCount()===4&&!!__game.GRIND.QB.sim",15000);chk(ok,f'host runs 4 AI captains alongside 20 humans (24 ships): {E(A,"__game.GRIND.qbCount()")} bots')
+        ok=waitf(pgs[-1],"__game.GRIND.qbCount()===4",15000);chk(ok,'last joiner also sees the 4 AI captains')
         ctx17,p17=client(b,99);r=join(p17,lid,'Overflow')
-        chk('FULL' in str(r),f'17th captain rejected from full lobby: {r}')
+        chk('FULL' in str(r),f'21st human captain rejected from full lobby (20 humans + 4 bots): {r}')
         q=E(p17,"async()=>{const G=__game.GRIND;await G.mpApi.mpQuick();return G.MPX.lid}")
         chk(q!=lid,f'Quick Join with the lobby full auto-creates/joins another lobby ({q})')
         E(p17,"__game.GRIND.mpApi.mpLeave(true)");p17.wait_for_timeout(800);ctx17.close()
@@ -199,7 +203,7 @@ with sync_playwright() as p:
     # fps check with everyone on screen
     fps=E(A,"new Promise(r=>{let n=0;const t0=performance.now();function f(){n++;if(performance.now()-t0<3000)requestAnimationFrame(f);else r(n/3)}requestAnimationFrame(f)})")
     print('fps on A with',len(live)-1,'remote ships nearby:',round(fps,1))
-    A.screenshot(path=OUT+('09_stress16.png' if STRESS else '09_cluster.png'))
+    A.screenshot(path=OUT+('09_stress20.png' if STRESS else '09_cluster.png'))
     # --- leave + lobby GC ---
     for pg in pgs:
         if not pg.is_closed():E(pg,"__game.GRIND.mpApi.mpLeave(true)")

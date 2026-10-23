@@ -50,7 +50,7 @@
     "s": {
      "$slot": {
       ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid && newData.parent().parent().child('u/' + auth.uid).val() === $slot && newData.parent().parent().child('m').exists()) || (data.exists() && !newData.exists() && (data.val() === auth.uid || newData.parent().parent().child('u/' + data.val()).val() !== $slot || !newData.parent().parent().child('p/' + data.val() + '/hb').exists() || newData.parent().parent().child('p/' + data.val() + '/hb').val() < now - 90000)))",
-      ".validate": "$slot.matches(/^([0-9]|1[0-5])$/) && newData.isString() && newData.val() === auth.uid"
+      ".validate": "$slot.matches(/^([0-9]|1[0-9])$/) && newData.isString() && newData.val() === auth.uid"
      }
     },
     "u": {
@@ -177,7 +177,7 @@
     },
     "k": {
      "$kid": {
-      ".write": "auth != null && ((!data.exists() && newData.child('v').val() === auth.uid && root.child('lob/' + $lid + '/p/' + auth.uid).exists()) || (!newData.exists() && data.child('t').val() < now - 300000))",
+      ".write": "auth != null && ((!data.exists() && newData.child('v').isString() && newData.child('v').val().matches(/^B[0-3]$/) && root.child('lob/' + $lid + '/p/' + auth.uid).exists()) || (!data.exists() && newData.child('v').val() === auth.uid && root.child('lob/' + $lid + '/p/' + auth.uid).exists()) || (!newData.exists() && data.child('t').val() < now - 300000))",
       ".validate": "newData.hasChildren(['a', 'v', 'b', 't'])",
       "a": {
        ".validate": "newData.isString() && newData.val().length <= 40"
@@ -303,7 +303,7 @@
     "wb": {
      "$eid": {
       "$uid": {
-       ".write": "auth != null && $uid === auth.uid && root.child('lob/' + $lid + '/p/' + auth.uid).exists() || (!newData.exists() && auth != null && root.child('lob/' + $lid + '/w/e/id').val() !== $eid)",
+       ".write": "(auth != null && $uid === auth.uid && root.child('lob/' + $lid + '/p/' + auth.uid).exists() || (!newData.exists() && auth != null && root.child('lob/' + $lid + '/w/e/id').val() !== $eid)) || (auth != null && $uid.matches(/^B[0-3]$/) && root.child('lob/' + $lid + '/p/' + auth.uid).exists())",
        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5000000 && (!data.exists() || newData.val() >= data.val())"
       }
      }
@@ -456,6 +456,64 @@
          ".validate": false
         }
        }
+      },
+      "$other": {
+       ".validate": false
+      }
+     }
+    },
+    "bt": {
+     ".write": "auth != null && root.child('lob/' + $lid + '/p/' + auth.uid).exists()",
+     ".validate": "newData.isString() && newData.val().length <= 480"
+    },
+    "bp": {
+     ".write": "auth != null && root.child('lob/' + $lid + '/p/' + auth.uid).exists()",
+     "$bid": {
+      ".validate": "$bid.matches(/^B[0-3]$/) && newData.hasChildren(['n','l','h'])",
+      "n": {
+       ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 16"
+      },
+      "l": {
+       ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 60"
+      },
+      "h": {
+       ".validate": "newData.isString() && newData.val().length <= 10"
+      },
+      "c": {
+       ".validate": "newData.isString() && newData.val().length <= 60"
+      },
+      "g": {
+       ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+      },
+      "rg": {
+       ".validate": "newData.isNumber() && newData.val() >= 100 && newData.val() <= 2000"
+      },
+      "b": {
+       ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000"
+      },
+      "k": {
+       ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000"
+      },
+      "$other": {
+       ".validate": false
+      }
+     }
+    },
+    "bh": {
+     "$k": {
+      ".write": "auth != null && ((!data.exists() && newData.child('a').val() === auth.uid && root.child('lob/' + $lid + '/p/' + auth.uid).exists() && newData.parent().parent().child('hr/' + auth.uid).val() === now) || (!newData.exists() && root.child('lob/' + $lid + '/p/' + auth.uid).exists()))",
+      ".validate": "newData.hasChildren(['a','v','d','t'])",
+      "a": {
+       ".validate": "newData.isString() && newData.val().length <= 40"
+      },
+      "v": {
+       ".validate": "newData.isString() && newData.val().matches(/^B[0-3]$/)"
+      },
+      "d": {
+       ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 400"
+      },
+      "t": {
+       ".validate": "newData.val() === now"
       },
       "$other": {
        ".validate": false
